@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">DocuNote</string>
     <string name="handNotes">Hand Notes</string>
+    <string name="openpdf">Open PDF</string>
+    <string name="createpdf">Create PDF</string>
+    <string name="mergepdf">Merge PDF</string>
+    <string name="splitpdf">Split PDF</string>
+    <string name="encryptpdf">Encrypt PDF</string>
+    <string name="editpdf">Edit PDF</string>
 </resources>
