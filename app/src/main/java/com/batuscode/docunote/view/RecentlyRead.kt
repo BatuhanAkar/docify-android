@@ -2,6 +2,7 @@ package com.batuscode.docunote.view
 
 import android.content.Intent
 import android.text.EmojiConsistency
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalButton
@@ -33,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -74,15 +77,19 @@ fun RecentlyRead(appViewModel: AppViewModel){
 
     val files = appViewModel.recentlyList.collectAsState()
 
-    var exfList = remember {
+    val exfList1 = remember {
         mutableListOf<File>()
     }
 
-    val file = File("","Elektromanyetik Alanlar")
+    exfList1.clear()
+    val file = File("", stringResource(R.string.recently_read_item1))
+    val file2 = File("", stringResource(R.string.recently_read_item2))
 
 
-    exfList.add(file)
+    exfList1.add(0,file)
+    exfList1.add(1,file2)
 
+    Log.d("exfilelist" , "size :: " + exfList1.size)
 
     Column(
         modifier = Modifier
@@ -121,8 +128,8 @@ fun RecentlyRead(appViewModel: AppViewModel){
                         .padding(vertical = 10.dp)
                 )
                 {
-                    exfList.forEach {
-                        item ->
+                    exfList1.forEachIndexed{
+                        index , item ->
 
                         ElevatedCard(
                             onClick = {
@@ -172,7 +179,11 @@ fun RecentlyRead(appViewModel: AppViewModel){
 
                     Spacer(modifier = Modifier.height(40.dp))
 
-                    FilledTonalButton(onClick = {
+                    FilledTonalButton(
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = colorResource(R.color.modified)
+                        ),
+                        onClick = {
 
                         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT ).apply {
                             addCategory(Intent.CATEGORY_OPENABLE)
@@ -192,7 +203,7 @@ fun RecentlyRead(appViewModel: AppViewModel){
                                 .size(32.dp)
                                 .zIndex(1f)
                         )
-                        Text(text = stringResource(R.string.opendocument))
+                        Text(text = stringResource(R.string.opendocument) , color = Color.White)
                     }
 
                 }

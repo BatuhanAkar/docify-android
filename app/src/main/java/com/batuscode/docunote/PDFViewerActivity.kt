@@ -17,6 +17,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
@@ -499,6 +500,7 @@ fun ViewerFlow(pageStates: MutableList<MutableState<DrawingState>> , pdfViewerAc
                         translationX = offset.x,
                         translationY = offset.y
                     )
+
                     .transformable(state = state)
                     .verticalScroll(rememberScrollState() , enabled = true)
 

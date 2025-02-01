@@ -27,6 +27,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalButton
@@ -239,7 +240,11 @@ fun Folders(appViewModel: AppViewModel){
                         )
                         Spacer(modifier = Modifier.height(40.dp))
 
-                        FilledTonalButton(onClick = {
+                        FilledTonalButton(
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = Color.White
+                            ),
+                            onClick = {
 
 
                             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
