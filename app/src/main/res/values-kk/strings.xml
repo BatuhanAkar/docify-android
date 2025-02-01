@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">PDF ашу</string>
+    <string name="createpdf">PDF жасау</string>
+    <string name="mergepdf">PDF біріктіру</string>
+    <string name="splitpdf">PDF бөлу</string>
+    <string name="editpdf">Өңдеу</string>
+    <string name="newfile">Жаңа құжат</string>
+    <string name="ok">Жарайды</string>
+    <string name="cancel">Бас тарту</string>
+    <string name="documentname">Құжат атауы</string>
+    <string name="save_copy">Көшірмені сақтау</string>
+    <string name="save">Сақтау</string>
+    <string name="tofolder">Жаңа қалтаға</string>
+    <string name="foldername">Қалта атауы</string>
+    <string name="pdftopng">PDF-ден PNG-ге</string>
+    <string name="recentlyread">Жақында оқылған</string>
+    <string name="documents">Құжаттар</string>
+    <string name="create">Жасау</string>
+    <string name="convert">Конвертациялау</string>
+    <string name="pdftoword">PDF-ден WORD-ке</string>
+    <string name="wordtopdf">WORD-тен PDF-ке</string>
+    <string name="pdftoexcel">PDF-ден EXCEL-ге</string>
+    <string name="exceltopdf">EXCEL-ден PDF-ке</string>
+    <string name="pdftojpeg">PDF-ден JPEG-ке</string>
+</resources>

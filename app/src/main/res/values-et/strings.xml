@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">Ava PDF</string>
+    <string name="createpdf">Loo PDF</string>
+    <string name="mergepdf">Ühenda PDF</string>
+    <string name="splitpdf">Jagada PDF</string>
+    <string name="editpdf">Redigeeri</string>
+    <string name="newfile">Uus dokument</string>
+    <string name="ok">Okei</string>
+    <string name="cancel">Tühista</string>
+    <string name="documentname">Dokumendi nimi</string>
+    <string name="save_copy">Salvesta koopia</string>
+    <string name="save">Salvesta</string>
+    <string name="tofolder">Uude kausta</string>
+    <string name="foldername">Kausta nimi</string>
+    <string name="pdftopng">PDF-st PNG-iks</string>
+    <string name="recentlyread">Hiljuti loetud</string>
+    <string name="documents">Dokumendid</string>
+    <string name="create">Loo</string>
+    <string name="convert">Muuda</string>
+    <string name="pdftoword">PDF-st WORD-iks</string>
+    <string name="wordtopdf">WORD-ist PDF-iks</string>
+    <string name="pdftoexcel">PDF-st EXCEL-iks</string>
+    <string name="exceltopdf">EXCEL-ist PDF-iks</string>
+    <string name="pdftojpeg">PDF-st JPEG-iks</string>
+</resources>

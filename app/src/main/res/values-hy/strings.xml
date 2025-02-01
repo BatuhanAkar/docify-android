@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">Բացեք PDF</string>
+    <string name="createpdf">Ստեղծել PDF</string>
+    <string name="mergepdf">Միավորել PDF</string>
+    <string name="splitpdf">Բաժանել PDF</string>
+    <string name="editpdf">Խմբագրել</string>
+    <string name="newfile">Նոր դոկումենտ</string>
+    <string name="ok">Լավ</string>
+    <string name="cancel">Չեղարկել</string>
+    <string name="documentname">Դոկումենտի անուն</string>
+    <string name="save_copy">Պահպանել պատճենը</string>
+    <string name="save">Պահպանել</string>
+    <string name="tofolder">Նոր ֆայլերի մեջ</string>
+    <string name="foldername">Ֆայլի անուն</string>
+    <string name="pdftopng">PDF-ից PNG</string>
+    <string name="recentlyread">Վերջերս կարդացած</string>
+    <string name="documents">Դոկումենտներ</string>
+    <string name="create">Ստեղծել</string>
+    <string name="convert">Փոխարկել</string>
+    <string name="pdftoword">" PDF-ից WORD"</string>
+    <string name="wordtopdf">WORD-ից PDF</string>
+    <string name="pdftoexcel">PDF-ից EXCEL</string>
+    <string name="exceltopdf">EXCEL-ից PDF</string>
+    <string name="pdftojpeg">PDF-ից JPEG</string>
+</resources>

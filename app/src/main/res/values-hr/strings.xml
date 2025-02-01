@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">Otvori PDF</string>
+    <string name="createpdf">Kreiraj PDF</string>
+    <string name="mergepdf">Spoji PDF</string>
+    <string name="splitpdf">Podijeli PDF</string>
+    <string name="editpdf">Uredi</string>
+    <string name="newfile">Novi dokument</string>
+    <string name="ok">U redu</string>
+    <string name="cancel">"Otkaži "</string>
+    <string name="documentname">Naziv dokumenta</string>
+    <string name="save_copy">Spremi kopiju</string>
+    <string name="save">Spremi</string>
+    <string name="tofolder">U novu mapu</string>
+    <string name="foldername">Naziv mape</string>
+    <string name="pdftopng">PDF u PNG</string>
+    <string name="recentlyread">Nedavno pročitan</string>
+    <string name="documents">Dokumenti</string>
+    <string name="create">Kreiraj</string>
+    <string name="convert">Pretvori</string>
+    <string name="pdftoword">PDF u WORD</string>
+    <string name="wordtopdf">WORD u PDF</string>
+    <string name="pdftoexcel">PDF u EXCEL</string>
+    <string name="exceltopdf">EXCEL u PDF</string>
+    <string name="pdftojpeg">PDF u JPEG</string>
+</resources>

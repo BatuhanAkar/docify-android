@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">Отвори PDF</string>
+    <string name="createpdf">Създай PDF</string>
+    <string name="mergepdf">Обедини PDF</string>
+    <string name="splitpdf">Раздели PDF</string>
+    <string name="editpdf">Редактирай</string>
+    <string name="newfile">Нов документ</string>
+    <string name="ok">ОК</string>
+    <string name="cancel">Отказ</string>
+    <string name="documentname">Име на документа</string>
+    <string name="save_copy">Запази копие</string>
+    <string name="save">Запази</string>
+    <string name="tofolder">В нова папка</string>
+    <string name="foldername">Име на папката</string>
+    <string name="pdftopng">PDF в PNG</string>
+    <string name="recentlyread">Прочетено наскоро</string>
+    <string name="documents">Документи</string>
+    <string name="create">Създай</string>
+    <string name="convert">Преобразувай</string>
+    <string name="pdftoword">PDF в WORD</string>
+    <string name="wordtopdf">WORD в PDF</string>
+    <string name="pdftoexcel">PDF в EXCEL</string>
+    <string name="exceltopdf">EXCEL в PDF</string>
+    <string name="pdftojpeg">PDF в JPEG</string>
+</resources>

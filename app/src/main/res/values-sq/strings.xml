@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">Hap PDF</string>
+    <string name="createpdf">Krijo PDF</string>
+    <string name="mergepdf">Bashko PDF</string>
+    <string name="splitpdf">Pjesëto PDF</string>
+    <string name="editpdf">Redakto</string>
+    <string name="newfile">Dokument i ri</string>
+    <string name="ok">Po</string>
+    <string name="cancel">Anulo</string>
+    <string name="documentname">Emri i dokumentit</string>
+    <string name="save_copy">Ruaj një kopje</string>
+    <string name="save">Ruaj</string>
+    <string name="tofolder">Në një dosje të re</string>
+    <string name="foldername">Emri i dosjes</string>
+    <string name="pdftopng">PDF në PNG</string>
+    <string name="recentlyread">Lexuar së fundmi</string>
+    <string name="documents">Dokumente</string>
+    <string name="create">Krijo</string>
+    <string name="convert">Konverto</string>
+    <string name="pdftoword">PDF në WORD</string>
+    <string name="wordtopdf">" WORD në PDF"</string>
+    <string name="pdftoexcel">PDF në EXCEL</string>
+    <string name="exceltopdf">EXCEL në PDF</string>
+    <string name="pdftojpeg">PDF në JPEG</string>
+</resources>

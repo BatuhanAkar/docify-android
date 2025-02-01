@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="newfile">Nuwe dokument</string>
+    <string name="ok">Reg</string>
+    <string name="cancel">Kanselleer</string>
+    <string name="save_copy">Stoor \'n kopie</string>
+    <string name="save">Stoor</string>
+    <string name="foldername">Vouer naam</string>
+    <string name="documents">Dokumente</string>
+    <string name="convert">Omskep</string>
+    <string name="editpdf">Wysig</string>
+    <string name="create">Skep</string>
+    <string name="openpdf">Open PDF</string>
+    <string name="createpdf">Skep PDF</string>
+    <string name="mergepdf">Versmelt PDF</string>
+    <string name="splitpdf">Skeur PDF</string>
+    <string name="documentname">Dokumentnaam</string>
+    <string name="tofolder">Na nuwe vouer</string>
+    <string name="pdftopng">PDF na PNG</string>
+    <string name="recentlyread">Onlangs gelees</string>
+    <string name="pdftoword">PDF na WORD</string>
+    <string name="wordtopdf">WORD na PDF</string>
+    <string name="pdftoexcel">PDF na EXCEL</string>
+    <string name="exceltopdf">EXCEL na PDF</string>
+    <string name="pdftojpeg">PDF na JPEG</string>
+</resources>

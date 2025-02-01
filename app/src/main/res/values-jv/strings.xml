@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">Bukak PDF</string>
+    <string name="createpdf">Gawe PDF</string>
+    <string name="mergepdf">Gabung PDF</string>
+    <string name="splitpdf">Peca PDF</string>
+    <string name="editpdf">Sunting</string>
+    <string name="newfile">Dokumen anyar</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Batal</string>
+    <string name="documentname">Jeneng dokumen</string>
+    <string name="save_copy">Simpen salinan</string>
+    <string name="save">Simpen</string>
+    <string name="tofolder">Ing folder anyar</string>
+    <string name="foldername">Jeneng folder</string>
+    <string name="pdftopng">PDF menyang PNG</string>
+    <string name="recentlyread">Mung maca</string>
+    <string name="documents">Dokumen</string>
+    <string name="create">Gawe</string>
+    <string name="convert">Konversi</string>
+    <string name="pdftoword">PDF menyang WORD</string>
+    <string name="wordtopdf">WORD menyang PDF</string>
+    <string name="pdftoexcel">PDF menyang EXCEL</string>
+    <string name="exceltopdf">EXCEL menyang PDF</string>
+    <string name="pdftojpeg">PDF menyang JPEG</string>
+</resources>

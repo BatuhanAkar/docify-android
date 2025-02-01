@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">פתח PDF</string>
+    <string name="createpdf">צור PDF</string>
+    <string name="mergepdf">מיזוג PDF</string>
+    <string name="splitpdf">פיצול PDF</string>
+    <string name="editpdf">ערוך</string>
+    <string name="newfile">מסמך חדש</string>
+    <string name="ok">אישור</string>
+    <string name="cancel">ביטול</string>
+    <string name="documentname">שם המסמך</string>
+    <string name="save_copy">שמור עותק</string>
+    <string name="save">שמור</string>
+    <string name="tofolder">לתיקייה חדשה</string>
+    <string name="foldername">שם התיקייה</string>
+    <string name="pdftopng">PDF ל-PNG</string>
+    <string name="recentlyread">נקרא לאחרונה</string>
+    <string name="documents">מסמכים</string>
+    <string name="create">צור</string>
+    <string name="convert">המרה</string>
+    <string name="pdftoword">PDF ל-WORD</string>
+    <string name="wordtopdf">WORD ל-PDF</string>
+    <string name="pdftoexcel">PDF ל-EXCEL</string>
+    <string name="exceltopdf">EXCEL ל-PDF</string>
+    <string name="pdftojpeg">PDF ל-JPEG</string>
+</resources>

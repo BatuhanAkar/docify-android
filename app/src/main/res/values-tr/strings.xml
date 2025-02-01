@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">PDF Aç</string>
+    <string name="createpdf">PDF Oluştur</string>
+    <string name="mergepdf">PDF Birleştir</string>
+    <string name="splitpdf">PDF Böl</string>
+    <string name="editpdf">PDF Düzenle</string>
+    <string name="newfile">Yeni Döküman</string>
+    <string name="ok">Tamam</string>
+    <string name="cancel">İptal</string>
+    <string name="documentname">Döküman adı</string>
+    <string name="save_copy">Kopyasını kaydet</string>
+    <string name="save">Kaydet</string>
+    <string name="tofolder">Yeni klasöre ekle</string>
+    <string name="foldername">Klasör adı</string>
+    <string name="pdftopng">PDF\'den PNG Görsele</string>
+    <string name="recentlyread">Son Okunanlar</string>
+    <string name="documents">Dökümanlar</string>
+    <string name="create">Oluştur</string>
+    <string name="convert">Dönüştür</string>
+    <string name="pdftoword">PDF\'den WORD Belgesine</string>
+    <string name="wordtopdf">WORD\'den PDF Belgesine</string>
+    <string name="pdftoexcel">PDF\'den EXCEL Belgesine</string>
+    <string name="exceltopdf">EXCEL\'den PDF Belgesine</string>
+    <string name="pdftojpeg">PDF\'den JPEG Görsele</string>
+</resources>

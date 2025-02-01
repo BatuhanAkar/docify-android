@@ -1,0 +1,259 @@
+package com.batuscode.docunote.view
+
+import android.content.Intent
+import android.text.EmojiConsistency
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
+import com.batuscode.docunote.MainActivity
+import com.batuscode.docunote.MainActivity.Companion.context
+import com.batuscode.docunote.PDFViewerActivity
+import com.batuscode.docunote.ui.theme.DocuNoteTheme
+import com.batuscode.docunote.R
+import com.batuscode.docunote.model.Folder
+import com.batuscode.docunote.utils.File
+import com.batuscode.docunote.utils.FileManager
+import com.batuscode.docunote.viewmodel.AppViewModel
+
+@Composable
+fun RecentlyRead(appViewModel: AppViewModel){
+
+    val dummyList = List(20) { "Item #${it + 1}" }
+
+    val context = LocalContext.current
+    var fileManager = remember {
+        FileManager(context = context)
+    }
+
+
+   /* var files = remember {
+        mutableStateOf<List<File>>(emptyList())
+    }
+
+
+    LaunchedEffect(Unit) {
+        files.value = fileManager.getDocumentList(context)
+    }*/
+
+    val files = appViewModel.recentlyList.collectAsState()
+
+    var exfList = remember {
+        mutableListOf<File>()
+    }
+
+    val file = File("","Elektromanyetik Alanlar")
+
+
+    exfList.add(file)
+
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 40.dp , vertical = 30.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.recentlyread) ,
+            fontSize = 30.sp,
+            fontWeight = FontWeight.Black,
+            modifier = Modifier
+        )
+
+        if (files.value.isNotEmpty()){
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp)
+            ) {
+                items(files.value.reversed()){
+                        item -> RecentlyReadItemView(item)
+                }
+            }
+        } else {
+
+            Box(
+
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                .fillMaxWidth()
+            ){
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .padding(vertical = 10.dp)
+                )
+                {
+                    exfList.forEach {
+                        item ->
+
+                        ElevatedCard(
+                            onClick = {
+                                ripple(bounded = true)
+
+                            },
+                            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp , pressedElevation = 6.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color.White
+                            ),
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp , vertical = 16.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.open_pdf_01) ,
+                                    contentDescription = "icon" ,
+                                    alignment = Alignment.Center ,
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .zIndex(1f)
+                                )
+                                Text(
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    overflow = TextOverflow.Ellipsis,
+                                    maxLines = 1,
+                                    text = item.name ,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(40.dp))
+                    Text(text = "${stringResource(R.string.explain_recently_read_part_text)} \uD83E\uDEE3",
+                            fontSize = 20.sp,
+                        fontWeight = FontWeight.Black,
+                        textAlign = TextAlign.Left,
+                        )
+
+                    Spacer(modifier = Modifier.height(40.dp))
+
+                    FilledTonalButton(onClick = {
+
+                        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT ).apply {
+                            addCategory(Intent.CATEGORY_OPENABLE)
+                            type = "*/*"
+                        }
+                        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        // MainActivity.mainActivity.startActivityForResult(intent, 2)
+                        MainActivity.openDocumentLauncher.launch(intent)
+                    }) {
+
+                        Image(
+                            painter = painterResource(R.drawable.open_pdf_01) ,
+                            contentDescription = "icon" ,
+                            alignment = Alignment.Center ,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .zIndex(1f)
+                        )
+                        Text(text = stringResource(R.string.opendocument))
+                    }
+
+                }
+            }
+
+        }
+    }
+}
+
+@Composable
+fun RecentlyReadItemView(file: File){
+    ElevatedCard(
+        onClick = {
+            ripple(bounded = true)
+
+
+            val intent = Intent(context , PDFViewerActivity::class.java).apply {
+                putExtra("fileUri" , file.uri)
+                putExtra("fileDisplayName" , file.name)
+            }
+            context.startActivity(intent)
+        },
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp , pressedElevation = 6.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        modifier = Modifier
+            .padding(vertical = 8.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp , vertical = 16.dp)
+        ) {
+            Image(
+                painter = painterResource(R.drawable.open_pdf_01) ,
+                contentDescription = "icon" ,
+                alignment = Alignment.Center ,
+                modifier = Modifier
+                    .size(32.dp)
+                    .zIndex(1f)
+            )
+            Text(
+                color = MaterialTheme.colorScheme.onPrimary,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+                text = file.name ,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            )
+        }
+    }
+
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewRecentlyRead(){
+    DocuNoteTheme {
+        RecentlyRead(AppViewModel())
+    }
+}

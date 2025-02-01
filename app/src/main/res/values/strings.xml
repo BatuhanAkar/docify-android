@@ -1,10 +1,36 @@
 <resources>
-    <string name="app_name">DocuNote</string>
-    <string name="handNotes">Hand Notes</string>
+    <string name="app_name" translatable="false">DocuNote</string>
+    <string name="handNotes" translatable="false">Hand Notes</string>
     <string name="openpdf">Open PDF</string>
     <string name="createpdf">Create PDF</string>
     <string name="mergepdf">Merge PDF</string>
     <string name="splitpdf">Split PDF</string>
-    <string name="encryptpdf">Encrypt PDF</string>
-    <string name="editpdf">Edit PDF</string>
+    <string name="encryptpdf" translatable="false">Encrypt PDF</string>
+    <string name="editpdf">Edit</string>
+    <string name="create">Create</string>
+    <string name="convert">Convert</string>
+    <string name="pdftoword">PDF to WORD</string>
+    <string name="wordtopdf">WORD to PDF</string>
+    <string name="pdftoexcel">PDF to EXCEL</string>
+    <string name="exceltopdf">EXCEL to PDF</string>
+    <string name="pdftojpeg">PDF to JPEG</string>
+    <string name="pdftopng">PDF to PNG</string>
+    <string name="recentlyread">Recently Read</string>
+    <string name="title_activity_create_pdfactivity" translatable="false">CreatePDFActivity</string>
+    <string name="newfile">New Document</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
+    <string name="documentname">Document name</string>
+    <string name="title_activity_pdfviewer" translatable="false">PDFViewerActivity</string>
+    <string name="title_activity_edit_pdfactivty" translatable="false">EditPDFActivty</string>
+    <string name="save_copy">Save copy</string>
+    <string name="save">Save</string>
+    <string name="title_activity_folder_scope" translatable="false">FolderScopeActivity</string>
+    <string name="tofolder">To new folder</string>
+    <string name="foldername">Folder name</string>
+    <string name="documents">Documents</string>
+    <string name="explain_folder_part_text" translatable="false">Let\'s keep your documents together.</string>
+    <string name="documentfolder" translatable="false">Document folder</string>
+    <string name="explain_recently_read_part_text" translatable="false">A list of the documents you have read will always be here.</string>
+    <string name="opendocument" translatable="false">Open a document</string>
 </resources>

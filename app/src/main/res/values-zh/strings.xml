@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">"打开 PDF "</string>
+    <string name="createpdf">"创建 PDF "</string>
+    <string name="mergepdf">"合并 PDF "</string>
+    <string name="splitpdf">"拆分 PDF "</string>
+    <string name="editpdf">"编辑 "</string>
+    <string name="newfile">"新文档 "</string>
+    <string name="ok">"确定 "</string>
+    <string name="cancel">"取消 "</string>
+    <string name="documentname">"文档名称 "</string>
+    <string name="save_copy">"保存副本 "</string>
+    <string name="save">保存</string>
+    <string name="tofolder">"到新文件夹 "</string>
+    <string name="foldername">"文件夹名称 "</string>
+    <string name="pdftopng">"PDF 转 PNG "</string>
+    <string name="recentlyread">"最近阅读 "</string>
+    <string name="documents">"文档 "</string>
+    <string name="create">创建</string>
+    <string name="convert">"转换 "</string>
+    <string name="pdftoword">"PDF 转 WORD "</string>
+    <string name="wordtopdf">"WORD 转 PDF "</string>
+    <string name="pdftoexcel">"PDF 转 EXCEL "</string>
+    <string name="exceltopdf">"EXCEL 转 PDF "</string>
+    <string name="pdftojpeg">"PDF 转 JPEG "</string>
+</resources>

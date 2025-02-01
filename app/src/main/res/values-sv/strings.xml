@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">Öppna PDF</string>
+    <string name="createpdf">Skapa PDF</string>
+    <string name="mergepdf">Sammanfoga PDF</string>
+    <string name="splitpdf">Dela PDF</string>
+    <string name="editpdf">Redigera</string>
+    <string name="newfile">Nytt dokument</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Avbryt</string>
+    <string name="documentname">Dokumentnamn</string>
+    <string name="save_copy">Spara kopia</string>
+    <string name="save">Spara</string>
+    <string name="tofolder">Till ny mapp</string>
+    <string name="foldername">Mappnamn</string>
+    <string name="pdftopng">PDF till PNG</string>
+    <string name="recentlyread">Nyss läst</string>
+    <string name="documents">Dokument</string>
+    <string name="create">Skapa</string>
+    <string name="convert">Konvertera</string>
+    <string name="pdftoword">PDF till WORD</string>
+    <string name="wordtopdf">WORD till PDF</string>
+    <string name="pdftoexcel">PDF till EXCEL</string>
+    <string name="exceltopdf">EXCEL till PDF</string>
+    <string name="pdftojpeg">PDF till JPEG</string>
+</resources>

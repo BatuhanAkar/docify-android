@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">Άνοιγμα PDF</string>
+    <string name="createpdf">Δημιουργία PDF</string>
+    <string name="mergepdf">Συγχώνευση PDF</string>
+    <string name="splitpdf">Διαχωρισμός PDF</string>
+    <string name="editpdf">Επεξεργασία</string>
+    <string name="newfile">Νέο έγγραφο</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Ακύρωση</string>
+    <string name="documentname">Όνομα εγγράφου</string>
+    <string name="save_copy">Αποθήκευση αντιγράφου</string>
+    <string name="save">Αποθήκευση</string>
+    <string name="tofolder">Στο νέο φάκελο</string>
+    <string name="foldername">Όνομα φακέλου</string>
+    <string name="pdftopng">PDF σε PNG</string>
+    <string name="recentlyread">Πρόσφατα διαβασμένα</string>
+    <string name="documents">Έγγραφα</string>
+    <string name="create">Δημιουργία</string>
+    <string name="convert">Μετατροπή</string>
+    <string name="pdftoword">PDF σε WORD</string>
+    <string name="wordtopdf">WORD σε PDF</string>
+    <string name="pdftoexcel">PDF σε EXCEL</string>
+    <string name="exceltopdf">EXCEL σε PDF</string>
+    <string name="pdftojpeg">PDF σε JPEG</string>
+</resources>

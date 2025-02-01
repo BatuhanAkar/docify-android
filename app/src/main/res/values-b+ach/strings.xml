@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">Yab PDF</string>
+    <string name="createpdf">Yub PDF</string>
+    <string name="mergepdf">Rib PDF</string>
+    <string name="splitpdf">Pok PDF</string>
+    <string name="editpdf">Coyo ma be</string>
+    <string name="newfile">Karatac manyen</string>
+    <string name="ok">Aya</string>
+    <string name="cancel">Ngolo</string>
+    <string name="documentname">Nying waraga</string>
+    <string name="save_copy">Gwok kopi</string>
+    <string name="save">Gwok</string>
+    <string name="tofolder">I folda manyen</string>
+    <string name="foldername">Nying folda</string>
+    <string name="pdftopng">PDF me doko PNG</string>
+    <string name="recentlyread">Kwano cok cok ni</string>
+    <string name="documents">Karatac</string>
+    <string name="create">Yubu</string>
+    <string name="convert">Ngat m\'oloke</string>
+    <string name="pdftoword">PDF me WORD</string>
+    <string name="wordtopdf">lok me doko PDF</string>
+    <string name="pdftoexcel">PDF me EXCEL</string>
+    <string name="exceltopdf">EXCEL me doko PDF</string>
+    <string name="pdftojpeg">PDF me doko JPG</string>
+</resources>

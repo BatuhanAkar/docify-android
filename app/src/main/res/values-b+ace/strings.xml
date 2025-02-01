@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">Bukok PDF</string>
+    <string name="createpdf">Peugot PDF</string>
+    <string name="mergepdf">Gabong PDF</string>
+    <string name="splitpdf">Bagi PDF</string>
+    <string name="editpdf">Peubah</string>
+    <string name="newfile">Dokumen anyar</string>
+    <string name="ok">Setuju</string>
+    <string name="cancel">Batal</string>
+    <string name="documentname">Nyan dokumen</string>
+    <string name="save_copy">Simpan siphi</string>
+    <string name="save">Simpan</string>
+    <string name="tofolder">Ka folder anyar</string>
+    <string name="foldername">Nyan folder</string>
+    <string name="pdftopng">PDF ka PNG</string>
+    <string name="recentlyread">Bacaan seuneulheuh</string>
+    <string name="documents">Dokumen-dokumen</string>
+    <string name="create">Peugot</string>
+    <string name="convert">Ubang</string>
+    <string name="pdftoword">PDF ka WORD</string>
+    <string name="wordtopdf">WORD ka PDF</string>
+    <string name="pdftoexcel">PDF ka EXCEL</string>
+    <string name="exceltopdf">EXCEL ka PDF</string>
+    <string name="pdftojpeg">PDF ka JPEG</string>
+</resources>

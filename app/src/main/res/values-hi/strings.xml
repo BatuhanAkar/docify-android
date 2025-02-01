@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">PDF खोलें</string>
+    <string name="createpdf">PDF बनाएं</string>
+    <string name="mergepdf">PDF मर्ज करें</string>
+    <string name="splitpdf">PDF विभाजित करें</string>
+    <string name="editpdf">संपादित करें</string>
+    <string name="newfile">नया दस्तावेज़</string>
+    <string name="ok">ठीक है</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="documentname">दस्तावेज़ का नाम</string>
+    <string name="save_copy">प्रति सहेजें</string>
+    <string name="save">सहेजें</string>
+    <string name="tofolder">नए फ़ोल्डर में</string>
+    <string name="foldername">फ़ोल्डर का नाम</string>
+    <string name="pdftopng">PDF से PNG</string>
+    <string name="recentlyread">हाल ही में पढ़ा गया</string>
+    <string name="documents">दस्तावेज़</string>
+    <string name="create">बनाएँ</string>
+    <string name="convert">कनवर्ट करें</string>
+    <string name="pdftoword">PDF से WORD</string>
+    <string name="wordtopdf">WORD से PDF</string>
+    <string name="pdftoexcel">PDF से EXCEL</string>
+    <string name="exceltopdf">EXCEL से PDF</string>
+    <string name="pdftojpeg">PDF से JPEG</string>
+</resources>

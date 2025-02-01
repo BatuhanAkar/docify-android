@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">افتح PDF</string>
+    <string name="createpdf">إنشاء PDF</string>
+    <string name="mergepdf">دمج PDF</string>
+    <string name="splitpdf">تقسيم PDF</string>
+    <string name="editpdf">تعديل</string>
+    <string name="newfile">مستند جديد</string>
+    <string name="ok">موافق</string>
+    <string name="cancel">إلغاء</string>
+    <string name="documentname">اسم المستند</string>
+    <string name="save_copy">حفظ نسخة</string>
+    <string name="save">حفظ</string>
+    <string name="tofolder">إلى مجلد جديد</string>
+    <string name="foldername">اسم المجلد</string>
+    <string name="pdftopng">" PDF إلى PNG"</string>
+    <string name="recentlyread">" تم قراءته مؤخرا"</string>
+    <string name="documents">مستندات</string>
+    <string name="create">إنشاء</string>
+    <string name="convert">تحويل</string>
+    <string name="pdftoword">PDF إلى WORD</string>
+    <string name="wordtopdf">WORD إلى PDF</string>
+    <string name="pdftoexcel">PDF إلى EXCEL</string>
+    <string name="exceltopdf">EXCEL إلى PDF</string>
+    <string name="pdftojpeg">PDF إلى JPEG</string>
+</resources>

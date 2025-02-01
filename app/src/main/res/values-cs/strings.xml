@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">Otevřít PDF</string>
+    <string name="createpdf">Vytvořit PDF</string>
+    <string name="mergepdf">Sloučit PDF</string>
+    <string name="splitpdf">Rozdělit PDF</string>
+    <string name="editpdf">Upravit</string>
+    <string name="newfile">Nový dokument</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Zrušit</string>
+    <string name="documentname">Název dokumentu</string>
+    <string name="save_copy">Uložit kopii</string>
+    <string name="save">Uložit</string>
+    <string name="tofolder">Do nové složky</string>
+    <string name="foldername">Název složky</string>
+    <string name="pdftopng">PDF do PNG</string>
+    <string name="recentlyread">Nedávno čtené</string>
+    <string name="documents">Dokumenty</string>
+    <string name="create">Vytvořit</string>
+    <string name="convert">Převeďte</string>
+    <string name="pdftoword">PDF do WORD</string>
+    <string name="wordtopdf">WORD do PDF</string>
+    <string name="pdftoexcel">PDF do EXCEL</string>
+    <string name="exceltopdf">EXCEL do PDF</string>
+    <string name="pdftojpeg">PDF do JPEG</string>
+</resources>

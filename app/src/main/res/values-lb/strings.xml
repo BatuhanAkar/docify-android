@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">PDF opmaachen</string>
+    <string name="createpdf">PDF erstellen</string>
+    <string name="mergepdf">PDF zesummesetzen</string>
+    <string name="splitpdf">PDF trennen</string>
+    <string name="editpdf">Änneren</string>
+    <string name="newfile">Neit Dokument</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Ofbriechen</string>
+    <string name="documentname">Dokumentennumm</string>
+    <string name="save_copy">Kopie späicheren</string>
+    <string name="save">Späicheren</string>
+    <string name="tofolder">An nei Dossier</string>
+    <string name="foldername">Numm vum Dossier</string>
+    <string name="pdftopng">PDF op PNG</string>
+    <string name="recentlyread">Kierzlech gelies</string>
+    <string name="documents">Dokumenter</string>
+    <string name="create">Erstellt</string>
+    <string name="convert">Konvertéieren</string>
+    <string name="pdftoword">PDF op WORD</string>
+    <string name="wordtopdf">WORD op PDF</string>
+    <string name="pdftoexcel">PDF op EXCEL</string>
+    <string name="exceltopdf">EXCEL op PDF</string>
+    <string name="pdftojpeg">PDF op JPEG</string>
+</resources>

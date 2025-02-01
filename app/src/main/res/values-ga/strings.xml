@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">Oscail PDF</string>
+    <string name="createpdf">Cruthaigh PDF</string>
+    <string name="mergepdf">Comhcheangail PDF</string>
+    <string name="splitpdf">Scoilt PDF</string>
+    <string name="editpdf">Cuir in Eagar</string>
+    <string name="newfile">Doiciméad Nua</string>
+    <string name="ok">Ceart go leor</string>
+    <string name="cancel">Cealaigh</string>
+    <string name="documentname">Ainm an doiciméid</string>
+    <string name="save_copy">Sábháil cóip</string>
+    <string name="save">Sábháil</string>
+    <string name="tofolder">Sa fhillteán nua</string>
+    <string name="foldername">Ainm an fhillteáin</string>
+    <string name="pdftopng">PDF go PNG</string>
+    <string name="recentlyread">Léite le déanaí</string>
+    <string name="documents">Doiciméid</string>
+    <string name="create">Cruthaigh</string>
+    <string name="convert">Comhshó</string>
+    <string name="pdftoword">PDF go WORD</string>
+    <string name="wordtopdf">WORD go PDF</string>
+    <string name="pdftoexcel">PDF go EXCEL</string>
+    <string name="exceltopdf">EXCEL go PDF</string>
+    <string name="pdftojpeg">PDF go JPEG</string>
+</resources>

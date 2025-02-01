@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">Avaa PDF</string>
+    <string name="createpdf">Luo PDF</string>
+    <string name="mergepdf">Yhdistä PDF</string>
+    <string name="splitpdf">Jaa PDF</string>
+    <string name="editpdf">Muokkaa</string>
+    <string name="newfile">Uusi asiakirja</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Peruuta</string>
+    <string name="documentname">Asiakirjan nimi</string>
+    <string name="save_copy">Tallenna kopio</string>
+    <string name="save">Tallenna</string>
+    <string name="tofolder">Uuteen kansioon</string>
+    <string name="foldername">Kansion nimi</string>
+    <string name="pdftopng">PDF:stä PNG:ksi</string>
+    <string name="recentlyread">Äskettäin luettu</string>
+    <string name="documents">Asiakirjat</string>
+    <string name="create">Luo</string>
+    <string name="convert">Muunna</string>
+    <string name="pdftoword">PDF:stä WORD:ksi</string>
+    <string name="wordtopdf">WORD:sta PDF:ksi</string>
+    <string name="pdftoexcel">PDF:stä EXCEL:ksi</string>
+    <string name="exceltopdf">EXCEL:stä PDF:ksi</string>
+    <string name="pdftojpeg">PDF:stä JPEG:ksi</string>
+</resources>

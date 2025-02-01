@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">გახსენით PDF</string>
+    <string name="createpdf">შექმენით PDF</string>
+    <string name="mergepdf">PDF-ის გაერთიანება</string>
+    <string name="splitpdf">PDF-ის გაყოფა</string>
+    <string name="editpdf">რედაქტირება</string>
+    <string name="newfile">ახალი დოკუმენტი</string>
+    <string name="ok">კარგია</string>
+    <string name="cancel">გაუქმება</string>
+    <string name="documentname">დოკუმენტის სახელი</string>
+    <string name="save_copy">შეინახეთ ასლი</string>
+    <string name="save">შენახვა</string>
+    <string name="tofolder">ახალ ფოლდერში</string>
+    <string name="foldername">ფოლდერის სახელი</string>
+    <string name="pdftopng">PDF-დან PNG-ში</string>
+    <string name="recentlyread">ახლახანს წაკითხული</string>
+    <string name="documents">დოკუმენტები</string>
+    <string name="create">შექმენით</string>
+    <string name="convert">კონვერტაცია</string>
+    <string name="pdftoword">PDF-დან WORD-ში</string>
+    <string name="wordtopdf">WORD-დან PDF-ში</string>
+    <string name="pdftoexcel">PDF-დან EXCEL-ში</string>
+    <string name="exceltopdf">EXCEL-დან PDF-ში</string>
+    <string name="pdftojpeg">PDF-დან JPEG-ში</string>
+</resources>

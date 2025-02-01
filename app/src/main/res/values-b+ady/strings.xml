@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">PDF q̇əl̓x̓əṇ</string>
+    <string name="createpdf">PDF šyʔaġ</string>
+    <string name="mergepdf">PDF q̇eš’əġ</string>
+    <string name="splitpdf">PDF pkʷəʔešt</string>
+    <string name="editpdf">ʔešəġ</string>
+    <string name="newfile">Məfə dokument</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Txʷəʔuk̇ə</string>
+    <string name="documentname">Dokument i q̇əbzə</string>
+    <string name="save_copy">Psalḥəṇšə kopie</string>
+    <string name="save">Psalḥəṇšə</string>
+    <string name="tofolder">Məfə zəxep̓ə folderım</string>
+    <string name="foldername">Folder i q̇əbzə</string>
+    <string name="pdftopng">PDF PNG-m q̇itxəġə</string>
+    <string name="recentlyread">Šx̓əm šyʔelḥəṇ</string>
+    <string name="documents">Dokumentxər</string>
+    <string name="create">Šyʔaġ</string>
+    <string name="convert">Tx̓elḥaġə</string>
+    <string name="pdftoword">PDF WORD-m q̇itxəġə</string>
+    <string name="wordtopdf">WORD PDF-m q̇itxəġə</string>
+    <string name="pdftoexcel">PDF EXCEL-m q̇itxəġə</string>
+    <string name="exceltopdf">EXCEL PDF-m q̇itxəġə</string>
+    <string name="pdftojpeg">PDF JPEG-m q̇itxəġə</string>
+</resources>

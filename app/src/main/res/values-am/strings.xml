@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">ፒዲኤፍ ክፈት</string>
+    <string name="createpdf">ፒዲኤፍ ፍጠር</string>
+    <string name="mergepdf">ፒዲኤፍ አንድ በማድረግ</string>
+    <string name="splitpdf">ፒዲኤፍ አንድ በማስተካከል</string>
+    <string name="editpdf">አርትዕት</string>
+    <string name="newfile">አዲስ ሰነድ</string>
+    <string name="ok">እሺ</string>
+    <string name="cancel">ተመለስ</string>
+    <string name="documentname">የሰነዱ ስም</string>
+    <string name="save_copy">ኮፒ አስቀምጥ</string>
+    <string name="save">" አስቀምጥ"</string>
+    <string name="tofolder">እንደ አዲስ ፋይል ማቅረብ</string>
+    <string name="foldername">ፋይል ስም</string>
+    <string name="pdftopng">PDF እስከ PNG</string>
+    <string name="recentlyread">" በቅርብ ተንበረተ"</string>
+    <string name="documents">ሰነዶች</string>
+    <string name="create">ፍጠር</string>
+    <string name="convert">ተተኮር</string>
+    <string name="pdftoword">PDF እስከ WORD</string>
+    <string name="wordtopdf">WORD እስከ PDF</string>
+    <string name="pdftoexcel">PDF እስከ EXCEL</string>
+    <string name="exceltopdf">EXCEL እስከ PDF</string>
+    <string name="pdftojpeg">PDF እስከ JPEG</string>
+</resources>

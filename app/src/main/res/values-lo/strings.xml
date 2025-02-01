@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">ເປີດ PDF</string>
+    <string name="createpdf">ສ້າງ PDF</string>
+    <string name="mergepdf">ລວມ PDF</string>
+    <string name="splitpdf">ແຍກ PDF</string>
+    <string name="editpdf">ແກ້ໄຂ</string>
+    <string name="newfile">ເອກະສານໃໝ່</string>
+    <string name="ok">ໂດຍສຸດ</string>
+    <string name="cancel">ຍົກເລີກ</string>
+    <string name="documentname">ຊື່ເອກະສານ</string>
+    <string name="save_copy">ບັນທຶກສຳເນົາ</string>
+    <string name="save">ບັນທຶກ</string>
+    <string name="tofolder">ຍ້າຍໄປເອກະສານໃໝ່</string>
+    <string name="foldername">ຊື່ເອກະສານໃໝ່</string>
+    <string name="pdftopng">PDF ເປັນ PNG</string>
+    <string name="recentlyread">ເອກະສານທີ່ອ່ານຫຼ້າສຸດ</string>
+    <string name="documents">ເອກະສານ</string>
+    <string name="create">ສ້າງ</string>
+    <string name="convert">ປ່ຽນ</string>
+    <string name="pdftoword">PDF ເປັນ WORD</string>
+    <string name="wordtopdf">WORD ເປັນ PDF</string>
+    <string name="pdftoexcel">PDF ເປັນ EXCEL</string>
+    <string name="exceltopdf">EXCEL ເປັນ PDF</string>
+    <string name="pdftojpeg">PDF ເປັນ JPEG</string>
+</resources>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">PDF megnyitása</string>
+    <string name="createpdf">PDF létrehozása</string>
+    <string name="mergepdf">PDF egyesítése</string>
+    <string name="splitpdf">PDF szétválasztása</string>
+    <string name="editpdf">Szerkesztés</string>
+    <string name="newfile">Új dokumentum</string>
+    <string name="ok">Oké</string>
+    <string name="cancel">Mégse</string>
+    <string name="documentname">Dokumentum neve</string>
+    <string name="save_copy">Másolat mentése</string>
+    <string name="save">Mentés</string>
+    <string name="tofolder">Új mappába</string>
+    <string name="foldername">Mappa neve</string>
+    <string name="pdftopng">PDF-ből PNG</string>
+    <string name="recentlyread">Nemrég olvasott</string>
+    <string name="documents">Dokumentumok</string>
+    <string name="create">Létrehozás</string>
+    <string name="convert">Konvertálás</string>
+    <string name="pdftoword">PDF-ből WORD</string>
+    <string name="wordtopdf">WORD-ből PDF</string>
+    <string name="pdftoexcel">PDF-ből EXCEL</string>
+    <string name="exceltopdf">EXCEL-ből PDF</string>
+    <string name="pdftojpeg">PDF-ből JPEG</string>
+</resources>

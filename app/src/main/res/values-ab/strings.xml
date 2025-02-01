@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">PDF аарттәуп</string>
+    <string name="createpdf">PDF аԥҵара</string>
+    <string name="mergepdf">PDF еидҵатәуп</string>
+    <string name="splitpdf">PDF еиҟәшоуп</string>
+    <string name="editpdf">Аредактура азура</string>
+    <string name="newfile">Адокумент ҿыц</string>
+    <string name="ok">Ибзиоуп</string>
+    <string name="cancel">Аԥыхра</string>
+    <string name="documentname">Адокумент ахьӡ</string>
+    <string name="save_copy">Еиқәырхатәуп акопиа</string>
+    <string name="save">Ахьчара</string>
+    <string name="tofolder">Аҭаӡ ҿыц ахь</string>
+    <string name="foldername">Аҭаӡ ахьӡ</string>
+    <string name="pdftopng">PDF ахь PNG ахь</string>
+    <string name="recentlyread">Ааигәа иаԥхьаз</string>
+    <string name="documents">Адокументқәа</string>
+    <string name="create">Аԥҵара</string>
+    <string name="convert">Аконвертациа аҟаҵара</string>
+    <string name="pdftoword">PDF ахь WORD ахь</string>
+    <string name="wordtopdf">WORD PDF ахь</string>
+    <string name="pdftoexcel">PDF EXCEL ахь</string>
+    <string name="exceltopdf">EXCEL аҟынтәи PDF ахь</string>
+    <string name="pdftojpeg">PDF ахь JPG ахь</string>
+</resources>

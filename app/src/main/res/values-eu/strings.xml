@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">PDF irekia</string>
+    <string name="createpdf">PDF sortu</string>
+    <string name="mergepdf">PDF bat egin</string>
+    <string name="splitpdf">PDF zatitu</string>
+    <string name="editpdf">Editatu</string>
+    <string name="newfile">Dokumentu berria</string>
+    <string name="ok">Onartu</string>
+    <string name="cancel">Ezeztatu</string>
+    <string name="documentname">Dokumentu izena</string>
+    <string name="save_copy">" Kopia gorde"</string>
+    <string name="save">Gorde</string>
+    <string name="tofolder">Karpeta berrira</string>
+    <string name="foldername">Karpeta izena</string>
+    <string name="pdftopng">PDFtik PNGra</string>
+    <string name="recentlyread">Duela gutxi irakurritakoa</string>
+    <string name="documents">Dokumentuak</string>
+    <string name="create">Sortu</string>
+    <string name="convert">Aldatu</string>
+    <string name="pdftoword">PDFtik WORDera</string>
+    <string name="wordtopdf">WORDtik PDFra</string>
+    <string name="pdftoexcel">PDFtik EXCELera</string>
+    <string name="exceltopdf">" EXCELtik PDFra"</string>
+    <string name="pdftojpeg">PDFtik JPEGra</string>
+</resources>

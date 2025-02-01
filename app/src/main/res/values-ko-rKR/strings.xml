@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">PDF 열기</string>
+    <string name="createpdf">PDF 생성</string>
+    <string name="mergepdf">PDF 병합</string>
+    <string name="splitpdf">PDF 분할</string>
+    <string name="editpdf">편집</string>
+    <string name="newfile">새 문서</string>
+    <string name="ok">확인</string>
+    <string name="cancel">취소</string>
+    <string name="documentname">문서 이름</string>
+    <string name="save_copy">사본 저장</string>
+    <string name="save">저장</string>
+    <string name="tofolder">새 폴더로</string>
+    <string name="foldername">폴더 이름</string>
+    <string name="pdftopng">PDF에서 PNG로</string>
+    <string name="recentlyread">최근 읽음</string>
+    <string name="documents">문서</string>
+    <string name="create">생성</string>
+    <string name="convert">변환</string>
+    <string name="pdftoword">PDF에서 WORD로</string>
+    <string name="wordtopdf">WORD에서 PDF로</string>
+    <string name="pdftoexcel">PDF에서 EXCEL로</string>
+    <string name="exceltopdf">EXCEL에서 PDF로</string>
+    <string name="pdftojpeg">PDF에서 JPEG로</string>
+</resources>

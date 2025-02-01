@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">PDF کردنەوە</string>
+    <string name="createpdf">دروستکردنی PDF</string>
+    <string name="mergepdf">تێکەڵکردنی PDF</string>
+    <string name="splitpdf">بەرەوپێشکردنی PDF</string>
+    <string name="editpdf">دەستکاریکردن</string>
+    <string name="newfile">بەلگەی نوێ</string>
+    <string name="ok">باشە</string>
+    <string name="cancel">هەڵوەشاندنەوە</string>
+    <string name="documentname">ناوی بەلگە</string>
+    <string name="save_copy">هەڵگرتنی وەرگرتن</string>
+    <string name="save">هەڵگرتن</string>
+    <string name="tofolder">بۆ بوخچەی نوێ</string>
+    <string name="foldername">ناوی بوخچە</string>
+    <string name="pdftopng">PDF بۆ PNG</string>
+    <string name="recentlyread">دوایین خوێندراو</string>
+    <string name="documents">بەلگەکان</string>
+    <string name="create">دروستکردن</string>
+    <string name="convert">گۆڕین</string>
+    <string name="pdftoword">PDF بۆ WORD</string>
+    <string name="wordtopdf">WORD بۆ PDF</string>
+    <string name="pdftoexcel">PDF بۆ EXCEL</string>
+    <string name="exceltopdf">EXCEL بۆ PDF</string>
+    <string name="pdftojpeg">PDF بۆ JPEG</string>
+</resources>

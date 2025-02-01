@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">Sokafy PDF</string>
+    <string name="createpdf">Mamorona PDF</string>
+    <string name="mergepdf">Mitambatra PDF</string>
+    <string name="splitpdf">Manasaraka PDF</string>
+    <string name="editpdf">Hanova</string>
+    <string name="newfile">Antontan-taratasy vaovao</string>
+    <string name="ok">Eny</string>
+    <string name="cancel">Hanafoana</string>
+    <string name="documentname">Anaran\'ny antontan-taratasy</string>
+    <string name="save_copy">Tehirizo ny kopia</string>
+    <string name="save">Tehirizo</string>
+    <string name="tofolder">Any amin\'ny lahatahiry vaovao</string>
+    <string name="foldername">Anaran\'ny lahatahiry</string>
+    <string name="pdftopng">PDF ho PNG</string>
+    <string name="recentlyread">Vaky vao haingana</string>
+    <string name="documents">Antontan-taratasy</string>
+    <string name="create">Mamorona</string>
+    <string name="convert">Hanova</string>
+    <string name="pdftoword">PDF ho WORD</string>
+    <string name="wordtopdf">WORD ho PDF</string>
+    <string name="pdftoexcel">PDF ho EXCEL</string>
+    <string name="exceltopdf">EXCEL ho PDF</string>
+    <string name="pdftojpeg">PDF ho JPEG</string>
+</resources>

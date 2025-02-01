@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">Atvērt PDF</string>
+    <string name="createpdf">Izveidot PDF</string>
+    <string name="mergepdf">Apvienot PDF</string>
+    <string name="splitpdf">Sadalīt PDF</string>
+    <string name="editpdf">Rediģēt</string>
+    <string name="newfile">Jauns dokuments</string>
+    <string name="ok">Labi</string>
+    <string name="cancel">Atcelt</string>
+    <string name="documentname">Dokumenta nosaukums</string>
+    <string name="save_copy">Saglabāt kopiju</string>
+    <string name="save">Saglabāt</string>
+    <string name="tofolder">Uz jaunu mapi</string>
+    <string name="foldername">Mapes nosaukums</string>
+    <string name="pdftopng">PDF uz PNG</string>
+    <string name="recentlyread">Nesen lasītie</string>
+    <string name="documents">Dokumenti</string>
+    <string name="create">Izveidot</string>
+    <string name="convert">Pārvērst</string>
+    <string name="pdftoword">PDF uz WORD</string>
+    <string name="wordtopdf">WORD uz PDF</string>
+    <string name="pdftoexcel">PDF uz EXCEL</string>
+    <string name="exceltopdf">EXCEL uz PDF</string>
+    <string name="pdftojpeg">PDF uz JPEG</string>
+</resources>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">"PDFを開く "</string>
+    <string name="createpdf">"PDFを作成 "</string>
+    <string name="mergepdf">"PDFを結合 "</string>
+    <string name="splitpdf">"PDFを分割 "</string>
+    <string name="editpdf">"編集 "</string>
+    <string name="newfile">"新しいドキュメント "</string>
+    <string name="ok">OK</string>
+    <string name="cancel">"キャンセル "</string>
+    <string name="documentname">"ドキュメント名 "</string>
+    <string name="save_copy">"コピーを保存 "</string>
+    <string name="save">"保存 "</string>
+    <string name="tofolder">"新しいフォルダに "</string>
+    <string name="foldername">"フォルダ名 "</string>
+    <string name="pdftopng">"PDFからPNG "</string>
+    <string name="recentlyread">"最近読んだ "</string>
+    <string name="documents">"ドキュメント "</string>
+    <string name="create">作成</string>
+    <string name="convert">"変換 "</string>
+    <string name="pdftoword">"PDFからWORD "</string>
+    <string name="wordtopdf">"WORDからPDF "</string>
+    <string name="pdftoexcel">"PDFからEXCEL "</string>
+    <string name="exceltopdf">"EXCELからPDF "</string>
+    <string name="pdftojpeg">"PDFからJPEG "</string>
+</resources>

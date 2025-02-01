@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DocuNote</string>
+    <string name="openpdf">Atidaryti PDF</string>
+    <string name="createpdf">Sukurti PDF</string>
+    <string name="mergepdf">Sujungti PDF</string>
+    <string name="splitpdf">Padalinti PDF</string>
+    <string name="editpdf">Redaguoti</string>
+    <string name="newfile">Naujas dokumentas</string>
+    <string name="ok">Gerai</string>
+    <string name="cancel">Atšaukti</string>
+    <string name="documentname">Dokumento pavadinimas</string>
+    <string name="save_copy">Išsaugoti kopiją</string>
+    <string name="save">Išsaugoti</string>
+    <string name="tofolder">Į naują aplanką</string>
+    <string name="foldername">Aplanko pavadinimas</string>
+    <string name="pdftopng">PDF į PNG</string>
+    <string name="recentlyread">Neseniai skaityti</string>
+    <string name="documents">Dokumentai</string>
+    <string name="create">Sukurti</string>
+    <string name="convert">Konvertuoti</string>
+    <string name="pdftoword">PDF į WORD</string>
+    <string name="wordtopdf">WORD į PDF</string>
+    <string name="pdftoexcel">PDF į EXCEL</string>
+    <string name="exceltopdf">EXCEL į PDF</string>
+    <string name="pdftojpeg">PDF į JPEG</string>
+</resources>
