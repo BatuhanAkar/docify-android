@@ -17,6 +17,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
@@ -27,13 +29,17 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.displayCutoutPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -80,6 +86,8 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedIconButton
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
@@ -88,9 +96,11 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.GraphicsLayerScope
 import androidx.compose.ui.graphics.ImageBitmap
@@ -129,7 +139,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.getValue
-
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.pointer.pointerInteropFilter
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.IntOffset
 
 
 class PDFViewerActivity : ComponentActivity() {
@@ -212,6 +227,9 @@ class PDFViewerActivity : ComponentActivity() {
                 mutableStateOf(false)
             }
 
+            var gestureState = remember {
+                mutableStateOf(true)
+            }
             DocuNoteTheme(darkTheme = true) {
 
                 enableEdgeToEdge(
@@ -220,11 +238,11 @@ class PDFViewerActivity : ComponentActivity() {
                 ModalNavigationDrawer(
                     modifier = Modifier
                         .fillMaxSize(),
+                    gesturesEnabled = (if (!edit.value) true else false),
                     drawerState = drawerState,
                     scrimColor = Color.Transparent,
                     drawerContent = {
                         ModalDrawerSheet (
-
                             drawerContainerColor = Color(0xFF121212) ,
                             drawerShape = RectangleShape ,
                             modifier = Modifier
@@ -265,7 +283,9 @@ class PDFViewerActivity : ComponentActivity() {
                                                     drawerState.close()
                                                 }
                                             }
-                                        }) {
+                                        }
+
+                                        ) {
                                             Icon(Icons.Default.Menu, contentDescription = "Menu" , modifier = Modifier.width(100.dp).height(100.dp))
                                         }
                                     } else {
@@ -341,6 +361,8 @@ class PDFViewerActivity : ComponentActivity() {
                         }
 
                         ViewerFlow(
+                            innerPadding,
+                            gestureState,
                             pageStates,
                             pdfViewerActivityViewModel,
                             pdfBitmapConverter,
@@ -381,19 +403,26 @@ data class Line(
     val color: Color = Color.Yellow.copy(alpha = 0.5f),
     val strokeWidth: Dp = 10.dp
 )
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ViewerFlow(pageStates: MutableList<MutableState<DrawingState>> , pdfViewerActivityViewModel: PDFViewerActivityViewModel ,
+fun ViewerFlow(innerPadding : PaddingValues , gestureState: MutableState<Boolean>,pageStates: MutableList<MutableState<DrawingState>> , pdfViewerActivityViewModel: PDFViewerActivityViewModel ,
                pdfBitmapConverter: PDFConverter , modifier:Modifier = Modifier , renderedPages: List<Bitmap>){
     val configuration = LocalConfiguration.current
     val density = LocalDensity.current.density
 
 
+    var isZoom by remember {
+        mutableStateOf(false)
+    }
+
     val screenWidthPx = configuration.screenWidthDp * density // Ekran genişliği (px cinsinden)
     val screenHeightPx = configuration.screenHeightDp * density // Ekran yüksekliği (px cinsinden)
 
+
+
     var scale by remember { mutableStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
-    val state = rememberTransformableState { zoomChange, offsetChange, _ ->
+    val transformablestate = rememberTransformableState { zoomChange, offsetChange, _ ->
         scale = maxOf(1f, scale * zoomChange)
 
         // Görselin boyutunu hesapla
@@ -410,14 +439,6 @@ fun ViewerFlow(pageStates: MutableList<MutableState<DrawingState>> , pdfViewerAc
             y = (offset.y + offsetChange.y).coerceIn(-maxOffsetY, maxOffsetY)
         )
     }
-
-
-    val lines = remember {
-        mutableStateListOf<Line>()
-    }
-
-    val ColumnState = rememberScrollState()
-
 
 
     val edit = pdfViewerActivityViewModel.edit.collectAsState()
@@ -444,55 +465,135 @@ fun ViewerFlow(pageStates: MutableList<MutableState<DrawingState>> , pdfViewerAc
 
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(key1 = colorPaletteVisible) {
+    var sliderPosition by remember {
+        // ScrollState'in başlangıçta olduğu yerde slider da başlar
+        mutableStateOf(0f)
+    }
+    val scrollState = rememberScrollState()
+    var columnHeight by remember { mutableStateOf(0) }
+
+    var scrollbarvisibilty by remember {
+        mutableStateOf(true)
+    }
+
+    val vectorIcon: Painter = painterResource(id = R.drawable.baseline_unfold_more_24)
+    LaunchedEffect(key1 = colorPaletteVisible , key2 = scrollState.value , key3 = scrollbarvisibilty) {
         if (colorPaletteVisible){
 
             delay(2000L)
             colorPaletteVisible = colorPaletteVisible.not()
         }
+
+        if (scrollbarvisibilty){
+
+            delay(2000L)
+            scrollbarvisibilty = scrollbarvisibilty.not()
+        }
+
+        val proportion = scrollState.value.toFloat() / scrollState.maxValue.toFloat()
+        sliderPosition = proportion
     }
 
     if (!edit.value){
 
-        Column (
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
 
-            modifier = modifier
-                .fillMaxWidth()
-                .graphicsLayer(
-                    scaleX = scale,
-                    scaleY = scale,
-                    translationX = offset.x,
-                    translationY = offset.y
-                )
-                .transformable(state = state)
-                .verticalScroll(rememberScrollState() , enabled = true)
 
-        )
-        {
-            renderedPages.forEachIndexed { index , page ->
-                PdfPage(
-                    pdfViewerActivityViewModel ,
-                    page = page,
-                    modifier = Modifier
-                        .padding(8.dp)
+            Column (
 
-                )
+                modifier = modifier
+                    .fillMaxWidth()
+                    .transformable(state = transformablestate)
+                    .graphicsLayer(
+                        scaleX = scale,
+                        scaleY = scale,
+                        translationX = offset.x,
+                        translationY = offset.y
+                    )
+                    .verticalScroll(scrollState , enabled = true)
+                    .pointerInput(true){
+                        detectTapGestures(
+                            onTap = {
+                                scrollbarvisibilty = scrollbarvisibilty.not()
+                            }
+                        )
+                    }
+
+            )
+            {
+                renderedPages.forEachIndexed { index , page ->
+                    PdfPage(
+                        pdfViewerActivityViewModel ,
+                        page = page,
+                        modifier = Modifier
+                            .padding(8.dp)
+
+                    )
+                }
+
             }
 
+            if (scrollbarvisibilty){
+                Slider(
+
+                    value = sliderPosition,
+                    onValueChange = { newValue ->
+                        sliderPosition = newValue
+                        // Sync slider position with scroll state
+                        scope.launch {
+                            scrollState.scrollTo((scrollState.maxValue * newValue).toInt())
+                        }
+                    },
+                    modifier = Modifier
+                        .rotate(90f)
+                        .offset(0.dp,-200.dp)
+                        .fillMaxHeight(),
+                    colors = SliderDefaults.colors(
+                        thumbColor = Color.Transparent, // Thumb rengini şeffaf yapıyoruz çünkü ikonu göstereceğiz
+                        activeTrackColor = Color.Transparent,
+                        inactiveTrackColor = Color.Transparent
+                    ),
+                    thumb = {
+                        Box(
+                            contentAlignment = Alignment.Center ,
+                            modifier = Modifier
+                                .offset(x = 10.dp, y = (20).dp)
+                                .clipToBounds()
+                                .clip(CircleShape)
+                                .background(Color.Red)
+                                .rotate(90f)
+
+                        ) {
+                            Image(
+                                painter = vectorIcon, // İkonu slider'ın thumb kısmına yerleştiriyoruz
+                                contentDescription = "Slider Thumb",
+                                modifier = Modifier // İkonun boyutunu ayarlayın
+                                    .clipToBounds()
+                                    .clip(CircleShape)
+                                    .background(colorResource(R.color.modified))
+
+                            )
+                        }
+
+                    }
+                )
+            }
         }
+
     }
     else {
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-
         )
         {
 
             Column(
                 modifier = modifier
-
                     .fillMaxWidth()
                     .graphicsLayer(
                         scaleX = scale,
@@ -500,10 +601,18 @@ fun ViewerFlow(pageStates: MutableList<MutableState<DrawingState>> , pdfViewerAc
                         translationX = offset.x,
                         translationY = offset.y
                     )
+                    .transformable(state = transformablestate)
+                    .verticalScroll(scrollState , enabled = true)
+                    .pointerInput(true){
+                        detectTapGestures(
+                            onTap = {
+                                scrollbarvisibilty = scrollbarvisibilty.not()
+                            } ,
 
-                    .transformable(state = state)
-                    .verticalScroll(rememberScrollState() , enabled = true)
+                        )
 
+
+                    }
 
 
             )
@@ -515,7 +624,7 @@ fun ViewerFlow(pageStates: MutableList<MutableState<DrawingState>> , pdfViewerAc
                     state.value.selectedColor = selectedcolor.value
 
                     if (highlight.value){
-                        state.value.thickness = 50f
+                        state.value.thickness = 10f
                         state.value.selectedColor = state.value.selectedColor.copy(alpha = 0.2f)
                     } else {
                         state.value.thickness = 5f
@@ -582,15 +691,14 @@ fun ViewerFlow(pageStates: MutableList<MutableState<DrawingState>> , pdfViewerAc
 
                             modifier = Modifier
 
-                                .background(Color.Yellow)
                                 .aspectRatio(page.width.toFloat() / page.height.toFloat())
 
                         )
                         DrawingScreen(
                             pageStates[index],
                             modifier = Modifier
-
                                 .padding(8.dp)
+
 
 
 
@@ -602,6 +710,54 @@ fun ViewerFlow(pageStates: MutableList<MutableState<DrawingState>> , pdfViewerAc
                 }
 
             }
+
+            if (scrollbarvisibilty){
+                Slider(
+
+                    value = sliderPosition,
+                    onValueChange = { newValue ->
+                        sliderPosition = newValue
+                        // Sync slider position with scroll state
+                        scope.launch {
+                            scrollState.scrollTo((scrollState.maxValue * newValue).toInt())
+                        }
+                    },
+                    modifier = Modifier
+                        .rotate(90f)
+                        .offset(0.dp,-200.dp)
+                        .fillMaxHeight(),
+                    colors = SliderDefaults.colors(
+                        thumbColor = Color.Transparent, // Thumb rengini şeffaf yapıyoruz çünkü ikonu göstereceğiz
+                        activeTrackColor = Color.Transparent,
+                        inactiveTrackColor = Color.Transparent
+                    ),
+                    thumb = {
+                        Box(
+                            contentAlignment = Alignment.Center ,
+                            modifier = Modifier
+                                .offset(x = 10.dp, y = (20).dp)
+                                .clipToBounds()
+                                .clip(CircleShape)
+                                .background(Color.Red)
+                                .rotate(90f)
+
+                        ) {
+                            Image(
+                                painter = vectorIcon, // İkonu slider'ın thumb kısmına yerleştiriyoruz
+                                contentDescription = "Slider Thumb",
+                                modifier = Modifier // İkonun boyutunu ayarlayın
+                                    .clipToBounds()
+                                    .clip(CircleShape)
+                                    .background(colorResource(R.color.modified))
+
+                            )
+                        }
+
+                    }
+                )
+            }
+
+
 
             if (colorPaletteVisible){
 
@@ -782,11 +938,81 @@ fun ViewerFlow(pageStates: MutableList<MutableState<DrawingState>> , pdfViewerAc
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun scrollbar(){
 
-@Preview(showBackground = true)
+    // Vektör ikonunu proje içerisinden yükleyin
+    val vectorIcon: Painter = painterResource(id = R.drawable.baseline_unfold_more_24)
+
+    val scope = rememberCoroutineScope()
+
+
+    var sliderPosition by remember {
+        // ScrollState'in başlangıçta olduğu yerde slider da başlar
+        mutableStateOf(0f)
+    }
+    val scrollState = rememberScrollState()
+    var columnHeight by remember { mutableStateOf(0) }
+
+   /* Box(
+        modifier = Modifier
+            .background(Color.Yellow)
+            .fillMaxWidth()
+
+    ) {
+
+    }*/
+    Slider(
+
+        value = sliderPosition,
+        onValueChange = { newValue ->
+            sliderPosition = newValue
+            // Sync slider position with scroll state
+            scope.launch {
+                scrollState.scrollTo((scrollState.maxValue * newValue).toInt())
+            }
+        },
+        modifier = Modifier
+            .rotate(90f)
+            .offset(0.dp,-200.dp)
+            .fillMaxHeight(),
+        colors = SliderDefaults.colors(
+            thumbColor = Color.Transparent, // Thumb rengini şeffaf yapıyoruz çünkü ikonu göstereceğiz
+            activeTrackColor = Color.Transparent,
+            inactiveTrackColor = Color.Transparent
+        ),
+        thumb = {
+            Box(
+                contentAlignment = Alignment.Center ,
+                modifier = Modifier
+                    .offset(x = 10.dp, y = (20).dp)
+
+                    .graphicsLayer(rotationZ = 90f)
+
+            ) {
+                Image(
+                    painter = vectorIcon, // İkonu slider'ın thumb kısmına yerleştiriyoruz
+                    contentDescription = "Slider Thumb",
+                    modifier = Modifier // İkonun boyutunu ayarlayın
+                        .clipToBounds()
+                        .clip(CircleShape)
+                        .background(Color.White)
+
+                )
+            }
+
+        }
+    )
+
+
+}
+
+@Preview(showBackground = true , showSystemUi = true)
 @Composable
 fun GreetingPreview2() {
     DocuNoteTheme {
         //ViewerFlow( graphicsLayers, PDFViewerActivityViewModel() , PDFConverter(LocalContext.current) , PaddingValues() , listOf())
+        scrollbar()
     }
 }

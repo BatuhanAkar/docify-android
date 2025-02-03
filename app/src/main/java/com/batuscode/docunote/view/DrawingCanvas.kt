@@ -105,6 +105,7 @@ fun DrawingCanvas(
                         onAction(DrawingAction.OnPathEnd)
                     },
                 )
+
             }
     ) {
         paths.fastForEach { pathData ->
