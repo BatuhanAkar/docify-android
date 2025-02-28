@@ -1,3 +1,7 @@
+import com.android.build.gradle.internal.cxx.configure.defaultCmakeVersion
+import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
+//import org.jetbrains.kotlin.gradle.idea.proto.com.google.protobuf.compiler.version
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -8,8 +12,8 @@ plugins {
 android {
     namespace = "com.batuscode.docunote"
     compileSdk = 35
-
     defaultConfig {
+
         applicationId = "com.batuscode.docunote"
         minSdk = 26
         //noinspection EditedTargetSdkVersion
@@ -18,6 +22,14 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            // Specifies the ABI configurations of your native
+            // libraries Gradle should build and package with your app.
+            abiFilters += listOf("x86", "x86_64", "armeabi", "armeabi-v7a",
+                "arm64-v8a")
+        }
+
     }
 
     buildTypes {
@@ -41,6 +53,8 @@ android {
         compose = true
     }
     buildToolsVersion = "35.0.1"
+
+
 }
 
 dependencies {
@@ -48,6 +62,13 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+
+    //implementation ("com.github.SmartToolFactory:Compose-Extended-Gestures:4.0.0")
+    implementation ("com.github.SmartToolFactory:Compose-Zoom:0.5.0")
+    implementation ("com.github.nanihadesuka:LazyColumnScrollbar:2.2.0")
+    implementation(project(":pdfium"))
+    implementation(project(":pdf-box"))
+   // implementation ("com.tom-roush:pdfbox-android:2.0.26.0")
     val room_version = "2.6.1"
    // implementation(files(("libs/pdfbox-app-3.0.3.jar")))
    // implementation ("org.apache.pdfbox:pdfbox-android:2.0.27")
@@ -55,7 +76,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.coil.compose)
-    implementation ("com.tom-roush:pdfbox-android:2.0.27.0")
+   // implementation ("com.tom-roush:pdfbox-android:2.0.27.0")
+   // implementation ("com.gemalto.jp2:jp2-android:1.0.3")
+    // https://mvnrepository.com/artifact/com.github.Tgo1014/JP2ForAndroid
+   // implementation("com.github.Tgo1014:JP2ForAndroid:1.0.4")
+
     implementation("androidx.room:room-runtime:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
     implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc10")

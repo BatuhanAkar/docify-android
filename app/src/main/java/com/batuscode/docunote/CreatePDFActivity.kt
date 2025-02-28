@@ -6,56 +6,42 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.inputmethodservice.InputMethodService
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -70,60 +56,47 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.view.WindowCompat
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import com.batuscode.docunote.viewmodel.CreatePDFActivityViewModel
 import kotlinx.coroutines.launch
 import kotlin.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.layer.GraphicsLayer
-import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEach
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import com.batuscode.docunote.model.Document
-import com.batuscode.docunote.view.DrawingCanvas
-import com.batuscode.docunote.view.DrawingScreen
+import com.batuscode.docunote.model.mColor
+import com.batuscode.docunote.utils.FileManager
+import com.batuscode.docunote.utils.PDFConverter
+import com.batuscode.docunote.utils.PDFCreator
 import com.batuscode.docunote.view.DrawingState
 import com.batuscode.docunote.view.SaveDocument
-import com.batuscode.docunote.viewmodel.allColors
+import com.batuscode.pdfium.PDFPage
 import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditorDefaults
-import com.tom_roush.pdfbox.pdmodel.PDDocument
-import com.tom_roush.pdfbox.pdmodel.PDPage
-import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlin.collections.forEach
+import kotlin.collections.forEachIndexed
+import com.batuscode.pdfium.PdfDocument
+import com.batuscode.pdfium.icore
+import kotlin.properties.Delegates
 
 class CreatePDFActivity : ComponentActivity() {
     companion object {
@@ -134,6 +107,7 @@ class CreatePDFActivity : ComponentActivity() {
         lateinit var contentResolver: ContentResolver
         lateinit var context: Context
         lateinit var layers: MutableList<GraphicsLayer>
+        var docptr: Long = 0
 
     }
 
@@ -168,8 +142,10 @@ class CreatePDFActivity : ComponentActivity() {
                     contentResolver.takePersistableUriPermission(uri!!, takeFlags)
                   //  val creator = PDFCreator()
                    // creator.createPage(uri = uri!! , docList = pagesContainer , Companion.contentResolver)
-                  /*  mcreatePDFActivityViewModel.update_fileUri(uri!!)
+
+/*  mcreatePDFActivityViewModel.update_fileUri(uri!!)
                     mcreatePDFActivityViewModel.update_write(true)*/
+
                 }
             }
         }
@@ -182,21 +158,70 @@ class CreatePDFActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+
         val createPDFActivityViewModel: CreatePDFActivityViewModel by viewModels()
         mcreatePDFActivityViewModel = createPDFActivityViewModel
         pdfActivity = this
         Companion.contentResolver = contentResolver
 
         cpageStates = mutableStateListOf()
-       // focusrequesters = mutableStateListOf()
+
+        val creator = PDFCreator(this)
+        val filemanager = FileManager(this)
+        val converter = PDFConverter(this)
+
+
 
         setContent {
             context = LocalContext.current
-            DocuNoteTheme(darkTheme = true) {
+            DocuNoteTheme() {
+                enableEdgeToEdge()
+                val textStates = remember { mutableStateMapOf<Int, RichTextState>() }
+                var documentPtr: Long = 0
+                var pages = remember {
+                    mutableStateListOf<PDFPage>()
+                }
+                documentPtr = MainActivity.mainicore.createDocument()
 
-                enableEdgeToEdge(
-                    statusBarStyle = SystemBarStyle.auto(colorResource(R.color.modified).toArgb() , colorResource(R.color.modified).toArgb())
-                )
+                LaunchedEffect(Unit) {
+
+                 /*   var draftReady = creator.saveDraft()
+
+                    if (draftReady){
+                        val uri = filemanager.getDraftUri(context)
+                        val page = converter.renderDraftDoc(context, Uri.parse(uri))
+                        if (page!= null){
+                            pages.add(page) // Add the page to the list
+                            Log.d("ownCreator" , "page is created")
+                        } else {
+                            Log.e("ownCreator" , "page is null")
+                        }
+                    } else {
+
+                        Log.d("ownCreator" , "draft not ready")
+                    }*/
+
+
+                    Log.d("page count" , pages.size.toString())
+                    if (documentPtr != 0L) {
+                        val page = PDFPage(595f, 842f) // A4 size
+                        val ok = MainActivity.mainicore.addPage(documentPtr, page)
+                        if (ok != 0L){
+
+                            Log.d("page count" , "first" + documentPtr)
+                            documentPtr=ok
+
+                            Log.d("page count" , "after" + documentPtr)
+                            docptr=ok
+
+                            Log.d("page count" , "after main" + docptr)
+                            pages.add(page) // Add the page to the list
+                            Log.d("page count" , pages.size.toString())
+                        }
+                    }
+
+                }
+
                 val scope = rememberCoroutineScope()
 
                 var index = remember {
@@ -206,9 +231,9 @@ class CreatePDFActivity : ComponentActivity() {
                 var pageNumber = remember {
                     mutableIntStateOf(1)
                 }
-                var pages = remember {
+               /* var pages = remember {
                     mutableStateOf<MutableList<Document>>(mutableStateListOf())
-                }
+                }*/
 
 
                 var showSaveDialog = remember {
@@ -223,14 +248,10 @@ class CreatePDFActivity : ComponentActivity() {
                 val layer = rememberGraphicsLayer()
 
                 var pageBitmaps = remember {
-                    mutableStateOf<ImageBitmap?>(null)
+                    mutableStateOf<MutableList<ImageBitmap>>(mutableStateListOf())
                 }
 
                 val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-
-                var document = remember {
-                    PDDocument()
-                }
 
                 lateinit var pageBitmap: Bitmap
 
@@ -241,37 +262,68 @@ class CreatePDFActivity : ComponentActivity() {
                     mutableStateListOf<GraphicsLayer>()
                 }
 
-                LaunchedEffect(key1 = Unit) {
 
 
+                val configuration = LocalConfiguration.current
+                val density = LocalDensity.current.density
+                val screenWidthPx = configuration.screenWidthDp * density // Ekran genişliği (px cinsinden)
+                val screenHeightPx = configuration.screenHeightDp * density // Ekran yüksekliği (px cinsinden)
 
-                    val page = PDPage(PDRectangle.A4)
-
-                    val width = (page.mediaBox.width * scaleFactor).toInt()
-                    val height = (page.mediaBox.height * scaleFactor).toInt()
-                    val bitmap = Bitmap.createBitmap(width , height ,
-                        Bitmap.Config.ARGB_8888)
-                    val canvas = android.graphics.Canvas(bitmap).apply {
-                        drawColor(android.graphics.Color.WHITE)
-                        drawBitmap(bitmap, 0f, 0f, null)
-                    }
-
-                    pageBitmap = bitmap
-
-
-
-                    val doc = Document(index = 0 ,
-                        page = pageNumber ,
-                        text = RichTextState(),
-                        bitmap = bitmap ,)
-
-
-                    val iter = pages.value.toMutableList()
-                    iter.add(index.value , doc)
-                    index.value += index.value
-
-                    pages.value = iter
+                var chighlight = remember {
+                    mutableStateOf(false)
                 }
+                var ccolorPaletteVisible by remember {
+                    mutableStateOf(true)
+                }
+                var cundo = remember {
+                    mutableStateOf(false)
+                }
+                var cearse = remember {
+                    mutableStateOf(false)
+                }
+                var addPage = remember {
+                    mutableStateOf(true)
+                }
+                var pdfDocument = remember {
+                    mutableStateOf(PdfDocument())
+                }
+
+                LaunchedEffect(key1 = addPage.value , key2 = ccolorPaletteVisible) {
+
+
+
+                    if (ccolorPaletteVisible){
+
+                        delay(2000L)
+                        ccolorPaletteVisible = ccolorPaletteVisible.not()
+                    }
+                }
+
+                val frList = remember { mutableStateListOf<FocusRequester>() }
+                val scrollState = rememberScrollState()
+                var cpaletteVisible by remember {
+                    mutableStateOf(false)
+                }
+                var cthicknessTextfield = remember {
+                    mutableStateOf(5)
+                }
+                var ccolorlist = remember {
+                    mutableStateOf<List<mColor>>(emptyList())
+                }
+               // ccolorlist.value = getcolor()
+                var cselectedcolor = remember {
+                    mutableStateOf<Color>(Color.Black)
+                }
+                var highlight = remember {
+                    mutableStateOf(false)
+                }
+                var cdraw = remember {
+                    mutableStateOf(true)
+                }
+
+
+
+
 
 
 
@@ -279,6 +331,7 @@ class CreatePDFActivity : ComponentActivity() {
                 ModalNavigationDrawer(
                     modifier = Modifier
                         .fillMaxSize(),
+                    gesturesEnabled = false,
                     drawerState = drawerState,
                     scrimColor = Color.Transparent,
                     drawerContent = {
@@ -297,14 +350,20 @@ class CreatePDFActivity : ComponentActivity() {
                                 modifier = Modifier
                                     .verticalScroll(state = rememberScrollState())
                             ) {
-                              /*  pageBitmaps.forEach{
+                                pageBitmaps.value.forEach{
                                     bitmap ->
-                                    Image(bitmap = bitmap , contentDescription = "")
-                                }*/
-                                if (pageBitmaps.value != null){
+                                    Image(
+                                        bitmap = bitmap ,
+                                        contentDescription = "" ,
+                                        modifier = Modifier
+                                            .scale(0.25f))
+                                }
+
+/*  if (pageBitmaps.value != null){
 
                                     Image(bitmap = pageBitmaps.value!! , contentDescription = "")
-                                }
+                                }*/
+
                             }
 
                         }
@@ -321,32 +380,7 @@ class CreatePDFActivity : ComponentActivity() {
                                 actions = {
                                     FilledTonalButton(
                                         onClick = {
-
-                                            /*  val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
-                                          addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                                      }
-                                      activity?.startActivityForResult(intent , 0)*/
-
-
-                                           /* pagesContainer = pages
-
-                                            val intent =
-                                                Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                                                    addCategory(Intent.CATEGORY_OPENABLE)
-                                                    type = "application/pdf"
-                                                    putExtra(
-                                                        Intent.EXTRA_TITLE,
-                                                        R.string.documentname
-                                                    )
-
-                                                    // Optionally, specify a URI for the directory that should be opened in
-                                                    // the system file picker before your app creates the document.
-                                                }
-                                            pdfActivity.startActivityForResult(intent, 1)*/
-                                            pagesContainer = pages.value
-                                            cpageStates = pageStates
                                             showSaveDialog.value = showSaveDialog.value.not()
-
                                         },
 
                                         ) {
@@ -357,13 +391,10 @@ class CreatePDFActivity : ComponentActivity() {
                                     IconButton(onClick = {
                                         scope.launch {
                                             if (drawerState.isClosed) {
-                                               // Log.d("images" , pageBitmaps.size.toString())
-                                              /*  layers.forEach{
-                                                        grap ->
 
-                                                    pageBitmaps.add(grap.toImageBitmap())
-                                                }*/
-                                                pageBitmaps.value = layer.toImageBitmap()
+                                                layers.forEachIndexed { index , layer ->
+                                                    pageBitmaps.value.add(index , layer.toImageBitmap())
+                                                }
                                                 drawerState.open()
                                             } else {
                                                 drawerState.close()
@@ -380,69 +411,73 @@ class CreatePDFActivity : ComponentActivity() {
                         },
                         floatingActionButton = {
                             FloatingActionButton(
+                                containerColor = MaterialTheme.colorScheme.background,
                                 onClick = {
-                                    scope.launch {
-
-
-
-                                      /*  val doc = Document(index, RichTextState(), pageNumber)
-                                        pages.add(doc)
-                                        index.value = ++index.value
-                                        pageNumber.value = ++pageNumber.value*/
-
-                                        // createPDFActivityViewModel.setNewPage()
-                                        // docsState.animateScrollToItem(1)
-
-
-
-                                      /*  val page = PDPage(PDRectangle.A4)
-
-                                        val page2 = document.pages.get(0)
-
-                                        val width = (page2.mediaBox.width * scaleFactor).toInt()
-                                        val height = (page2.mediaBox.height * scaleFactor).toInt()
-                                        val bitmap = Bitmap.createBitmap(width , height ,
-                                            Bitmap.Config.ARGB_8888)
-                                        val canvas = android.graphics.Canvas(bitmap).apply {
-                                            drawColor(android.graphics.Color.WHITE)
-                                            drawBitmap(bitmap, 0f, 0f, null)
-                                        }
-
-                                        val doc = Document(index = 1 , page = pageNumber , RichTextState() , bitmap = bitmap)
-                                        val iter = pages.value.toMutableList()
-                                        iter.add(doc)
-                                        pages.value = iter*/
-
-
-                                        val doc2 = Document(index = 0 ,
-                                            page = pageNumber ,
-                                            RichTextState() ,
-                                            bitmap = pageBitmap ,
-                                            )
-                                        val iter = pages.value.toMutableList()
-                                        iter.add(index.value , doc2)
-                                        index.value += index.value
-
-                                        pages.value = iter
-                                    }
-                                },
+                                   /* if (documentPtr != 0L) {
+                                        val page = PDFPage(595f, 842f) // A4 size
+                                        icore.addPage(documentPtr, page)
+                                        pages.add(page) // Add the page to the list
+                                        Log.d("page count" , pages.size.toString())
+                                    }*/
+                                } ,
                             ) {
                                 Icon(
-                                    Icons.Default.Add,
-                                    contentDescription = "extensions"
-                                )
+                                    painter = painterResource(id = R.drawable.note_add_20px) ,
+                                    contentDescription = "extensions")
                             }
                         },
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
                     ) { innerPadding ->
 
                         if (showSaveDialog.value){
-                            SaveDocument(create = true , onDismissRequest = {showSaveDialog.value = showSaveDialog.value.not()})
+                            SaveDocument(create = true, onDismissRequest = {showSaveDialog.value = showSaveDialog.value.not()} , textStates)
                         }
 
-                        PageScreen(cpageStates  , modifier = Modifier.padding(innerPadding), pages.value)
+                        Box (
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .padding(innerPadding)
+                                .fillMaxSize()
+                        ){
+                            LazyColumn(
+                                modifier = Modifier
+                                    .matchParentSize()
+                            ) {
+                                if (pages.isNotEmpty()){
+                                    itemsIndexed(pages){
+                                            index , page ->
+                                        val state = textStates.getOrPut(index) { rememberRichTextState() }
 
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .aspectRatio(page.width / page.height)
+                                                .background(Color.White)
+                                                .border(1.dp, Color.Gray)
+                                        ) {
 
+                                            // Simulate page content (e.g., text, images)
+                                            RichTextEditor(
+                                                singleLine = false,
+                                                modifier = Modifier
+                                                    .aspectRatio(page.width / page.height),
+                                                state = state ,
+                                                colors = RichTextEditorDefaults.richTextEditorColors(
+                                                    disabledIndicatorColor = Color.Transparent ,
+                                                    unfocusedIndicatorColor = Color.Transparent ,
+                                                    cursorColor = Color.Black ,
+                                                    focusedIndicatorColor = Color.Transparent ,
+                                                    containerColor = Color.White ,
+                                                    textColor = Color.Black
+
+                                                )
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -451,41 +486,7 @@ class CreatePDFActivity : ComponentActivity() {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun klkl(){
-    val state = rememberRichTextState()
-
-
-    Box (
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(1280.dp)
-    ){
-
-        RichTextEditor(
-
-            minLines = 1 ,
-            maxLength = 1820,
-            state = state ,
-            colors = RichTextEditorDefaults.richTextEditorColors(
-                disabledIndicatorColor = Color.Transparent ,
-                unfocusedIndicatorColor = Color.Transparent ,
-                cursorColor = Color.Black ,
-                focusedIndicatorColor = Color.Transparent ,
-                containerColor = Color.White ,
-                textColor = Color.Black
-
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1280.dp)
-        )
-
-    }
-}
-
-
+/*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -493,32 +494,28 @@ fun PageScreen(cpageStates: MutableList<MutableState<DrawingState>> , modifier: 
 
 
 
-   /* LaunchedEffect(Unit) {
+
+ LaunchedEffect(Unit) {
         createPDFActivityViewModel.initializePage()
     }
 
     val docsState = rememberLazyListState()
 
 
-    val docs = createPDFActivityViewModel._page.collectAsState()*/
+    val docs = createPDFActivityViewModel._page.collectAsState()
 
 
-    var graphic = remember {
-        mutableStateListOf<GraphicsLayer>()
-    }
+    val configuration = LocalConfiguration.current
+    val density = LocalDensity.current.density
+    val screenWidthPx = configuration.screenWidthDp * density // Ekran genişliği (px cinsinden)
+    val screenHeightPx = configuration.screenHeightDp * density // Ekran yüksekliği (px cinsinden)
 
 
-    var drawTextfield = remember {
-        mutableStateOf(false)
-    }
 
     var chighlight = remember {
         mutableStateOf(false)
     }
 
-    var cselectedcolor = remember {
-        mutableStateOf<Color>(Color.Black)
-    }
 
     var ccolorPaletteVisible by remember {
         mutableStateOf(true)
@@ -531,6 +528,7 @@ fun PageScreen(cpageStates: MutableList<MutableState<DrawingState>> , modifier: 
     var cearse = remember {
         mutableStateOf(false)
     }
+
 
     LaunchedEffect(key1 = ccolorPaletteVisible) {
         if (ccolorPaletteVisible){
@@ -551,6 +549,38 @@ fun PageScreen(cpageStates: MutableList<MutableState<DrawingState>> , modifier: 
     val height = (PDRectangle.A4.height * scaleFactor)
 
     val scrollState = rememberScrollState()
+
+
+    var scale = remember { mutableStateOf(1f) }
+    var offset = remember { mutableStateOf(Offset.Zero) }
+
+
+    var cpaletteVisible by remember {
+        mutableStateOf(false)
+    }
+
+
+    var cthicknessTextfield = remember {
+        mutableStateOf(5)
+    }
+
+    var ccolorlist = remember {
+        mutableStateOf<List<mColor>>(emptyList())
+    }
+
+    var cselectedcolor = remember {
+        mutableStateOf<Color>(Color.Black)
+    }
+
+    var highlight = remember {
+        mutableStateOf(false)
+    }
+
+    var cdraw = remember {
+        mutableStateOf(true)
+    }
+
+
     Box (
         modifier = Modifier
             .fillMaxSize()
@@ -561,6 +591,106 @@ fun PageScreen(cpageStates: MutableList<MutableState<DrawingState>> , modifier: 
             modifier = modifier
                 .fillMaxWidth()
                 .verticalScroll(scrollState, enabled = true)
+                .pointerInput(Unit) {
+                    detectPointerTransformGestures(
+                        onGestureStart = {
+                        },
+                        onGesture = { centroid: Offset,
+                                      offsetChange: Offset,
+                                      zoomChange: Float,
+                                      gestureRotate: Float,
+                                      mainPointerInputChange: PointerInputChange,
+                                      pointerList: List<PointerInputChange> ->
+
+
+                            val isMultiTouch = pointerList.size > 1
+
+                            // Ölçeği güncelle, %75'e kadar küçülme ve maksimum 6x büyütme
+
+
+                            if (isMultiTouch) {
+                                pointerList.forEach {
+                                    it.consume()
+                                }
+
+                                val oldScale = scale.value
+                                var newScale =
+                                    (scale.value * zoomChange).coerceIn(
+                                        0.75f..6f
+                                    )
+                                // Görselin boyutunu hesapla
+                                val contentWidthPx =
+                                    screenWidthPx * newScale
+                                val contentHeightPx =
+                                    screenHeightPx * newScale
+
+
+                                // Offset'i ekran boyutlarına göre sınırla
+                                val maxOffsetX =
+                                    (contentWidthPx - screenWidthPx).coerceAtLeast(
+                                        0f
+                                    ) / 2f
+                                val maxOffsetY =
+                                    (contentHeightPx - screenHeightPx).coerceAtLeast(
+                                        0f
+                                    ) / 2f
+
+
+                                offset.value =
+                                    (offset.value + centroid / oldScale) -
+                                            (centroid / newScale + offsetChange / oldScale)
+
+
+*/
+/*  offset.value = Offset(
+                                      x = offset.value.x.coerceIn(
+                                          -maxOffsetX,
+                                          maxOffsetX
+                                      ),
+                                      y = offset.value.y.coerceIn(
+                                          -maxOffsetY,
+                                          maxOffsetY
+                                      )
+                                  )*//*
+
+
+
+                                scale.value = newScale
+
+
+
+
+                            } else {
+                                cdraw.value = true
+                            }
+
+                        },
+                        onGestureEnd = {
+                        }
+                    )
+                }
+                .pointerInput(true) {
+
+                    detectTapGestures(
+                        onTap = {
+                            if (cpaletteVisible) {
+                                cpaletteVisible = cpaletteVisible.not()
+                            }
+                        },
+
+                        )
+
+
+                }
+                .graphicsLayer(
+
+                    translationX = -offset.value.x * scale.value,
+                    translationY = -offset.value.y * scale.value,
+                    scaleX = scale.value,
+                    scaleY = scale.value,
+
+                    transformOrigin = TransformOrigin(0.5f, 0f)
+                )
 
         )
         {
@@ -605,18 +735,14 @@ fun PageScreen(cpageStates: MutableList<MutableState<DrawingState>> , modifier: 
                 document.text = rtstate.value
 
 
-               // CreatePDFActivity.Companion.layers.add(graphicsLayer)
+                // CreatePDFActivity.Companion.layers.add(graphicsLayer)
                 Box (
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp)
                         .drawWithContent {
 
-                            /*  graphicsLayer.record {
-                                this@drawWithContent.drawContent()
-                            }
 
-                            drawLayer(graphicsLayer)*/
 
                             if (CreatePDFActivity.Companion.layers.size <= index) {
                                 // val newLayer = GraphicsLayer()
@@ -632,34 +758,42 @@ fun PageScreen(cpageStates: MutableList<MutableState<DrawingState>> , modifier: 
 
                 ){
 
-                    /*Image(
+
+*/
+/*Image(
                         bitmap = document.bitmap.asImageBitmap() ,
                         ""
-                    )*/
+                    )*//*
 
 
 
-                     RichTextEditor(
 
-                         minLines = 1 ,
-                         maxLength = 1820,
-                         state = rtstate.value ,
-                         colors = RichTextEditorDefaults.richTextEditorColors(
-                             disabledIndicatorColor = Color.Transparent ,
-                             unfocusedIndicatorColor = Color.Transparent ,
-                             cursorColor = Color.Black ,
-                             focusedIndicatorColor = Color.Transparent ,
-                             containerColor = Color.White ,
-                             textColor = Color.Black
 
-                         ),
-                         modifier = Modifier
-                             .focusRequester(frList.get(index))
-                             .aspectRatio(PDRectangle.A4.width / PDRectangle.A4.height)
+                    RichTextEditor(
 
-                     )
+                        minLines = 1 ,
+                        maxLength = 1820,
+                        state = rtstate.value ,
+                        colors = RichTextEditorDefaults.richTextEditorColors(
+                            disabledIndicatorColor = Color.Transparent ,
+                            unfocusedIndicatorColor = Color.Transparent ,
+                            cursorColor = Color.Black ,
+                            focusedIndicatorColor = Color.Transparent ,
+                            containerColor = Color.White ,
+                            textColor = Color.Black
+
+                        ),
+                        modifier = Modifier
+                            .focusRequester(frList.get(index))
+                            .aspectRatio(PDRectangle.A4.width / PDRectangle.A4.height)
+
+                    )
 
                     DrawingScreen(
+                        cdraw,
+                        scale,
+                        offset,
+                        document.bitmap,
                         cpageStates[index],
                         modifier = Modifier
                             .padding(8.dp)
@@ -682,7 +816,9 @@ fun PageScreen(cpageStates: MutableList<MutableState<DrawingState>> , modifier: 
 
 
 
-                /*  DocumentView(
+
+*/
+/*  DocumentView(
                       document ,
                       modifier = Modifier
                           .drawWithContent {
@@ -692,85 +828,134 @@ fun PageScreen(cpageStates: MutableList<MutableState<DrawingState>> , modifier: 
                               drawLayer(layer)
                               layers.add(layer)
                           }
-                  )*/
+                  )*//*
+
+
 
             }
 
         }
 
-        if (ccolorPaletteVisible){
 
+        if (cpaletteVisible) {
             Surface(
                 shape = RoundedCornerShape(8.dp),
-                shadowElevation = 15.dp,
+                shadowElevation = 8.dp,
                 color = Color.White,
                 modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .rotate(90f)
-                    .graphicsLayer {
-                        translationY = -300f
-                    }
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp)
+                    .height(300.dp)
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .offset(0.dp, -60.dp)
+            ) {
 
-            )
-            {
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                Column(
                     modifier = Modifier
-                        .padding(10.dp)
-                )
-                {
-                    allColors.fastForEach { color ->
-                        val isSelected = cselectedcolor.value == color
-                        Box(
-                            modifier = Modifier
-                                .graphicsLayer {
-                                    val scale = if (isSelected) 1.2f else 1f
-                                    scaleX = scale
-                                    scaleY = scale
-                                }
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(color)
-                                .border(
-                                    width = 2.dp,
-                                    color = if (cselectedcolor.value == color) {
-                                        Color.Black
-                                    } else {
-                                        Color.Transparent
-                                    },
-                                    shape = CircleShape
-                                )
-                                .clickable {
-                                    if (chighlight.value) {
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                ) {
 
-                                        cselectedcolor.value = color.copy(0.2f)
-                                    } else {
-                                        cselectedcolor.value = color
-                                    }
-                                }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+
+                        Text(text = stringResource(R.string.thickness))
+                        BasicTextField(
+                            value = cthicknessTextfield.value.toString(),
+                            onValueChange = { it ->
+
+                                cthicknessTextfield.value = it.toInt()
+
+                            },
+                            modifier = Modifier
+                                .width(50.dp)
+                                .height(20.dp)
+                                .background(Color.LightGray)
                         )
+
+
                     }
 
+
+
+                    Row(
+                        modifier = Modifier
+                            .horizontalScroll(rememberScrollState())
+                    ) {
+
+                        ccolorlist.value.forEachIndexed { index, clist ->
+                            Column {
+                                clist.palet.forEachIndexed { index, color ->
+
+                                    val isSelected =
+                                        cselectedcolor.value == color
+
+                                    Box(
+                                        modifier = Modifier
+
+                                            .background(color) // Set the background color
+                                            .size(24.dp) // Set the size of the box
+                                            .graphicsLayer {
+                                                val scale =
+                                                    if (isSelected) 0.5f else 1f
+                                                scaleX = scale
+                                                scaleY = scale
+                                            }
+                                            .border(
+                                                width = 1.dp,
+                                                color = if (cselectedcolor.value == color) {
+                                                    Color.Black
+                                                } else {
+                                                    Color.Transparent
+                                                },
+                                                shape = RectangleShape
+                                            )
+                                            .clickable(
+                                                enabled = true,
+                                                role = Role.Checkbox,
+                                                onClick = {
+                                                    if (highlight.value) {
+
+                                                        cselectedcolor.value =
+                                                            color.copy(0.2f)
+                                                    } else {
+                                                        cselectedcolor.value =
+                                                            color
+                                                    }
+                                                }
+                                            )
+
+
+                                    )
+                                }
+                            }
+                        }
+
+                    }
                 }
 
             }
         }
+
         Surface(
-            shape = RoundedCornerShape(8.dp),
-            shadowElevation = 15.dp,
+            shape = RectangleShape,
             // color = colorResource(id = R.color.e),
             modifier = Modifier
-                .padding(50.dp)
-
+                .fillMaxWidth()
+                .height(32.dp)
                 .align(Alignment.BottomCenter)
+
 
         )
         {
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(5.dp)
@@ -779,88 +964,71 @@ fun PageScreen(cpageStates: MutableList<MutableState<DrawingState>> , modifier: 
                 OutlinedIconButton(
                     onClick = {
 
-                        scope.launch{
-
-                            val fr = frList.get(scrollState.value)
-
-                            fr.requestFocus()
+                        if (!ccolorPaletteVisible) {
+                            ccolorPaletteVisible = ccolorPaletteVisible.not()
                         }
-
-                            if (!ccolorPaletteVisible){
-                                ccolorPaletteVisible = ccolorPaletteVisible.not()
-                            }
-                            if (chighlight.value){
-                                chighlight.value = chighlight.value.not()
-                            }
-                            if (cearse.value){
-                                cearse.value = cearse.value.not()
-                            }
+                        if (highlight.value) {
+                            highlight.value = highlight.value.not()
+                        }
+                        if (cearse.value) {
+                            cearse.value = cearse.value.not()
+                        }
                     },
                     border = null,
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = Color.Transparent
                     ),
                     modifier = Modifier
-                )
-                {
-                    Icon(
-                        painter = painterResource(R.drawable.baseline_text_fields_24),
-                        contentDescription = "",
-                        modifier = Modifier
-                    )
-                }
-                OutlinedIconButton(
-                    onClick = {
-
-
-                        if (!ccolorPaletteVisible){
-                                ccolorPaletteVisible = ccolorPaletteVisible.not()
-                            }
-                            if (chighlight.value){
-                                chighlight.value = chighlight.value.not()
-                            }
-                            if (cearse.value){
-                                cearse.value = cearse.value.not()
-                            }
-                    },
-                    border = null,
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = Color.Transparent
-                    ),
-                    modifier = Modifier
+                        .size(24.dp)
                 )
                 {
                     Icon(
                         painter = painterResource(R.drawable.pen_icon),
                         contentDescription = "",
                         modifier = Modifier
+                            .size(16.dp)
                     )
                 }
                 OutlinedIconButton(
                     onClick = {
 
-                         if (!ccolorPaletteVisible){
-                             ccolorPaletteVisible = ccolorPaletteVisible.not()
-                         }
+                        if (!ccolorPaletteVisible) {
+                            ccolorPaletteVisible = ccolorPaletteVisible.not()
+                        }
 
-                         if (cearse.value){
-                             cearse.value = cearse.value.not()
-                         }
-                         chighlight.value = chighlight.value.not()
+                        if (cearse.value) {
+                            cearse.value = cearse.value.not()
+                        }
+                        highlight.value = highlight.value.not()
                     },
                     border = null,
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = Color.Transparent
                     ),
                     modifier = Modifier
+                        .size(24.dp)
+
                 )
                 {
                     Icon(
                         painter = painterResource(R.drawable.brush_icon),
                         contentDescription = "",
                         modifier = Modifier
+
+                            .size(24.dp)
                     )
                 }
+
+                Box(
+                    modifier = Modifier
+                        .background(cselectedcolor.value)
+                        .clickable {
+                            cpaletteVisible = cpaletteVisible.not()
+
+                        }
+
+                        .size(16.dp)
+                )
                 OutlinedIconButton(
                     onClick = {
                         cundo.value = cundo.value.not()
@@ -870,29 +1038,38 @@ fun PageScreen(cpageStates: MutableList<MutableState<DrawingState>> , modifier: 
                         containerColor = Color.Transparent
                     ),
                     modifier = Modifier
+                        .size(24.dp)
+
                 )
                 {
                     Icon(
                         painter = painterResource(R.drawable.undo_icon),
                         contentDescription = "",
                         modifier = Modifier
+
+                            .size(24.dp)
                     )
                 }
                 OutlinedIconButton(
                     onClick = {
-                         cearse.value = cearse.value.not()
+                        cearse.value = cearse.value.not()
                     },
                     border = null,
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = Color.Transparent
                     ),
                     modifier = Modifier
+                        .size(24.dp)
+
+
                 )
                 {
                     Icon(
                         painter = painterResource(R.drawable.erase_icon),
                         contentDescription = "",
                         modifier = Modifier
+
+                            .size(24.dp)
                     )
                 }
 
@@ -901,8 +1078,8 @@ fun PageScreen(cpageStates: MutableList<MutableState<DrawingState>> , modifier: 
 
         }
     }
-
 }
+*/
 
 @Preview(showBackground = true , showSystemUi = true)
 @Composable

@@ -22,6 +22,19 @@ data class File (
 
 class FileManager(val context: Context) {
 
+    fun saveDraftUri(context: Context,uri: Uri){
+        val sharedPref = context.getSharedPreferences("draft_file" , Context.MODE_PRIVATE)
+        val editor = sharedPref.edit()
+
+        editor.putString("duri",uri.toString())
+        editor.apply()
+    }
+    fun getDraftUri(context: Context): String{
+        val sharedPref = context.getSharedPreferences("draft_file" , Context.MODE_PRIVATE)
+
+        val uriString = sharedPref.getString("duri" , "")
+        return uriString!!
+    }
     fun saveDocumentList(context: Context, documentList: List<File>) {
         val sharedPref = context.getSharedPreferences("recent_documents", Context.MODE_PRIVATE)
         val editor = sharedPref.edit()

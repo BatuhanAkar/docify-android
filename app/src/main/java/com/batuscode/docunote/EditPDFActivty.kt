@@ -1,3 +1,4 @@
+/*
 package com.batuscode.docunote
 
 import android.os.Bundle
@@ -53,7 +54,6 @@ import com.batuscode.docunote.view.DrawingScreen
 import com.batuscode.docunote.view.DrawingState
 import com.batuscode.docunote.view.ListItem
 import com.batuscode.docunote.viewmodel.DrawingViewModel
-import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.colorResource
@@ -65,7 +65,7 @@ class EditPDFActivty : ComponentActivity() {
             DocuNoteTheme {
 
                 enableEdgeToEdge(
-                    statusBarStyle = SystemBarStyle.auto(colorResource(R.color.modified).toArgb() , colorResource(R.color.modified).toArgb())
+                   // statusBarStyle = SystemBarStyle.auto(colorResource(R.color.modified).toArgb() , colorResource(R.color.modified).toArgb())
                 )
                 Scaffold(
                     modifier = Modifier.fillMaxSize()
@@ -83,8 +83,10 @@ class EditPDFActivty : ComponentActivity() {
 fun Area(modifier: Modifier = Modifier){
 
     val scaleFactor = LocalContext.current.resources.displayMetrics.densityDpi / 72f
-    val width = (PDRectangle.A4.width * scaleFactor)
-    val height = (PDRectangle.A4.height * scaleFactor)
+  */
+/*  val width = (PDRectangle.A4.width * scaleFactor)
+    val height = (PDRectangle.A4.height * scaleFactor)*//*
+
 
     val start = Offset(0f,0f)
     val animate = remember {
@@ -138,4 +140,4 @@ fun GreetingPreview3() {
     DocuNoteTheme {
         Area()
     }
-}
+}*/

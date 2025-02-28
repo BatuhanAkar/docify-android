@@ -2,6 +2,7 @@ package com.batuscode.docunote.view
 
 import android.content.Intent
 import android.os.Environment
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,8 +34,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,19 +49,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.batuscode.docunote.CreatePDFActivity
-import com.batuscode.docunote.EditPDFActivty
 import com.batuscode.docunote.MainActivity
 import com.batuscode.docunote.PDFViewerActivity
 import com.batuscode.docunote.R
 import com.batuscode.docunote.model.Folder
 import com.batuscode.docunote.utils.PDFCreator
 import com.batuscode.docunote.viewmodel.CreatePDFActivityViewModel
+import com.batuscode.pdfium.icore
+import com.mohamedrejeb.richeditor.model.RichTextState
 import kotlinx.coroutines.launch
 import java.io.File
+import java.nio.charset.Charset
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SaveDocument(create:Boolean , onDismissRequest: () -> Unit,){
+fun SaveDocument(create:Boolean , onDismissRequest: () -> Unit,  textStates: SnapshotStateMap<Int, RichTextState>){
     val modalSheetState = rememberModalBottomSheetState()
     ModalBottomSheet(
         sheetState = modalSheetState,
@@ -66,12 +71,12 @@ fun SaveDocument(create:Boolean , onDismissRequest: () -> Unit,){
             onDismissRequest()
         }
     ) {
-        SaveDocContent(create)
+        SaveDocContent(create,textStates)
     }
 }
 
 @Composable
-fun SaveDocContent(create: Boolean){
+fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextState>){
 
     val context = LocalContext.current
 
@@ -161,18 +166,31 @@ fun SaveDocContent(create: Boolean){
                         val folder = Folder(1 , name = FolderName , R.drawable.folder_icon_4_01)
                         MainActivity._appViewModel.addFolder(folder)
 
-                        val creat = PDFCreator()
+                        val creat = PDFCreator(context)
                        // creat.savePDF( text , file = File(dir , "${text}.pdf") , CreatePDFActivity.pagesContainer , CreatePDFActivity.cpageStates , context.contentResolver)
 
                         if (create){
+                            val icore = icore(context)
+
                             scope.launch{
-                                creat.savePDF(text , file = File(dir , "${text}.pdf") , CreatePDFActivity.layers ,context.contentResolver , context)
+                                scope.launch{
+
+                                    val fontInputStream = context.resources.openRawResource(com.batuscode.docunote.R.font.helvetica)
+                                    val fontData = fontInputStream.readBytes()
+                                    textStates.forEach { (index, state) ->
+
+                                        Log.d("new character" , "index :: " + index + " text :: " + state.toMarkdown())
+                                       // icore.nativeAddTextToPage(CreatePDFActivity.docptr,index,state.toMarkdown(),50f,800f,12f,14f,fontData)
+                                    }
+                                }
+
+                                //creat.savePDF(text , file = File(dir , "${text}.pdf") , CreatePDFActivity.layers ,context.contentResolver , context)
                             }
                         } else {
 
                             scope.launch{
                                 creat.saveDrawingsToPDF(text , file = File(dir , "${text}.pdf") ,
-                                    PDFViewerActivity.elayers ,context.contentResolver , context)
+                                    PDFViewerActivity.mpageStates ,context.contentResolver , context)
                             }
                           /*  creat.saveDrawingsToPDF(text,file = File(dir , "${text}.pdf") ,
                                 PDFViewerActivity.mrendererPages ,
@@ -183,18 +201,46 @@ fun SaveDocContent(create: Boolean){
                     }
                     else {
                         val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
-
-                        val creat = PDFCreator()
-                       /*creat.savePDF( text , file = File(dir , "${text}.pdf") , CreatePDFActivity.pagesContainer ,
-                           CreatePDFActivity.cpageStates , context.contentResolver)*/
-
+                        val filePath = File(dir, "${text}.pdf").absolutePath
 
                         // create page
 
                         if (create){
+                            val fontInputStream = context.resources.openRawResource(com.batuscode.docunote.R.font.helvetica)
+                            val fontData = fontInputStream.readBytes()
 
+                            Log.d("page count" , "in save" + CreatePDFActivity.docptr)
+                            var ptr = CreatePDFActivity.docptr
+
+                            Log.d("page count" , "in save" + ptr)
                             scope.launch{
-                                creat.savePDF(text , file = File(dir , "${text}.pdf") , CreatePDFActivity.layers ,context.contentResolver , context)
+                                textStates.forEach { (index, state) ->
+
+                                    val text = state.toText()
+                                    val utf16Bytes = text.toByteArray(Charset.forName("UTF_16LE"))
+                                    Log.d("new character", "utf-16 :: " + utf16Bytes)
+                                    Log.d("new character", "utf-16 :: " + utf16Bytes.joinToString(", ") { it.toString() })
+                                    // Metni satırlara böl
+                                    val lines = text.split("\\s{2,}")
+
+                                    System.out.println(lines)
+
+                                    // Başlangıç Y koordinatını ayarla
+                                    var currentY = 800f
+
+                                    // Her satırı PDF'e ekle
+                                    lines.forEach { line ->
+                                        Log.d("new character", "index :: $index text :: $line")
+
+                                        // Her satırı PDF'e ekle ve satır yüksekliğine göre Y koordinatını güncelle
+                                        MainActivity.mainicore.addText(CreatePDFActivity.docptr, index, utf16Bytes, 50f, currentY, 12f, 14f, fontData)
+                                        currentY -= 14f  // Line height kadar Y'yi düşür
+                                    }
+
+                                    Log.d("new character" , "index :: " + index + " text :: " + state.toMarkdown())
+                                   // MainActivity.mainicore.addText(ptr,0,state.toText(),50f,800f,12f,14f,fontData)
+                                }
+                                MainActivity.mainicore.saveDocument(CreatePDFActivity.docptr,filePath)
                             }
                         } else {
                             // edit page
@@ -203,8 +249,8 @@ fun SaveDocContent(create: Boolean){
                                   PDFViewerActivity.mpageStates , context.contentResolver)*/
 
                             scope.launch{
-                                creat.saveDrawingsToPDF(text , file = File(dir , "${text}.pdf") ,
-                                    PDFViewerActivity.elayers ,context.contentResolver , context)
+                                /*creat.saveDrawingsToPDF(text , file = File(dir , "${text}.pdf") ,
+                                    PDFViewerActivity.mpageStates ,context.contentResolver , context)*/
                             }
 
                         }
@@ -277,6 +323,6 @@ fun CustomDialog(
 @Composable
 fun PreviewSaveDocument(){
     DocuNoteTheme {
-        SaveDocContent(false)
+       // SaveDocContent(false)
     }
 }

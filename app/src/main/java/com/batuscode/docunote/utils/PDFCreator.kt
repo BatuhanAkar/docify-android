@@ -1,111 +1,102 @@
 package com.batuscode.docunote.utils
 
 import android.content.ContentResolver
-import android.content.ContentValues
 import android.content.Context
-import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import android.graphics.pdf.PdfDocument.PageInfo
-import android.net.Uri
-import android.os.Build
 import android.os.Environment
-import android.provider.DocumentsContract
-import android.provider.MediaStore
 import android.util.Log
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.GraphicsLayer
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import com.batuscode.docunote.CreatePDFActivity
-import com.batuscode.docunote.MainActivity
-import com.batuscode.docunote.PDFViewerActivity
-import com.batuscode.docunote.model.Document
+import androidx.core.content.FileProvider
 import com.batuscode.docunote.view.DrawingState
-import com.batuscode.docunote.view.PathData
-import com.batuscode.docunote.viewmodel.CreatePDFActivityViewModel
-import com.tom_roush.harmony.awt.geom.AffineTransform
-import com.tom_roush.pdfbox.pdmodel.PDDocument
-import com.tom_roush.pdfbox.pdmodel.PDPage
-import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
-import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
-import com.tom_roush.pdfbox.pdmodel.font.PDType1Font
-import com.tom_roush.pdfbox.pdmodel.graphics.image.JPEGFactory
-import com.tom_roush.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState
-import com.tom_roush.pdfbox.pdmodel.graphics.state.PDGraphicsState
-import com.tom_roush.pdfbox.rendering.PDFRenderer
-import com.tom_roush.pdfbox.util.Matrix
+import com.batuscode.docunote.view.transformToBottomLeftOrigin
+import com.batuscode.pdfium.icore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileOutputStream
-import java.io.OutputStream
-import java.util.concurrent.CountDownLatch
-import kotlin.math.abs
+import java.io.IOException
 
-class PDFCreator{
+class PDFCreator(val context: Context){
 
     val pdfDocument = PdfDocument()
     val paint = Paint()
+    val fileManager = FileManager(context)
 
 
 
+    suspend fun saveDraft(): Boolean = withContext(Dispatchers.IO){
+        val dir: File? = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
+
+        if (dir != null) {
+            // Step 2: Create a file object
+            val file = File(dir, "draft.pdf")
+             try {
+                // Step 3: Create the file
+                val isFileCreated = file.createNewFile()
+
+                if (isFileCreated) {
+                    Log.d("ownCreator" , "File created successfully at: ${file.absolutePath}")
+                    val uri = FileProvider.getUriForFile(
+                        context,
+                        "${context.packageName}.fileprovider", // Use your FileProvider authority
+                        file
+                    )
+
+                    Log.d("ownCreator" , "$uri")
+
+                    fileManager.saveDraftUri(context,uri)
+                    return@withContext true
+                } else {
+
+                    Log.d("ownCreator" , "File already exists or could not be created.")
+                    val uri = FileProvider.getUriForFile(
+                        context,
+                        "${context.packageName}.fileprovider", // Use your FileProvider authority
+                        file
+                    )
+
+                    Log.d("ownCreator" , "$uri")
+
+                    fileManager.saveDraftUri(context,uri)
+                    return@withContext true
+
+                }
+
+            } catch (e: IOException) {
+                e.printStackTrace()
+                false // Return false if an exception occurred
+            }
+        } else {
+
+            Log.d("ownCreator" , "Could not access the documents directory.")
+            false // Return false if the directory is not accessible
+        }
+        return@withContext false
+    }
 
     val pageInfo = PageInfo.Builder(595, 842, 1).create()
 
-    suspend fun saveDrawingsToPDF (fileName:String, file: File, /*newDocName:String*/  GrapList: List<GraphicsLayer>, contentResolver: ContentResolver, context:Context){
-        val filemanager = FileManager(context)
-        val document = PDDocument()
+    suspend fun saveDrawingsToPDF (fileName:String, file: File, /*newDocName:String*/  /*GrapList: List<GraphicsLayer>*/ mpageStates: MutableMap<Int , MutableState<DrawingState>>, contentResolver: ContentResolver, context:Context){
 
-        for ((index,grap) in GrapList.withIndex()){
-            val page = PDPage()
-            document.addPage(page)
+        Log.d("saveDrawingsToPDF", "Document pointer: ${PDFConverter.midoc.mNativePagesPtr}")
+        val icore = icore(context)
+        mpageStates.forEach { (pageIndex, state) ->
 
-            val contentStream = PDPageContentStream(document, page , true ,true ,true)
-
-            val bitmap = grap.toImageBitmap().asAndroidBitmap()
-            val bb = bitmap.copy(Bitmap.Config.ARGB_8888 , true)
-            val image = JPEGFactory.createFromImage(document, bb)
-            contentStream.drawImage(image, 0f, 0f, page.mediaBox.width, page.mediaBox.height)
-
-            contentStream.close()
-        }
-
-
-        val contentResolver = contentResolver
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName) // Dosya adı
-            put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf") // Dosya türü
-            put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOCUMENTS}") // Documents dizini
-        }
-        val uri = contentResolver.insert(MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL), contentValues)
-
-        filemanager.addDocument(context = context , uri = uri.toString(), fileName = fileName)
-
-        val file2 = com.batuscode.docunote.utils.File(uri.toString() , fileName)
-        MainActivity._appViewModel.addRecentlyFile(file2)
-        uri?.let {
-            val outputStream: OutputStream? = contentResolver.openOutputStream(it)
-            outputStream?.use { stream ->
-                document.save(stream) // PDF belgesini stream'e yaz
-
+            if (state.value.paths.isNotEmpty()) { // Only process pages with non-empty paths
+                icore.addAnnotations(PDFConverter.midoc, pageIndex, state.value.paths , file)
+            } else {
+                Log.d("saveDrawingsToPDF", "Skipping page $pageIndex: paths are empty")
             }
         }
 
-        document.save(file)
-        document.close()
 
-        PDFViewerActivity.activity.onBackPressedDispatcher.onBackPressed()
+
 
     }
 
-    fun abc(fileName:String , file: File, bitmapList: List<Bitmap>, pageStates: MutableList<MutableState<DrawingState>> , contentResolver: ContentResolver) {
+   /* fun abc(fileName:String , file: File, bitmapList: List<Bitmap>, pageStates: MutableList<MutableState<DrawingState>> , contentResolver: ContentResolver) {
         val document = PDDocument()
 
         for ((index, bitmap) in bitmapList.withIndex()) {
@@ -172,7 +163,7 @@ class PDFCreator{
 
 
 
-    }
+    }*/
 
   /*  fun createPDFPage(document: PDDocument): Bitmap{
 
@@ -187,7 +178,7 @@ class PDFCreator{
     }*/
 
      suspend fun savePDF (fileName:String, file: File, /*newDocName:String*/  GrapList: List<GraphicsLayer>, contentResolver: ContentResolver, context:Context){
-         val filemanager = FileManager(context)
+        /* val filemanager = FileManager(context)
 
          val document = PDDocument()
         for ((index,grap) in GrapList.withIndex()){
@@ -228,10 +219,10 @@ class PDFCreator{
         document.save(file)
         document.close()
 
-        CreatePDFActivity.pdfActivity.onBackPressedDispatcher.onBackPressed()
+        CreatePDFActivity.pdfActivity.onBackPressedDispatcher.onBackPressed()*/
 
     }
-    fun asd(fileName:String , file: File, /*newDocName:String*/  docList: List<Document> , pageStates: MutableList<MutableState<DrawingState>> , contentResolver: ContentResolver){
+   /* fun asd(fileName:String , file: File, /*newDocName:String*/  docList: List<Document> , pageStates: MutableList<MutableState<DrawingState>> , contentResolver: ContentResolver){
       val font = PDType1Font.HELVETICA;
       val document = PDDocument()
 
@@ -382,5 +373,5 @@ class PDFCreator{
 
         CreatePDFActivity.pdfActivity.onBackPressedDispatcher.onBackPressed()
 
-    }
+    }*/
 }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">DocuNote</string>
+    <string name="app_name" translatable="false">Docify</string>
     <string name="handNotes" translatable="false">Hand Notes</string>
     <string name="openpdf">Open PDF</string>
     <string name="createpdf">Create PDF</string>
@@ -35,4 +35,7 @@
     <string name="opendocument" translatable="false">Open a document</string>
     <string name="recently_read_item1">Electromagnetic fields</string>
     <string name="recently_read_item2">Lecture notes</string>
+    <string name="thickness">Thickness :</string>
+    <string name="opacity">Opacity :</string>
+    <string name="title_activity_viewer">ViewerActivity</string>
 </resources>

@@ -8,6 +8,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Debug
 import android.os.Environment
 import android.provider.OpenableColumns
 import android.util.Log
@@ -74,7 +75,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import com.batuscode.docunote.CreatePDFActivity.Companion.mcreatePDFActivityViewModel
 import com.batuscode.docunote.model.Folder
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import com.batuscode.docunote.utils.PDFUtils
@@ -82,7 +82,6 @@ import com.batuscode.docunote.view.Extensions
 import com.batuscode.docunote.view.Folders
 import com.batuscode.docunote.view.HandNotes
 import com.batuscode.docunote.viewmodel.AppViewModel
-import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -104,12 +103,17 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.batuscode.pdfium.icore
+import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import java.io.File
 import java.io.FileOutputStream
 
 
 class MainActivity : ComponentActivity() {
     companion object {
+        init {
+            System.loadLibrary("jpdfium");
+        }
         lateinit var _appViewModel: AppViewModel
         lateinit var mainActivity: ComponentActivity
         lateinit var context: Context
@@ -117,10 +121,10 @@ class MainActivity : ComponentActivity() {
         lateinit var mergeDocumentLauncher: ActivityResultLauncher<Intent>
         lateinit var multiplyselectTofolderDocumentLauncher: ActivityResultLauncher<Intent>
         var newFolder = mutableStateOf(false)
-
+        lateinit var mainicore: icore
     }
 
-
+/*
     @Composable
     fun mCustomDialog(
         onDismissRequest: () -> Unit,
@@ -169,7 +173,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
+    }*/
 
     @SuppressLint("Range")
     override fun onActivityResult(
@@ -204,7 +208,7 @@ class MainActivity : ComponentActivity() {
                     val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
                         addCategory(Intent.CATEGORY_OPENABLE)
                         type = "application/pdf"
-                        putExtra(Intent.EXTRA_TITLE, R.string.documentname)
+                       // putExtra(Intent.EXTRA_TITLE, R.string.documentname)
 
                         // Optionally, specify a URI for the directory that should be opened in
                         // the system file picker before your app creates the document.
@@ -361,10 +365,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+
+        PDFBoxResourceLoader.init(applicationContext);
         val appViewModel : AppViewModel by viewModels()
         _appViewModel = appViewModel
         mainActivity = this
-        PDFBoxResourceLoader.init(getApplicationContext());
+        mainicore = icore(this)
+        mainicore.nativeInitLibrary()
+
+      //  PDFBoxResourceLoader.init(getApplicationContext());
 
        /* val folder1 = Folder( 1 , "Matematik" , R.drawable.folder_icon_4_01)
         val folder2 = Folder( 2 , "Coğrafya" , R.drawable.folder_icon_4_01)
@@ -454,7 +463,7 @@ class MainActivity : ComponentActivity() {
                         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
                             addCategory(Intent.CATEGORY_OPENABLE)
                             type = "application/pdf"
-                            putExtra(Intent.EXTRA_TITLE, R.string.documentname)
+                          //  putExtra(Intent.EXTRA_TITLE, R.string.documentname)
 
                             // Optionally, specify a URI for the directory that should be opened in
                             // the system file picker before your app creates the document.
@@ -574,7 +583,7 @@ class MainActivity : ComponentActivity() {
 
 
                 ) { innerPadding ->
-
+/*
                     if (newFolder.value){
                         mCustomDialog(
                             onDismissRequest = { newFolder.value = newFolder.value.not() },
@@ -630,7 +639,7 @@ class MainActivity : ComponentActivity() {
                                 newFolder.value = newFolder.value.not() // Dialogu kapat
                             }
                         )
-                    }
+                    }*/
                     if (_extensionsOpen.value){
                         Extensions(appViewModel = appViewModel)
                     }
@@ -639,6 +648,11 @@ class MainActivity : ComponentActivity() {
             }
 
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mainicore.nativeDestroyLibrary()
     }
 }
 
