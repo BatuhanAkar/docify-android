@@ -53,6 +53,7 @@ android {
         compose = true
     }
     buildToolsVersion = "35.0.1"
+    ndkVersion = "28.0.12433566 rc1"
 
 
 }
@@ -67,8 +68,7 @@ dependencies {
     implementation ("com.github.SmartToolFactory:Compose-Zoom:0.5.0")
     implementation ("com.github.nanihadesuka:LazyColumnScrollbar:2.2.0")
     implementation(project(":pdfium"))
-    implementation(project(":pdf-box"))
-   // implementation ("com.tom-roush:pdfbox-android:2.0.26.0")
+    // implementation ("com.tom-roush:pdfbox-android:2.0.26.0")
     val room_version = "2.6.1"
    // implementation(files(("libs/pdfbox-app-3.0.3.jar")))
    // implementation ("org.apache.pdfbox:pdfbox-android:2.0.27")

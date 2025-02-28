@@ -13,7 +13,6 @@ import com.batuscode.pdfium.PdfDocument
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.batuscode.pdfium.icore
-import com.tom_roush.pdfbox.rendering.PDFRenderer
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlin.use

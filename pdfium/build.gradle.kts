@@ -8,7 +8,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        minSdk = 24
+        minSdk = 26
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -34,7 +34,7 @@ android {
     sourceSets {
         getByName("main").jniLibs.srcDirs("src/main/libs")
     }
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "28.0.12433566 rc1"
 }
 
 dependencies {

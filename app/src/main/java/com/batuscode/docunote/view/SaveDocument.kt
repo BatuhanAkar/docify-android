@@ -242,7 +242,8 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                                 }
                                 MainActivity.mainicore.saveDocument(CreatePDFActivity.docptr,filePath)
                             }
-                        } else {
+                        }
+                        else {
                             // edit page
                              /* creat.saveDrawingsToPDF(text , file = File(dir , "${text}.pdf") ,
                                   PDFViewerActivity.mrendererPages ,

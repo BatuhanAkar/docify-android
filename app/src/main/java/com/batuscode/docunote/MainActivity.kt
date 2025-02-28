@@ -104,7 +104,6 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.batuscode.pdfium.icore
-import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import java.io.File
 import java.io.FileOutputStream
 
@@ -124,7 +123,7 @@ class MainActivity : ComponentActivity() {
         lateinit var mainicore: icore
     }
 
-/*
+
     @Composable
     fun mCustomDialog(
         onDismissRequest: () -> Unit,
@@ -173,7 +172,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }*/
+    }
 
     @SuppressLint("Range")
     override fun onActivityResult(
@@ -366,7 +365,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
 
-        PDFBoxResourceLoader.init(applicationContext);
         val appViewModel : AppViewModel by viewModels()
         _appViewModel = appViewModel
         mainActivity = this
@@ -583,7 +581,7 @@ class MainActivity : ComponentActivity() {
 
 
                 ) { innerPadding ->
-/*
+
                     if (newFolder.value){
                         mCustomDialog(
                             onDismissRequest = { newFolder.value = newFolder.value.not() },
@@ -639,7 +637,7 @@ class MainActivity : ComponentActivity() {
                                 newFolder.value = newFolder.value.not() // Dialogu kapat
                             }
                         )
-                    }*/
+                    }
                     if (_extensionsOpen.value){
                         Extensions(appViewModel = appViewModel)
                     }
