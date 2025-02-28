@@ -503,21 +503,23 @@ LOGE("Failed to load page %d", pageIndex);
 return;
 }
 
+jbyte* utf16 = env -> GetByteArrayElements(text,nullptr);
 // UTF-16'ya dönüştürmek için genişletilmiş string'i oluştur
-FPDF_WIDESTRING wideText = reinterpret_cast<FPDF_WIDESTRING>(text);
+FPDF_WIDESTRING wideText = reinterpret_cast<FPDF_WIDESTRING>(utf16);
 
 // Java byte array'ini C byte array'ine dönüştür
 jbyte* fontDataBytes = env->GetByteArrayElements(fontData, nullptr);
 jsize fontDataLength = env->GetArrayLength(fontData);
 
 // Font'u yükle
-FPDF_FONT font = FPDFText_LoadFont(
+/*FPDF_FONT font = FPDFText_LoadFont(
         document,
         reinterpret_cast<const uint8_t*>(fontDataBytes), // Font data
         static_cast<uint32_t>(fontDataLength),           // Size of font data
         FPDF_FONT_TRUETYPE,                             // Font type (TrueType)
         false                                           // Not a CID font
-);
+);*/
+FPDF_FONT font = FPDFText_LoadStandardFont(document,"Arial");
 if (!font) {
 LOGE("Failed to load font!");
 env->ReleaseByteArrayElements(fontData, fontDataBytes, JNI_ABORT);
