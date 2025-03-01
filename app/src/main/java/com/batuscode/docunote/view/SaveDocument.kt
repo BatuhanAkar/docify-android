@@ -216,12 +216,14 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                             scope.launch{
                                 textStates.forEach { (index, state) ->
 
-                                    val text = state.toText()
-                                    val utf16Bytes = text.toByteArray(Charset.forName("UTF_16LE"))
+                                    val text = state.toMarkdown()
+                                    val utf16Bytes = text.toByteArray(Charsets.UTF_16LE)
                                     Log.d("new character", "utf-16 :: " + utf16Bytes)
                                     Log.d("new character", "utf-16 :: " + utf16Bytes.joinToString(", ") { it.toString() })
+                                    MainActivity.mainicore.addText(CreatePDFActivity.docptr, index, utf16Bytes, 50f, 800f, 12f, 14f, fontData)
+
                                     // Metni satırlara böl
-                                    val lines = text.split("\\s{2,}")
+                                   /* val lines = text.split("\\s{2,}")
 
                                     System.out.println(lines)
 
@@ -235,7 +237,7 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                                         // Her satırı PDF'e ekle ve satır yüksekliğine göre Y koordinatını güncelle
                                         MainActivity.mainicore.addText(CreatePDFActivity.docptr, index, utf16Bytes, 50f, currentY, 12f, 14f, fontData)
                                         currentY -= 14f  // Line height kadar Y'yi düşür
-                                    }
+                                    }*/
 
                                     Log.d("new character" , "index :: " + index + " text :: " + state.toMarkdown())
                                    // MainActivity.mainicore.addText(ptr,0,state.toText(),50f,800f,12f,14f,fontData)

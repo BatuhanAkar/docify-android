@@ -478,21 +478,12 @@ return reinterpret_cast<jlong>(document);; // Return true if the page is success
 
 JNI_FUNC(void, icore, nativeAddTextToPage)(
 JNIEnv* env, jobject thiz, jlong docPtr, jint pageIndex, jbyteArray text, jfloat x, jfloat y, jfloat fontSize, jfloat lineHeight , jbyteArray fontData) {
-// Döküman handle'ını kontrol et
+
+
 // Döküman handle'ını kontrol et
 FPDF_DOCUMENT document = reinterpret_cast<FPDF_DOCUMENT>(docPtr);
 if (!document) {
 LOGE("Invalid document handle!");
-return;
-}
-
-// Sayfa sayısını al
-int pageCount = FPDF_GetPageCount(document);
-LOGI("Page count: %d", pageCount);
-
-// Sayfa indeksini kontrol et
-if (pageIndex < 0 || pageIndex >= pageCount) {
-LOGE("Invalid page index: %d (document has %d pages)", pageIndex, pageCount);
 return;
 }
 
@@ -503,23 +494,22 @@ LOGE("Failed to load page %d", pageIndex);
 return;
 }
 
-jbyte* utf16 = env -> GetByteArrayElements(text,nullptr);
-// UTF-16'ya dönüştürmek için genişletilmiş string'i oluştur
-FPDF_WIDESTRING wideText = reinterpret_cast<FPDF_WIDESTRING>(utf16);
-
 // Java byte array'ini C byte array'ine dönüştür
+jbyte* utf16Bytes = env->GetByteArrayElements(text, nullptr);
+jsize length = env->GetArrayLength(text);
+
+// uint32_t dizisi oluştur
+std::vector<uint32_t> charcodes;
+for (jsize i = 0; i < length; i += 2) {
+uint16_t charCode = static_cast<uint16_t>(utf16Bytes[i]) | (static_cast<uint16_t>(utf16Bytes[i + 1]) << 8);
+charcodes.push_back(static_cast<uint32_t>(charCode));
+}
+
+// Font yükleme
 jbyte* fontDataBytes = env->GetByteArrayElements(fontData, nullptr);
 jsize fontDataLength = env->GetArrayLength(fontData);
 
-// Font'u yükle
-/*FPDF_FONT font = FPDFText_LoadFont(
-        document,
-        reinterpret_cast<const uint8_t*>(fontDataBytes), // Font data
-        static_cast<uint32_t>(fontDataLength),           // Size of font data
-        FPDF_FONT_TRUETYPE,                             // Font type (TrueType)
-        false                                           // Not a CID font
-);*/
-FPDF_FONT font = FPDFText_LoadStandardFont(document,"Arial");
+FPDF_FONT font = FPDFText_LoadStandardFont(document, "Arial");
 if (!font) {
 LOGE("Failed to load font!");
 env->ReleaseByteArrayElements(fontData, fontDataBytes, JNI_ABORT);
@@ -527,29 +517,76 @@ FPDF_ClosePage(page);
 return;
 }
 
-float currentY = y;
+// Satırları tutacak vektör
+std::vector<std::vector<uint32_t>> lines;
+std::vector<uint32_t> currentLine;
 
+// Karakter genişliği (fontSize'a bağlı olarak hesaplanır)
+float charWidth = fontSize * 0.55f;
+
+// Satır uzunluğunu takip et
+float lineLength = 0.0f;
+
+// Maksimum satır uzunluğu (495f)
+float maxLineLength = 595.0f;
+
+// Metni satırlara ayır
+for (size_t i = 0; i < charcodes.size(); i++) {
+if (charcodes[i] == 0x000A || (lineLength + charWidth > maxLineLength)) {
+// Yeni satıra geç
+if (!currentLine.empty()) {
+lines.push_back(currentLine);
+}
+currentLine.clear();
+lineLength = 0.0f; // Satır uzunluğunu sıfırla
+
+// Satır sonu karakteriyse, bir sonraki karaktere geç
+if (charcodes[i] == 0x000A) {
+continue;
+}
+}
+
+// Karakteri mevcut satıra ekle
+currentLine.push_back(charcodes[i]);
+lineLength += charWidth; // Satır uzunluğunu güncelle
+}
+
+// Son satırı ekle (eğer varsa)
+if (!currentLine.empty()) {
+lines.push_back(currentLine);
+}
+
+// Koordinatlar
+float currentX = x; // Başlangıç x koordinatı (50f)
+float currentY = y; // Başlangıç y koordinatı
+
+// Her satırı PDF'e ekle
+for (const auto& line : lines) {
 // Metin objesi oluştur
 FPDF_PAGEOBJECT textObject = FPDFPageObj_CreateTextObj(document, font, fontSize);
 if (!textObject) {
 LOGE("Failed to create text object!");
-env->ReleaseByteArrayElements(fontData, fontDataBytes, JNI_ABORT);
-FPDF_ClosePage(page);
 return;
 }
 
-// Metni UTF-16 formatında ayarla (boşluk karakterleri korunur)
-FPDFText_SetText(textObject, wideText);
+// Satırı metin nesnesine ekle
+FPDFText_SetCharcodes(textObject, line.data(), line.size());
 
 // Metin objesini konumlandır
-FPDFPageObj_Transform(textObject, 1, 0, 0, 1, x, currentY);
+FPDFPageObj_Transform(textObject, 1, 0, 0, 1, currentX, currentY);
 
 // Metin objesini sayfaya ekle
 FPDFPage_InsertObject(page, textObject);
+
+// Y koordinatını bir sonraki satır için azalt
+currentY -= lineHeight;
+}
+// Sayfa içeriğini güncelle
 FPDFPage_GenerateContent(page);
 
 // Temizleme işlemleri
 env->ReleaseByteArrayElements(fontData, fontDataBytes, JNI_ABORT);
+env->ReleaseByteArrayElements(text, utf16Bytes, JNI_ABORT);
 FPDF_ClosePage(page);
 }
 
