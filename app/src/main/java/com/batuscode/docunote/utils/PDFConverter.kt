@@ -8,6 +8,8 @@ import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.Debug
 import android.util.Log
+import com.batuscode.docunote.MainActivity
+import com.batuscode.docunote.PDFViewerActivity
 import com.batuscode.pdfium.PDFPage
 import com.batuscode.pdfium.PdfDocument
 import kotlinx.coroutines.Dispatchers
@@ -53,6 +55,40 @@ class PDFConverter(private val context: Context) {
         }
         return@withContext null
     }*/
+
+
+
+    suspend fun internalRenderPage(
+        pdfDocument: PdfDocument,
+        pageIndex: Int,
+        scaleFactor: Float = 1.0f // Add a scale factor for downscaling
+    ): Bitmap? = withContext(Dispatchers.IO) {
+
+        Log.d("PDFConverter", "Document pages pointer: ${pdfDocument.mNativeDocPtr}")
+        MainActivity.mainicore.memPage(pdfDocument, pageIndex)
+
+
+        val pageWidth = MainActivity.mainicore.getPageWidth(pdfDocument, pageIndex)
+        val pageHeight = MainActivity.mainicore.getPageHeight(pdfDocument, pageIndex)
+
+        // Downscale the bitmap to match the screen size
+        val scaledWidth = (pageWidth * scaleFactor).toInt()
+        val scaledHeight = (pageHeight * scaleFactor).toInt()
+
+        val bitmap = Bitmap.createBitmap(scaledWidth, scaledHeight, Bitmap.Config.RGB_565)
+
+        MainActivity.mainicore.renderPageBitmap(
+            pdfDocument,
+            bitmap,
+            pageIndex,
+            0, 0,
+            scaledWidth, scaledHeight
+        )
+
+        logMemoryUsage()
+        return@withContext bitmap
+    }
+
     suspend fun renderPage(
         context: Context,
         uri: Uri,
@@ -61,14 +97,14 @@ class PDFConverter(private val context: Context) {
     ): Bitmap? = withContext(Dispatchers.IO) {
         context.contentResolver.openFileDescriptor(uri, "r")?.use { descriptor ->
 
-            val icore = icore(context)
-            val idoc = icore.newDocument(descriptor)
+            val idoc = MainActivity.mainicore.newDocument(descriptor)
             midoc = idoc
-            icore.openPage(idoc, pageIndex)
+
+            MainActivity.mainicore.openPage(idoc, pageIndex)
             Log.d("PDFConverter", "Document pointer: ${idoc.mNativePagesPtr}")
 
-            val pageWidth = icore.getPageWidth(idoc, pageIndex)
-            val pageHeight = icore.getPageHeight(idoc, pageIndex)
+            val pageWidth = MainActivity.mainicore.getPageWidth(idoc, pageIndex)
+            val pageHeight = MainActivity.mainicore.getPageHeight(idoc, pageIndex)
 
             // Downscale the bitmap to match the screen size
             val scaledWidth = (pageWidth * scaleFactor).toInt()
@@ -76,7 +112,7 @@ class PDFConverter(private val context: Context) {
 
             val bitmap = Bitmap.createBitmap(scaledWidth, scaledHeight, Bitmap.Config.RGB_565)
 
-            icore.renderPageBitmap(
+            MainActivity.mainicore.renderPageBitmap(
                 idoc,
                 bitmap,
                 pageIndex,

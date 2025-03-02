@@ -258,6 +258,32 @@ extern "C"{
         return loadPageInternal(env, doc, (int)pageIndex);
     }
 
+
+    JNI_FUNC(jlong, icore, nativeMemPage)(JNI_ARGS, jlong docPtr, jint pageIndex){
+
+
+        // Döküman handle'ını kontrol et
+        FPDF_DOCUMENT document = reinterpret_cast<FPDF_DOCUMENT>(docPtr);
+        if (!document) {
+        LOGE("Invalid document handle!");
+        return 0;
+        }
+
+// Toplam sayfa sayısını alın
+int pageCount = FPDF_GetPageCount(document);
+if (pageIndex < 0 || pageIndex >= pageCount) {
+LOGE("Invalid page index: %d", pageIndex);
+return 0;
+}
+        // Sayfayı yükle
+        FPDF_PAGE page = FPDF_LoadPage(document, pageIndex);
+        if (!page) {
+        LOGE("Failed to load page %d", pageIndex);
+        return 0;
+        }
+        return reinterpret_cast<jlong>(page);
+    }
+
     JNI_FUNC(jlong, icore, nativeOpenDocument)(JNI_ARGS, jint fd, jstring password){
 
         size_t fileLength = (size_t)getFileSize(fd);
@@ -475,9 +501,102 @@ LOGI("Page count: %d", pageCount);
 return reinterpret_cast<jlong>(document);; // Return true if the page is successfully added
 }
 
+JNI_FUNC(void , icore , nativeDrawPath)(JNIEnv* env , jobject thiz , jlong docPtr , jint pageIndex , jobject pathsListObj){
+
+
+// Döküman handle'ını kontrol et
+FPDF_DOCUMENT document = reinterpret_cast<FPDF_DOCUMENT>(docPtr);
+if (!document) {
+LOGE("Invalid document handle!");
+return;
+}
+
+// Sayfayı yükle
+FPDF_PAGE page = FPDF_LoadPage(document, 0);
+if (!page) {
+LOGE("Failed to load page %d", pageIndex);
+return;
+}
+
+// Liste sınıfını alıyoruz
+jclass listClass = env->FindClass("java/util/List");
+jmethodID getSizeMethod = env->GetMethodID(listClass, "size", "()I");
+jmethodID getGetMethod = env->GetMethodID(listClass, "get", "(I)Ljava/lang/Object;");
+
+// Liste boyutunu öğreniyoruz
+jint pathsSize = env->CallIntMethod(pathsListObj, getSizeMethod);
+
+// PathData sınıfının içindeki verileri alabilmek için sınıfı buluyoruz
+jclass pathDataClass = env->FindClass("com/example/yourapp/PathData");
+
+// Paths listesi üzerinde gezinip her path'i çiziyoruz
+for (jint i = 0; i < pathsSize; i++) {
+jobject pathDataObj = env->CallObjectMethod(pathsListObj, getGetMethod, i);
+
+// Path içindeki renk, kalınlık ve noktaları alıyoruz
+jmethodID getColorMethod = env->GetMethodID(pathDataClass, "getColor", "()Landroid/graphics/Color;");
+jmethodID getThicknessMethod = env->GetMethodID(pathDataClass, "getThickness", "()F");
+jmethodID getPathMethod = env->GetMethodID(pathDataClass, "getPath", "()Ljava/util/List;");
+
+jobject pathList = env->CallObjectMethod(pathDataObj, getPathMethod);
+jfloat thickness = env->CallFloatMethod(pathDataObj, getThicknessMethod);
+
+// Yeni bir path nesnesi oluşturuyoruz
+FPDF_PAGEOBJECT pathObj = FPDFPageObj_CreateNewPath(0, 0);
+
+// Path içindeki noktalar üzerinde gezinme
+jint pathSize = env->CallIntMethod(pathList, getSizeMethod);
+if (pathSize > 0) {
+// İlk noktayı alıyoruz
+jobject firstOffsetWrapper = env->CallObjectMethod(pathList, getGetMethod, 0);
+jclass offsetWrapperClass = env->GetObjectClass(firstOffsetWrapper);
+jmethodID getOffsetXMethod = env->GetMethodID(offsetWrapperClass, "getOffsetX", "()F");
+jmethodID getOffsetYMethod = env->GetMethodID(offsetWrapperClass, "getOffsetY", "()F");
+
+jfloat startX = env->CallFloatMethod(firstOffsetWrapper, getOffsetXMethod);
+jfloat startY = env->CallFloatMethod(firstOffsetWrapper, getOffsetYMethod);
+
+FPDFPath_MoveTo(pathObj, startX, startY);
+
+// Cubic Bezier için her iki kontrol noktası ve bitiş noktası arasında gezinme
+for (jint j = 1; j < pathSize - 1; j += 2) {
+jobject controlPoint1 = env->CallObjectMethod(pathList, getGetMethod, j);
+jobject controlPoint2 = env->CallObjectMethod(pathList, getGetMethod, j + 1);
+
+jfloat x1 = env->CallFloatMethod(controlPoint1, getOffsetXMethod);
+jfloat y1 = env->CallFloatMethod(controlPoint1, getOffsetYMethod);
+
+jfloat x2 = env->CallFloatMethod(controlPoint2, getOffsetXMethod);
+jfloat y2 = env->CallFloatMethod(controlPoint2, getOffsetYMethod);
+
+// Sonraki bitiş noktası
+jobject endPoint = env->CallObjectMethod(pathList, getGetMethod, j + 2);
+jfloat x3 = env->CallFloatMethod(endPoint, getOffsetXMethod);
+jfloat y3 = env->CallFloatMethod(endPoint, getOffsetYMethod);
+
+// Cubic Bezier eğrisi ekleme
+FPDFPath_BezierTo(pathObj, x1, y1, x2, y2, x3, y3);
+}
+
+// Son noktayı kapatıyoruz
+FPDFPath_Close(pathObj);
+
+// Path stilini ayarlıyoruz
+FPDFPageObj_SetStrokeColor(pathObj, 0, 0, 0, 255); // Siyah renk
+FPDFPageObj_SetStrokeWidth(pathObj, thickness);
+
+// Path'i sayfaya ekliyoruz
+FPDFPage_InsertObject(page, pathObj);
+FPDFPage_GenerateContent(page); // Sayfa içeriğini güncelle
+}
+}
+
+// Temizleme işlemleri
+FPDF_ClosePage(page);
+}
 
 JNI_FUNC(void, icore, nativeAddTextToPage)(
-JNIEnv* env, jobject thiz, jlong docPtr, jint pageIndex, jbyteArray text, jfloat x, jfloat y, jfloat fontSize, jfloat lineHeight , jbyteArray fontData) {
+JNIEnv* env, jobject thiz, jlong docPtr, jint pageIndex, jbyteArray text, jfloat x, jfloat y, jfloat fontSize, jfloat lineHeight) {
 
 
 // Döküman handle'ını kontrol et
@@ -505,14 +624,10 @@ uint16_t charCode = static_cast<uint16_t>(utf16Bytes[i]) | (static_cast<uint16_t
 charcodes.push_back(static_cast<uint32_t>(charCode));
 }
 
-// Font yükleme
-jbyte* fontDataBytes = env->GetByteArrayElements(fontData, nullptr);
-jsize fontDataLength = env->GetArrayLength(fontData);
 
 FPDF_FONT font = FPDFText_LoadStandardFont(document, "Arial");
 if (!font) {
 LOGE("Failed to load font!");
-env->ReleaseByteArrayElements(fontData, fontDataBytes, JNI_ABORT);
 FPDF_ClosePage(page);
 return;
 }
@@ -585,25 +700,24 @@ currentY -= lineHeight;
 FPDFPage_GenerateContent(page);
 
 // Temizleme işlemleri
-env->ReleaseByteArrayElements(fontData, fontDataBytes, JNI_ABORT);
 env->ReleaseByteArrayElements(text, utf16Bytes, JNI_ABORT);
 FPDF_ClosePage(page);
 }
 
 
-JNI_FUNC(void, icore, nativeSaveDocument)(
+JNI_FUNC(jboolean, icore, nativeSaveDocument)(
         JNIEnv* env, jobject thiz, jlong docPtr, jstring filePath) {
 FPDF_DOCUMENT document = reinterpret_cast<FPDF_DOCUMENT>(docPtr);
 if (!document) {
 LOGE("Invalid document handle!");
-return;
+return JNI_FALSE;
 }
 
 // Convert Java string to C string
 const char* filePathStr = env->GetStringUTFChars(filePath, nullptr);
 if (!filePathStr) {
 LOGE("Failed to convert Java string to C string!");
-return;
+return JNI_FALSE ;
 }
 
 // Open the file for writing
@@ -611,7 +725,7 @@ FILE* outputFile = fopen(filePathStr, "wb");
 if (!outputFile) {
 LOGE("Failed to open file for writing: %s", filePathStr);
 env->ReleaseStringUTFChars(filePath, filePathStr);
-return;
+return JNI_FALSE ;
 }
 
 // Initialize CustomFileWriter
@@ -622,11 +736,65 @@ writer.file = outputFile;
 
 if (!FPDF_SaveWithVersion(document, reinterpret_cast<FPDF_FILEWRITE*>(&writer), FPDF_NO_INCREMENTAL, 15)) {
 LOGE("Failed to save the document!");
+return JNI_FALSE ;
 } else {
 LOGI("Document saved successfully with PDF version: %d", 15);
 }
 // Clean up
 fclose(outputFile);
 env->ReleaseStringUTFChars(filePath, filePathStr);
+return JNI_TRUE ;
+
 }
+
+JNI_FUNC(jboolean, icore, nativeSaveDocumentAsStream)(
+        JNIEnv* env, jobject thiz, jlong docPtr, jobject outputStream) {
+
+FPDF_DOCUMENT document = reinterpret_cast<FPDF_DOCUMENT>(docPtr);
+if (!document) {
+LOGE("Invalid document handle!");
+return JNI_FALSE;
+}
+
+// Java OutputStream sınıfını kullanmak için metodları alın
+jclass outputStreamClass = env->GetObjectClass(outputStream);
+jmethodID writeMethod = env->GetMethodID(outputStreamClass, "write", "([B)V");
+
+// Geçici dosya açın
+FILE* tempFile = tmpfile();
+if (!tempFile) {
+LOGE("Failed to create temp file!");
+return JNI_FALSE;
+}
+
+// CustomFileWriter yapılandırın
+CustomFileWriter writer;
+writer.fileWrite.version = 1;
+writer.fileWrite.WriteBlock = WriteBlock;  // Var olan WriteBlock fonksiyonunuz
+writer.file = tempFile;
+
+// PDF dosyasını yazın
+if (!FPDF_SaveWithVersion(document, reinterpret_cast<FPDF_FILEWRITE*>(&writer), FPDF_NO_INCREMENTAL, 15)) {
+LOGE("Failed to save the document!");
+fclose(tempFile);
+return JNI_FALSE;
+}
+
+// Temp dosyasından okuyun ve OutputStream'e yazın
+fseek(tempFile, 0, SEEK_SET);
+char buffer[4096];
+size_t bytesRead;
+while ((bytesRead = fread(buffer, 1, sizeof(buffer), tempFile)) > 0) {
+jbyteArray byteArray = env->NewByteArray(bytesRead);
+env->SetByteArrayRegion(byteArray, 0, bytesRead, (jbyte*)buffer);
+env->CallVoidMethod(outputStream, writeMethod, byteArray);
+env->DeleteLocalRef(byteArray);
+}
+
+// Temizleme işlemi
+fclose(tempFile);
+
+return JNI_TRUE;
+}
+
 }

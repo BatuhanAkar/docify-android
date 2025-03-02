@@ -1,22 +1,20 @@
 package com.batuscode.docunote.view
 
-import android.content.Intent
+import android.content.ContentValues
+import android.net.Uri
 import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
@@ -28,13 +26,11 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
@@ -44,7 +40,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -54,16 +49,15 @@ import com.batuscode.docunote.PDFViewerActivity
 import com.batuscode.docunote.R
 import com.batuscode.docunote.model.Folder
 import com.batuscode.docunote.utils.PDFCreator
-import com.batuscode.docunote.viewmodel.CreatePDFActivityViewModel
 import com.batuscode.pdfium.icore
 import com.mohamedrejeb.richeditor.model.RichTextState
 import kotlinx.coroutines.launch
 import java.io.File
-import java.nio.charset.Charset
+import java.io.OutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SaveDocument(create:Boolean , onDismissRequest: () -> Unit,  textStates: SnapshotStateMap<Int, RichTextState>){
+fun SaveDocument(create:Boolean, onDismissRequest: () -> Unit, textStates: SnapshotStateMap<Int, RichTextState>?){
     val modalSheetState = rememberModalBottomSheetState()
     ModalBottomSheet(
         sheetState = modalSheetState,
@@ -76,7 +70,7 @@ fun SaveDocument(create:Boolean , onDismissRequest: () -> Unit,  textStates: Sna
 }
 
 @Composable
-fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextState>){
+fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextState>?){
 
     val context = LocalContext.current
 
@@ -162,6 +156,8 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
 
                         dir.mkdirs()
 
+                        val filePath = File(dir, "${text}.pdf").absolutePath
+
 
                         val folder = Folder(1 , name = FolderName , R.drawable.folder_icon_4_01)
                         MainActivity._appViewModel.addFolder(folder)
@@ -170,21 +166,44 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                        // creat.savePDF( text , file = File(dir , "${text}.pdf") , CreatePDFActivity.pagesContainer , CreatePDFActivity.cpageStates , context.contentResolver)
 
                         if (create){
-                            val icore = icore(context)
+                            val contentResolver = context.contentResolver
+                            val contentValues = ContentValues().apply {
+                                put(MediaStore.MediaColumns.DISPLAY_NAME, "${text}") // Dosya adı
+                                put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf") // Dosya türü
+                                put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOCUMENTS}") // Documents dizini
+                            }
+                            val uri = contentResolver.insert(MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL), contentValues)
 
+                            Log.d("page count" , "in save" + CreatePDFActivity.docptr)
+                            var ptr = CreatePDFActivity.docptr
+
+                            Log.d("page count" , "in save" + ptr)
                             scope.launch{
-                                scope.launch{
+                                textStates?.forEach { (index, state) ->
 
-                                    val fontInputStream = context.resources.openRawResource(com.batuscode.docunote.R.font.helvetica)
-                                    val fontData = fontInputStream.readBytes()
-                                    textStates.forEach { (index, state) ->
-
-                                        Log.d("new character" , "index :: " + index + " text :: " + state.toMarkdown())
-                                       // icore.nativeAddTextToPage(CreatePDFActivity.docptr,index,state.toMarkdown(),50f,800f,12f,14f,fontData)
-                                    }
+                                    val text = state.toMarkdown()
+                                    val utf16Bytes = text.toByteArray(Charsets.UTF_16LE)
+                                    Log.d("new character", "utf-16 :: " + utf16Bytes)
+                                    Log.d("new character", "utf-16 :: " + utf16Bytes.joinToString(", ") { it.toString() })
+                                    MainActivity.mainicore.addText(CreatePDFActivity.docptr, index, utf16Bytes, 50f, 800f, 12f, 14f)
+                                    Log.d("new character" , "index :: " + index + " text :: " + state.toMarkdown())
                                 }
 
-                                //creat.savePDF(text , file = File(dir , "${text}.pdf") , CreatePDFActivity.layers ,context.contentResolver , context)
+                                MainActivity.fileManager.addDocument(context = context , uri = uri.toString(), fileName = text)
+
+                                val file2 = com.batuscode.docunote.utils.File(uri.toString() , text)
+                                MainActivity._appViewModel.addRecentlyFile(file2)
+                                uri?.let {
+                                    val outputStream: OutputStream? = contentResolver.openOutputStream(it)
+                                    outputStream?.use { stream ->
+                                        MainActivity.mainicore.saveDocumentAsStream(CreatePDFActivity.docptr , stream)
+                                    }
+                                }
+                                val saveOk = MainActivity.mainicore.saveDocument(CreatePDFActivity.docptr,filePath)
+
+                                if (saveOk){
+                                    CreatePDFActivity.pdfActivity.onBackPressed()
+                                }
                             }
                         } else {
 
@@ -203,55 +222,62 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                         val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
                         val filePath = File(dir, "${text}.pdf").absolutePath
 
+                        val contentResolver = context.contentResolver
+                        val contentValues = ContentValues().apply {
+                            put(MediaStore.MediaColumns.DISPLAY_NAME, "${text}") // Dosya adı
+                            put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf") // Dosya türü
+                            put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOCUMENTS}") // Documents dizini
+                        }
+                        val uri = contentResolver.insert(MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL), contentValues)
                         // create page
-
                         if (create){
-                            val fontInputStream = context.resources.openRawResource(com.batuscode.docunote.R.font.helvetica)
-                            val fontData = fontInputStream.readBytes()
-
                             Log.d("page count" , "in save" + CreatePDFActivity.docptr)
                             var ptr = CreatePDFActivity.docptr
 
                             Log.d("page count" , "in save" + ptr)
                             scope.launch{
-                                textStates.forEach { (index, state) ->
+                                textStates?.forEach { (index, state) ->
 
                                     val text = state.toMarkdown()
                                     val utf16Bytes = text.toByteArray(Charsets.UTF_16LE)
                                     Log.d("new character", "utf-16 :: " + utf16Bytes)
                                     Log.d("new character", "utf-16 :: " + utf16Bytes.joinToString(", ") { it.toString() })
-                                    MainActivity.mainicore.addText(CreatePDFActivity.docptr, index, utf16Bytes, 50f, 800f, 12f, 14f, fontData)
-
-                                    // Metni satırlara böl
-                                   /* val lines = text.split("\\s{2,}")
-
-                                    System.out.println(lines)
-
-                                    // Başlangıç Y koordinatını ayarla
-                                    var currentY = 800f
-
-                                    // Her satırı PDF'e ekle
-                                    lines.forEach { line ->
-                                        Log.d("new character", "index :: $index text :: $line")
-
-                                        // Her satırı PDF'e ekle ve satır yüksekliğine göre Y koordinatını güncelle
-                                        MainActivity.mainicore.addText(CreatePDFActivity.docptr, index, utf16Bytes, 50f, currentY, 12f, 14f, fontData)
-                                        currentY -= 14f  // Line height kadar Y'yi düşür
-                                    }*/
-
+                                    MainActivity.mainicore.addText(CreatePDFActivity.docptr, index, utf16Bytes, 50f, 800f, 12f, 14f)
                                     Log.d("new character" , "index :: " + index + " text :: " + state.toMarkdown())
-                                   // MainActivity.mainicore.addText(ptr,0,state.toText(),50f,800f,12f,14f,fontData)
                                 }
-                                MainActivity.mainicore.saveDocument(CreatePDFActivity.docptr,filePath)
+
+                                MainActivity.fileManager.addDocument(context = context , uri = uri.toString(), fileName = text)
+
+                                val file2 = com.batuscode.docunote.utils.File(uri.toString() , text)
+                                MainActivity._appViewModel.addRecentlyFile(file2)
+                                uri?.let {
+                                    val outputStream: OutputStream? = contentResolver.openOutputStream(it)
+                                    outputStream?.use { stream ->
+                                        MainActivity.mainicore.saveDocumentAsStream(CreatePDFActivity.docptr , stream)
+                                    }
+                                }
+                                val saveOk = MainActivity.mainicore.saveDocument(CreatePDFActivity.docptr,filePath)
+
+                                if (saveOk){
+                                    CreatePDFActivity.pdfActivity.onBackPressed()
+                                }
                             }
                         }
                         else {
+
+                            // save as copy
                             // edit page
                              /* creat.saveDrawingsToPDF(text , file = File(dir , "${text}.pdf") ,
                                   PDFViewerActivity.mrendererPages ,
                                   PDFViewerActivity.mpageStates , context.contentResolver)*/
 
                             scope.launch{
+                                PDFViewerActivity.mpageStates.forEach { (index , state) ->
+
+                                    MainActivity.mainicore.drawPath(PDFViewerActivity.wdocptr.value ,index , state.value.paths)
+                                }
+                                val saveOk = MainActivity.mainicore.saveDocument(PDFViewerActivity.wdocptr.value,filePath)
+
                                 /*creat.saveDrawingsToPDF(text , file = File(dir , "${text}.pdf") ,
                                     PDFViewerActivity.mpageStates ,context.contentResolver , context)*/
                             }

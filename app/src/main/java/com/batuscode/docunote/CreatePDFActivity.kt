@@ -6,7 +6,6 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -95,8 +94,6 @@ import kotlinx.coroutines.delay
 import kotlin.collections.forEach
 import kotlin.collections.forEachIndexed
 import com.batuscode.pdfium.PdfDocument
-import com.batuscode.pdfium.icore
-import kotlin.properties.Delegates
 
 class CreatePDFActivity : ComponentActivity() {
     companion object {
@@ -170,6 +167,7 @@ class CreatePDFActivity : ComponentActivity() {
         val filemanager = FileManager(this)
         val converter = PDFConverter(this)
 
+        val page = PDFPage(595f, 842f) // A4 size
 
 
         setContent {
@@ -177,42 +175,25 @@ class CreatePDFActivity : ComponentActivity() {
             DocuNoteTheme() {
                 enableEdgeToEdge()
                 val textStates = remember { mutableStateMapOf<Int, RichTextState>() }
-                var documentPtr: Long = 0
+                var documentPtr = remember {
+                    mutableStateOf<Long>(MainActivity.mainicore.createDocument())
+                }
                 var pages = remember {
                     mutableStateListOf<PDFPage>()
                 }
-                documentPtr = MainActivity.mainicore.createDocument()
 
                 LaunchedEffect(Unit) {
 
-                 /*   var draftReady = creator.saveDraft()
-
-                    if (draftReady){
-                        val uri = filemanager.getDraftUri(context)
-                        val page = converter.renderDraftDoc(context, Uri.parse(uri))
-                        if (page!= null){
-                            pages.add(page) // Add the page to the list
-                            Log.d("ownCreator" , "page is created")
-                        } else {
-                            Log.e("ownCreator" , "page is null")
-                        }
-                    } else {
-
-                        Log.d("ownCreator" , "draft not ready")
-                    }*/
-
-
                     Log.d("page count" , pages.size.toString())
-                    if (documentPtr != 0L) {
-                        val page = PDFPage(595f, 842f) // A4 size
-                        val ok = MainActivity.mainicore.addPage(documentPtr, page)
+                    if (documentPtr.value != 0L) {
+                        val ok = MainActivity.mainicore.addPage(documentPtr.value, page)
                         if (ok != 0L){
 
                             Log.d("page count" , "first" + documentPtr)
-                            documentPtr=ok
+                           // documentPtr.value=ok
 
                             Log.d("page count" , "after" + documentPtr)
-                            docptr=ok
+                            docptr=documentPtr.value
 
                             Log.d("page count" , "after main" + docptr)
                             pages.add(page) // Add the page to the list
@@ -413,12 +394,21 @@ class CreatePDFActivity : ComponentActivity() {
                             FloatingActionButton(
                                 containerColor = MaterialTheme.colorScheme.background,
                                 onClick = {
-                                   /* if (documentPtr != 0L) {
-                                        val page = PDFPage(595f, 842f) // A4 size
-                                        icore.addPage(documentPtr, page)
-                                        pages.add(page) // Add the page to the list
-                                        Log.d("page count" , pages.size.toString())
-                                    }*/
+                                    if (documentPtr.value != 0L) {
+                                        val ok = MainActivity.mainicore.addPage(documentPtr.value, page)
+                                        if (ok != 0L){
+
+                                            Log.d("page count" , "add method first" + documentPtr)
+                                            //documentPtr.value=ok
+
+                                            Log.d("page count" , "add method after" + documentPtr)
+                                            docptr=documentPtr.value
+
+                                            Log.d("page count" , "add method after main" + docptr)
+                                            pages.add(page) // Add the page to the list
+                                            Log.d("add method page count" , pages.size.toString())
+                                        }
+                                    }
                                 } ,
                             ) {
                                 Icon(

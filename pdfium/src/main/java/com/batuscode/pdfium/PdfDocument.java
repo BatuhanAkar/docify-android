@@ -10,7 +10,7 @@ public class PdfDocument {
     /*package*/ public PdfDocument() {
     }
 
-    /*package*/ long mNativeDocPtr;
+    /*package*/ public long mNativeDocPtr;
     /*package*/ ParcelFileDescriptor parcelFileDescriptor;
 
 

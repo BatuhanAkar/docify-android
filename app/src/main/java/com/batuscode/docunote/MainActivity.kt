@@ -121,6 +121,7 @@ class MainActivity : ComponentActivity() {
         lateinit var multiplyselectTofolderDocumentLauncher: ActivityResultLauncher<Intent>
         var newFolder = mutableStateOf(false)
         lateinit var mainicore: icore
+        lateinit var fileManager: FileManager
     }
 
 
@@ -370,6 +371,7 @@ class MainActivity : ComponentActivity() {
         mainActivity = this
         mainicore = icore(this)
         mainicore.nativeInitLibrary()
+        fileManager = FileManager(this)
 
       //  PDFBoxResourceLoader.init(getApplicationContext());
 

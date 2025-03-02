@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,7 +33,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -105,8 +103,8 @@ import kotlin.getValue
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.sp
 import com.batuscode.docunote.model.mColor
+import com.batuscode.pdfium.PdfDocument
 import com.batuscode.pdfium.icore
 import com.smarttoolfactory.zoom.enhancedZoom
 import com.smarttoolfactory.zoom.rememberEnhancedZoomState
@@ -124,8 +122,14 @@ class PDFViewerActivity : ComponentActivity() {
         lateinit var elayers: MutableList<GraphicsLayer>
         lateinit var activity: PDFViewerActivity
         lateinit var gLView: MyGLSurfaceView
+        var wdocptr = mutableStateOf<Long>(0)
+        var pdfDocument = mutableStateOf<PdfDocument?>(null)
     }
 
+
+    init {
+
+    }
 
     val mPreLoadPageWorker = Executors.newSingleThreadExecutor()
     val mRenderPageWorker = Executors.newSingleThreadExecutor()
@@ -216,9 +220,10 @@ class PDFViewerActivity : ComponentActivity() {
                 withContext(Dispatchers.IO) {
                     context.contentResolver.openFileDescriptor(Uri.parse(uri), "r")
                         ?.use { descriptor ->
-                            val icore = icore(context)
-                            val idoc = icore.newDocument(descriptor)
-                            pageCount.value = icore.getPageCount(idoc)
+                             pdfDocument.value = MainActivity.mainicore.newDocument(descriptor)
+
+                           // wdocptr.value = idoc.mNativeDocPtr
+                            pageCount.value = MainActivity.mainicore.getPageCount(pdfDocument.value)
                         }
                 }
             }
@@ -497,11 +502,13 @@ class PDFViewerActivity : ComponentActivity() {
                     ) { innerPadding ->
 
                         if (showSaveDialog.value) {
-                           /* SaveDocument(
+                            SaveDocument(
                                 create = false,
                                 onDismissRequest = {
                                     showSaveDialog.value = showSaveDialog.value.not()
-                                },null)*/
+                                },
+                                null
+                            )
                         }
 
 
@@ -545,14 +552,15 @@ class PDFViewerActivity : ComponentActivity() {
 
                                     // Render the page when it comes into view
                                     LaunchedEffect(pageIndex) {
-                                        if (bitmapState.value == null) {
-                                            val bitmap = pdfBitmapConverter.renderPage(
-                                                context,
-                                                Uri.parse(uri),
-                                                pageIndex,
-                                                scaleFactor
-                                            )
-                                            bitmapState.value = bitmap
+                                        if (bitmapState.value == null ) {
+                                            if (pdfDocument.value != null){
+                                                val bitmap = pdfBitmapConverter.internalRenderPage(
+                                                    pdfDocument.value!!,
+                                                    pageIndex,
+                                                    scaleFactor
+                                                )
+                                                bitmapState.value = bitmap
+                                            }
                                         }
                                     }
 

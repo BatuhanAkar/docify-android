@@ -11,6 +11,7 @@ import com.google.android.apps.common.testing.accessibility.framework.BuildConfi
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.List;
 
@@ -76,13 +77,15 @@ public class icore {
     private native void nativeCloseDocument(long docPtr);
 
     private native int nativeGetPageCount(long docPtr);
-    private native void nativeSaveDocument(long docPtr , String filePath);
+    private native boolean nativeSaveDocument(long docPtr , String filePath);
+    private native boolean nativeSaveDocumentAsStream(long docPtr , OutputStream outputStream);
     public native long nativecreateNewDocument();
     public native long nativeaddPageToDocument(long docPtr, PDFPage page);
-    public native void nativeAddTextToPage(long docPtr , int index , byte[] text , float x , float y , float fontSize , float lineHeight , byte[] fontdata);
+    public native void nativeAddTextToPage(long docPtr , int index , byte[] text , float x , float y , float fontSize , float lineHeight);
     public native void nativeInitLibrary();
     public native void nativeDestroyLibrary();
-
+    public native void nativeDrawPath(long docPtr , int pageIndex , List<PathData> pathData);
+    private native long nativeMemPage(long docPtr , int pageIndex);
     private native void nativeAddAnnotationToPage(long documentPtr, int pageIndex, List<PathData> paths , File file );
     public void addAnnotations(PdfDocument document, int pageIndex, List<PathData> paths , File file) {
         long docPtr = document.mNativeDocPtr; // Assuming you have a way to get the native pointer
@@ -141,6 +144,16 @@ public class icore {
             return pagePtr;
         }
 
+    }
+
+    public long memPage(PdfDocument document , int pageIndex){
+        long pagePtr;
+        synchronized (lock){
+            Log.e("nativein" , "document ptr ::: " + document.mNativeDocPtr);
+            pagePtr = nativeMemPage(document.mNativeDocPtr , pageIndex);
+            document.mNativePagesPtr.put(pageIndex , pagePtr);
+            return pagePtr;
+        }
     }
 
     /** Get total numer of pages in document */
@@ -205,11 +218,19 @@ public class icore {
        return nativeaddPageToDocument(docptr, page);
     }
 
-    public void addText(long docPtr , int index , byte[] text , float x , float y , float fontSize , float lineHeight , byte[] fontdata){
-        nativeAddTextToPage(docPtr, index, text, x, y, fontSize, lineHeight , fontdata);
+    public void addText(long docPtr , int index , byte[] text , float x , float y , float fontSize , float lineHeight){
+        nativeAddTextToPage(docPtr, index, text, x, y, fontSize, lineHeight);
     }
-    public void saveDocument(long docptr , String filePath){
-        nativeSaveDocument(docptr, filePath);
+    public boolean saveDocument(long docptr , String filePath){
+        return nativeSaveDocument(docptr, filePath);
     }
+
+    public void drawPath(long docPtr , int pageIndex , List<PathData> pathData){
+        nativeDrawPath(docPtr, pageIndex, pathData);
+    }
+
+    public boolean saveDocumentAsStream(long docPtr , OutputStream outputStream){
+        return nativeSaveDocumentAsStream(docPtr,outputStream);
+    };
 
 }
