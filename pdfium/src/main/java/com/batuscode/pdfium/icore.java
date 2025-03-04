@@ -72,6 +72,10 @@ public class icore {
 
     private native int nativeGetPageHeightPixel(long pagePtr, int dpi);
 
+    private native int nativeInternalGetPageWidthPixel(long pagePtr, int dpi);
+
+    private native int nativeInternalGetPageHeightPixel(long pagePtr, int dpi);
+
     private native void nativeClosePage(long pagePtr);
 
     private native void nativeCloseDocument(long docPtr);
@@ -84,7 +88,7 @@ public class icore {
     public native void nativeAddTextToPage(long docPtr , int index , byte[] text , float x , float y , float fontSize , float lineHeight);
     public native void nativeInitLibrary();
     public native void nativeDestroyLibrary();
-    public native void nativeDrawPath(long docPtr , int pageIndex , List<PathData> pathData);
+    public native void nativeDrawPath(String filePath , int pageIndex , List<PathData> pathData);
     private native long nativeMemPage(long docPtr , int pageIndex);
     private native void nativeAddAnnotationToPage(long documentPtr, int pageIndex, List<PathData> paths , File file );
     public void addAnnotations(PdfDocument document, int pageIndex, List<PathData> paths , File file) {
@@ -135,6 +139,34 @@ public class icore {
         }
     }
 
+
+
+
+    public int getInternalPageWidth(PdfDocument doc, int index) {
+        synchronized (lock) {
+            Long pagePtr;
+            if ((pagePtr = doc.mNativePagesPtr.get(index)) != null) {
+                return nativeInternalGetPageWidthPixel(pagePtr, mCurrentDpi);
+            }
+            return 0;
+        }
+    }
+
+
+    /**
+     * Get page height in pixels. <br>
+     * This method requires page to be opened.
+     */
+    public int getInternalPageHeight(PdfDocument doc, int index) {
+        synchronized (lock) {
+            Long pagePtr;
+            if ((pagePtr = doc.mNativePagesPtr.get(index)) != null) {
+                return nativeInternalGetPageHeightPixel(pagePtr, mCurrentDpi);
+            }
+            return 0;
+        }
+    }
+
     /** Open page and store native pointer in {@link PdfDocument} */
     public long openPage(PdfDocument doc, int pageIndex) {
         long pagePtr;
@@ -147,10 +179,10 @@ public class icore {
     }
 
     public long memPage(PdfDocument document , int pageIndex){
-        long pagePtr;
         synchronized (lock){
-            Log.e("nativein" , "document ptr ::: " + document.mNativeDocPtr);
-            pagePtr = nativeMemPage(document.mNativeDocPtr , pageIndex);
+            long docPtr = document.mNativeDocPtr;
+            Log.e("nativein" , "document ptr ::: " + docPtr + "pageIndex ::: " + pageIndex);
+            long pagePtr = nativeMemPage( docPtr, pageIndex);
             document.mNativePagesPtr.put(pageIndex , pagePtr);
             return pagePtr;
         }
@@ -225,8 +257,10 @@ public class icore {
         return nativeSaveDocument(docptr, filePath);
     }
 
-    public void drawPath(long docPtr , int pageIndex , List<PathData> pathData){
-        nativeDrawPath(docPtr, pageIndex, pathData);
+    public void drawPath(String filePath , int pageIndex , List<PathData> pathData){
+        Log.d("drawPathToPage" , "icore ::: " + "filePath :: " + filePath + " pageIndex :: " + pageIndex);
+
+        nativeDrawPath(filePath, pageIndex, pathData);
     }
 
     public boolean saveDocumentAsStream(long docPtr , OutputStream outputStream){

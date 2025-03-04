@@ -11,7 +11,7 @@ public class PdfDocument {
     }
 
     /*package*/ public long mNativeDocPtr;
-    /*package*/ ParcelFileDescriptor parcelFileDescriptor;
+    /*package*/ public ParcelFileDescriptor parcelFileDescriptor;
 
 
     /*package*/ public final Map<Integer, Long> mNativePagesPtr = new ArrayMap<>();

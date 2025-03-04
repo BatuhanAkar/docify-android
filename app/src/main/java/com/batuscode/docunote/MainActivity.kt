@@ -652,6 +652,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        Log.d("mainActivty" , "onDestroy")
         mainicore.nativeDestroyLibrary()
     }
 }

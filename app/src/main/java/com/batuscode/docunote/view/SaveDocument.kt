@@ -1,6 +1,7 @@
 package com.batuscode.docunote.view
 
 import android.content.ContentValues
+import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
@@ -48,11 +49,13 @@ import com.batuscode.docunote.MainActivity
 import com.batuscode.docunote.PDFViewerActivity
 import com.batuscode.docunote.R
 import com.batuscode.docunote.model.Folder
+import com.batuscode.docunote.utils.PDFConverter
 import com.batuscode.docunote.utils.PDFCreator
 import com.batuscode.pdfium.icore
 import com.mohamedrejeb.richeditor.model.RichTextState
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.IOException
 import java.io.OutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,6 +87,10 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
 
     var FolderName by remember {
         mutableStateOf("")
+    }
+
+    var converter = remember {
+        PDFConverter(context)
     }
 
     val scope = rememberCoroutineScope()
@@ -272,11 +279,12 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                                   PDFViewerActivity.mpageStates , context.contentResolver)*/
 
                             scope.launch{
-                                PDFViewerActivity.mpageStates.forEach { (index , state) ->
+                                val paths = PDFViewerActivity.mpageStates[0]?.value?.paths
+                                converter.drawPathToPage(context,PDFViewerActivity.muri,0,paths!!)
 
-                                    MainActivity.mainicore.drawPath(PDFViewerActivity.wdocptr.value ,index , state.value.paths)
-                                }
-                                val saveOk = MainActivity.mainicore.saveDocument(PDFViewerActivity.wdocptr.value,filePath)
+
+                                saveTempFileToDocuments(context,PDFConverter.mfilePath,text)
+                               // val saveOk = MainActivity.mainicore.saveDocument(PDFConverter.midoc.mNativeDocPtr,filePath)
 
                                 /*creat.saveDrawingsToPDF(text , file = File(dir , "${text}.pdf") ,
                                     PDFViewerActivity.mpageStates ,context.contentResolver , context)*/
@@ -298,6 +306,41 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
         }
     }
 }
+
+
+fun saveTempFileToDocuments(context: Context, tempFilePath: String, text:String): String? {
+    try {
+        var filename = text
+        val tempFile = File(tempFilePath)
+        if (!tempFile.exists()) {
+            return null
+        }
+
+
+        val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
+        var file = File(dir, "${filename}.pdf")
+
+        // Yeni hedef konumu (Documents dizini)
+       // val documentsDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "temp_file.pdf")
+
+        // Eğer hedef dosya mevcutsa sil
+        if (file.exists()) {
+            filename = filename + "(1)"
+            file = File(dir, "${filename}.pdf")
+        }
+
+        // Dosyayı yeni dizine taşımak
+        tempFile.copyTo(file, overwrite = true)
+
+        // Yeni dosyanın yolu
+        return file.absolutePath
+
+    } catch (e: IOException) {
+        e.printStackTrace()
+    }
+    return null
+}
+
 
 @Composable
 fun CustomDialog(

@@ -7,16 +7,19 @@ import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.Debug
+import android.provider.MediaStore
 import android.util.Log
 import com.batuscode.docunote.MainActivity
 import com.batuscode.docunote.PDFViewerActivity
 import com.batuscode.pdfium.PDFPage
+import com.batuscode.pdfium.PathData
 import com.batuscode.pdfium.PdfDocument
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.batuscode.pdfium.icore
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import java.io.File
 import kotlin.use
 
 class PDFConverter(private val context: Context) {
@@ -25,6 +28,7 @@ class PDFConverter(private val context: Context) {
     private var renderer: PdfRenderer? = null
     companion object{
         lateinit var midoc: PdfDocument
+        lateinit var mfilePath : String
     }
 
 
@@ -64,12 +68,13 @@ class PDFConverter(private val context: Context) {
         scaleFactor: Float = 1.0f // Add a scale factor for downscaling
     ): Bitmap? = withContext(Dispatchers.IO) {
 
-        Log.d("PDFConverter", "Document pages pointer: ${pdfDocument.mNativeDocPtr}")
-        MainActivity.mainicore.memPage(pdfDocument, pageIndex)
+        Log.d("PDFViewerActivity", "internal docPtr : ${pdfDocument.mNativeDocPtr} pageIndex : ${pageIndex}")
+        MainActivity.mainicore.memPage(PDFViewerActivity.pdfDocument.value!!, pageIndex)
+        Log.d("PDFViewerActivity", "internal pagesPtr : ${pdfDocument.mNativePagesPtr}")
 
 
-        val pageWidth = MainActivity.mainicore.getPageWidth(pdfDocument, pageIndex)
-        val pageHeight = MainActivity.mainicore.getPageHeight(pdfDocument, pageIndex)
+        val pageWidth = MainActivity.mainicore.getInternalPageWidth(pdfDocument, pageIndex)
+        val pageHeight = MainActivity.mainicore.getInternalPageHeight(pdfDocument, pageIndex)
 
         // Downscale the bitmap to match the screen size
         val scaledWidth = (pageWidth * scaleFactor).toInt()
@@ -125,7 +130,45 @@ class PDFConverter(private val context: Context) {
         }
         return@withContext null
     }
+    fun getFilePathFromUri(context: Context, uri: Uri): String? {
+        try {
+            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+            val tempFile = File(context.cacheDir, "temp_file.pdf")
+            inputStream.use { input ->
+                tempFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+            return tempFile.absolutePath
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return null
+    }
+    suspend fun drawPathToPage(
+        context: Context,
+        uri: Uri,
+        pageIndex: Int,
+        pathData:List<PathData>
+    ){
+        val filePath = getFilePathFromUri(context,uri)
+        mfilePath = filePath!!
 
+        MainActivity.mainicore.drawPath(filePath ,pageIndex , pathData)
+
+        /*context.contentResolver.openFileDescriptor(uri , "r")?.use { descriptor ->
+            Log.d("drawPathToPage" , "uri :: " + uri)
+
+
+
+            val idoc = MainActivity.mainicore.newDocument(descriptor)
+            Log.d("drawPathToPage" , "docPtr :: " + idoc.mNativeDocPtr + " pageIndex :: " + pageIndex)
+            MainActivity.mainicore.openPage(idoc, pageIndex)
+
+            MainActivity.mainicore.drawPath(idoc.mNativeDocPtr ,pageIndex , pathData)
+
+        }*/
+    }
 
     suspend fun dff(uri: Uri, ): List<Bitmap> = withContext(Dispatchers.IO) {
 

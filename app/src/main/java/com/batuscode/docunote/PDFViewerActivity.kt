@@ -124,6 +124,7 @@ class PDFViewerActivity : ComponentActivity() {
         lateinit var gLView: MyGLSurfaceView
         var wdocptr = mutableStateOf<Long>(0)
         var pdfDocument = mutableStateOf<PdfDocument?>(null)
+        lateinit var muri: Uri
     }
 
 
@@ -154,7 +155,12 @@ class PDFViewerActivity : ComponentActivity() {
                 FileManager(context = context)
             }
 
+            var dptr = remember {
+                PdfDocument()
+            }
+
             val uri = intent.getStringExtra("fileUri")
+            muri = Uri.parse(uri)
             val displayName = intent.getStringExtra("fileDisplayName")
             lateinit var fileUri: Uri
 
@@ -220,8 +226,11 @@ class PDFViewerActivity : ComponentActivity() {
                 withContext(Dispatchers.IO) {
                     context.contentResolver.openFileDescriptor(Uri.parse(uri), "r")
                         ?.use { descriptor ->
-                             pdfDocument.value = MainActivity.mainicore.newDocument(descriptor)
+                             dptr = MainActivity.mainicore.newDocument(descriptor)
 
+                            pdfDocument.value = dptr
+
+                            Log.d("PDFViewerActivity" , "init docPtr :: " + dptr.mNativeDocPtr)
                            // wdocptr.value = idoc.mNativeDocPtr
                             pageCount.value = MainActivity.mainicore.getPageCount(pdfDocument.value)
                         }
@@ -354,699 +363,650 @@ class PDFViewerActivity : ComponentActivity() {
                         colorResource(R.color.modified).toArgb()
                     )
                 )
-                ModalNavigationDrawer(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    gesturesEnabled = false,
-                    drawerState = drawerState,
-                    scrimColor = Color.Transparent,
-                    drawerContent = {
-                        ModalDrawerSheet(
-                            drawerContainerColor = Color(0xFF121212),
-                            drawerShape = RectangleShape,
-                            modifier = Modifier
-                                .displayCutoutPadding()
-                                .statusBarsPadding()
 
+                Scaffold(
 
-                        ) {
+                    containerColor = MaterialTheme.colorScheme.background,
+                    topBar = {
+                        TopAppBar(
+                            title = {
+                                Text(
+                                    text = "$displayName",
+                                    overflow = TextOverflow.Ellipsis,
+                                    maxLines = 1
+                                )
+                            },
+                            navigationIcon = {
 
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier
-                                    .verticalScroll(state = rememberScrollState())
-                            ) {
-                                renderedPages.forEach { bitmap ->
-                                    Image(
-                                        bitmap = bitmap.asImageBitmap(),
-                                        contentDescription = "",
-                                        modifier = Modifier.padding(8.dp)
+                                IconButton(onClick = {
+                                    if (edit.value){
+                                        pdfViewerActivityViewModel.update_editState(false)
+
+                                    } else {
+                                        onBackPressed()
+                                    }
+                                }) {
+                                    Icon(
+                                        Icons.Default.ArrowBack,
+                                        contentDescription = "Back",
+
                                     )
                                 }
-                            }
 
-                        }
-                    }
-                ) {
-                    Scaffold(
+                            },
+                            actions = {
 
-                        containerColor = MaterialTheme.colorScheme.background,
-                        topBar = {
-                            TopAppBar(
-                                title = {
-                                    Text(
-                                        text = "$displayName",
-                                        overflow = TextOverflow.Ellipsis,
-                                        maxLines = 1
-                                    )
-                                },
-                                navigationIcon = {
+                                OutlinedIconButton(onClick = {
 
                                     if (!edit.value) {
-                                        IconButton(onClick = {
-                                            scope.launch {
-                                                if (drawerState.isClosed) {
-                                                    drawerState.open()
-                                                } else {
-                                                    drawerState.close()
-                                                }
-                                            }
-                                        }
-
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Menu,
-                                                contentDescription = "Menu",
-                                                modifier = Modifier.width(100.dp).height(100.dp)
-                                            )
-                                        }
+                                        pdfViewerActivityViewModel.update_editState(true)
                                     } else {
-                                        IconButton(onClick = {
-                                            pdfViewerActivityViewModel.update_editState(false)
-                                        }) {
-                                            Icon(
-                                                Icons.Default.ArrowBack,
-                                                contentDescription = "Back",
-                                                modifier = Modifier.width(100.dp).height(100.dp)
-                                            )
-                                        }
+
+                                        pdfViewerActivityViewModel.update_editState(false)
                                     }
-
-                                },
-                                actions = {
-
-                                    OutlinedIconButton(onClick = {
-
-                                        if (!edit.value) {
-                                            pdfViewerActivityViewModel.update_editState(true)
-                                        } else {
-
-                                            pdfViewerActivityViewModel.update_editState(false)
-                                        }
-                                    }, border = null) {
-                                        if (!edit.value) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.edit_square_40px),
-                                                "",
-                                                modifier = Modifier
-                                                    .size(24.dp)
-                                            )
-                                        } else {
-                                            Icon(
-                                                painter = painterResource(R.drawable.import_contacts_40px),
-                                                "",
-                                                modifier = Modifier
-                                                    .size(24.dp)
-                                            )
-                                        }
+                                }, border = null) {
+                                    if (!edit.value) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.edit_square_40px),
+                                            "",
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                        )
+                                    } else {
+                                        Icon(
+                                            painter = painterResource(R.drawable.import_contacts_40px),
+                                            "",
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                        )
                                     }
-                                    if (edit.value) {
-                                        FilledTonalButton(onClick = {
-                                            scope.launch {
-                                                // val bitmap = graphicsLayer.toImageBitmap()
-                                                // do something with the newly acquired bitmap
+                                }
+                                if (edit.value) {
+                                    FilledTonalButton(onClick = {
+                                        scope.launch {
+                                            // val bitmap = graphicsLayer.toImageBitmap()
+                                            // do something with the newly acquired bitmap
 
 
-                                                /*  Log.d("drawbitmap" , "bitmap list size in save button " + graphicsLayers.value.size)
-                                                graphicsLayers.value.forEach {
-                                                    val bitmap = it.toImageBitmap()
-                                                    graphicsLayersBitmaps.value.toMutableList().add(bitmap)
-                                                }*/
+                                            /*  Log.d("drawbitmap" , "bitmap list size in save button " + graphicsLayers.value.size)
+                                            graphicsLayers.value.forEach {
+                                                val bitmap = it.toImageBitmap()
+                                                graphicsLayersBitmaps.value.toMutableList().add(bitmap)
+                                            }*/
 
-                                                /*  graphicLayersImageBitmaps = graphicsLayersBitmaps.value
-                                                */
+                                            /*  graphicLayersImageBitmaps = graphicsLayersBitmaps.value
+                                            */
 
 
 
-                                                //mrendererPages = renderedPages
-                                                mpageStates = pageStates
+                                            //mrendererPages = renderedPages
+                                            mpageStates = pageStates
 
-                                                /*  val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
-                                                Log.d("pathslist" , "list size :: " + pageStates.size)
-                                                creator.saveDrawingsToPDF(file = File(dir , "firstedited.pdf") , renderedPages ,
-                                                    pageStates)*/
+                                            /*  val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
+                                            Log.d("pathslist" , "list size :: " + pageStates.size)
+                                            creator.saveDrawingsToPDF(file = File(dir , "firstedited.pdf") , renderedPages ,
+                                                pageStates)*/
 
-                                                showSaveDialog.value = showSaveDialog.value.not()
+                                            showSaveDialog.value = showSaveDialog.value.not()
 
-                                            }
-                                        }) {
-                                            Text(text = stringResource(R.string.save_copy))
+                                        }
+                                    }) {
+                                        Text(text = stringResource(R.string.save_copy))
+                                    }
+                                }
+                            }
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+
+                ) { innerPadding ->
+
+                    if (showSaveDialog.value) {
+                        SaveDocument(
+                            create = false,
+                            onDismissRequest = {
+                                showSaveDialog.value = showSaveDialog.value.not()
+                            },
+                            null
+                        )
+                    }
+
+
+
+
+
+                    BoxWithConstraints(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .fillMaxSize()
+
+
+                    )
+                    {
+
+
+                        LazyColumn(
+                            userScrollEnabled = canScroll.value,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.primary)
+                                .clipToBounds() // clip modifikatörünü doğru sırada kullanın
+                                .enhancedZoom(
+                                    clip = true,
+                                    enhancedZoomState = rememberEnhancedZoomState(
+                                        IntSize(screenWidthPx.toInt(), screenHeightPx.toInt()),
+                                        minZoom = 0.75f,
+                                        maxZoom = 6f,
+                                        pannable = if (draw.value) false else true,
+                                        initialZoom = 1f,
+                                        moveToBounds = true,
+
+                                        )
+                                )
+                        ) {
+                            items(pageCount.value) { pageIndex ->
+                                Log.d("PDFViewerActivity" , "pageIndex :: " + pageIndex)
+                                val bitmapState = remember { mutableStateOf<Bitmap?>(null) }
+
+                                // Render the page when it comes into view
+                                LaunchedEffect(pageIndex) {
+                                    if (bitmapState.value == null ) {
+                                        if (dptr != null){
+                                            val bitmap = pdfBitmapConverter.renderPage(
+                                                context,
+                                                Uri.parse(uri),
+                                                pageIndex,
+                                                scaleFactor
+                                            )
+                                            bitmapState.value = bitmap
                                         }
                                     }
                                 }
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxSize()
 
-                    ) { innerPadding ->
+                                val state = remember { mutableStateOf(DrawingState()) }
 
-                        if (showSaveDialog.value) {
-                            SaveDocument(
-                                create = false,
-                                onDismissRequest = {
-                                    showSaveDialog.value = showSaveDialog.value.not()
-                                },
-                                null
-                            )
+                                if (!pageStates.contains(pageIndex)) {
+                                    pageStates[pageIndex] = state
+                                }
+
+
+                                if (!highlight.value) {
+                                    selectedcolor.value = mcolor.value
+                                    pageStates[pageIndex]?.value?.selectedColor =
+                                        selectedcolor.value
+
+                                } else {
+                                    selectedcolor.value = mcolor.value.copy(0.2f)
+                                    pageStates[pageIndex]?.value?.selectedColor =
+                                        selectedcolor.value.copy(0.2f)
+                                }
+
+
+                                pageStates[pageIndex]?.value?.thickness =
+                                    thickness
+
+                                if (undo.value) {
+
+                                    pageStates[pageIndex]?.value =
+                                        pageStates[pageIndex]?.value!!.copy(
+                                            paths = pageStates[pageIndex]?.value?.paths!!.dropLast(
+                                                1
+                                            )
+                                        )
+                                    undo.value = undo.value.not()
+                                }
+
+
+                                pageStates[pageIndex]?.value?.isErasing = earse.value
+
+
+
+                                // Display the rendered page
+                                bitmapState.value?.let { bitmap ->
+
+                                    if (!edit.value) {
+
+                                        Image(
+                                            bitmap = bitmap.asImageBitmap(),
+                                            contentDescription = "Page $pageIndex",
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    } else {
+
+                                        DrawingScreen(
+                                            draw,
+                                            scale,
+                                            offset,
+                                            // transformablestate ,
+                                            bitmap,
+                                            state = pageStates[pageIndex] ?: state,
+                                            modifier = Modifier
+                                            //  .transformable(state = transformablestate)
+                                            //  .aspectRatio(PDRectangle.A4.width / PDRectangle.A4.height)
+
+
+                                        )
+                                    }
+                                }
+
+                                // Add a placeholder while the page is being rendered
+                                if (bitmapState.value == null) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(200.dp) // Adjust height as needed
+                                            .background(Color.LightGray)
+                                    ) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.align(
+                                                Alignment.Center
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                            /* itemsIndexed(renderedPages){ pageIndex , page ->
+
+
+
+
+                                 val state = remember { mutableStateOf(DrawingState()) }
+
+
+                                 state.value.selectedColor = selectedcolor.value
+
+                                 state.value.thickness = thicknessTextfield.value.toFloat()
+
+                                 if (undo.value) {
+
+                                     state.value = state.value.copy(
+                                         paths = state.value.paths.dropLast(1)
+                                     )
+                                     undo.value = undo.value.not()
+                                 }
+
+
+                                 state.value.isErasing = earse.value
+
+
+                                 pageStates.add(state)
+
+
+                                 val graphicsLayer = rememberGraphicsLayer()
+
+                                 AsyncImage(model = page , contentDescription = "")
+                                 /* Box(
+                                      modifier = Modifier
+                                          .padding(bottom = 16.dp)
+                                          .drawWithContent {
+
+
+                                              if (PDFViewerActivity.Companion.elayers.size <= index) {
+                                                  PDFViewerActivity.Companion.elayers.add(
+                                                      graphicsLayer
+                                                  )
+                                                  graphicsLayer.record {
+                                                      this@drawWithContent.drawContent()
+                                                  }
+                                              }
+                                              drawLayer(PDFViewerActivity.Companion.elayers[index])
+
+
+                                          }
+
+
+                                  ) {
+
+                                      if (ok.value){
+
+                                          /*  AndroidView(
+
+                                                factory = { context ->
+                                                    MyGLSurfaceView(context,pdfBitmapConverter, Uri.parse(uri) , renderedPages)
+                                                },
+                                                modifier = Modifier
+                                                    .aspectRatio(PDRectangle.A4.width / PDRectangle.A4.height)// Bu kısmı istediğiniz gibi ayarlayın
+                                            )*/
+
+                                          DrawingScreen(
+                                              draw,
+                                              scale,
+                                              offset,
+                                              // transformablestate ,
+                                              page,
+                                              pageStates[index],
+                                              modifier = Modifier
+                                              //  .transformable(state = transformablestate)
+                                              //  .aspectRatio(PDRectangle.A4.width / PDRectangle.A4.height)
+
+
+                                          )
+                                      }
+                                      /*  DrawingScreen(
+                                            draw,
+                                            scale,
+                                            offset,
+                                            // transformablestate ,
+                                            page,
+                                            pageStates[index],
+                                            modifier = Modifier
+                                                //  .transformable(state = transformablestate)
+                                              //  .aspectRatio(PDRectangle.A4.width / PDRectangle.A4.height)
+
+
+                                        )*/
+                                  }*/
+                             }*/
                         }
 
 
 
 
 
-                        BoxWithConstraints(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .padding(innerPadding)
-                                .fillMaxSize()
-
-
-                        )
-                        {
-
-
-                            LazyColumn(
-                                userScrollEnabled = canScroll.value,
+                        if (paletteVisible) {
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                shadowElevation = 8.dp,
+                                color = Color.White,
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.primary)
-                                    .clipToBounds() // clip modifikatörünü doğru sırada kullanın
-                                    .enhancedZoom(
-                                        clip = true,
-                                        enhancedZoomState = rememberEnhancedZoomState(
-                                            IntSize(screenWidthPx.toInt(), screenHeightPx.toInt()),
-                                            minZoom = 0.75f,
-                                            maxZoom = 6f,
-                                            pannable = if (draw.value) false else true,
-                                            initialZoom = 1f,
-                                            moveToBounds = true,
-
-                                            )
-                                    )
-
-
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp)
+                                    .height(300.dp)
+                                    .align(Alignment.BottomCenter)
+                                    .navigationBarsPadding()
+                                //.offset(0.dp, -60.dp)
                             ) {
-                                items(pageCount.value) { pageIndex ->
-                                    val bitmapState = remember { mutableStateOf<Bitmap?>(null) }
-
-                                    // Render the page when it comes into view
-                                    LaunchedEffect(pageIndex) {
-                                        if (bitmapState.value == null ) {
-                                            if (pdfDocument.value != null){
-                                                val bitmap = pdfBitmapConverter.internalRenderPage(
-                                                    pdfDocument.value!!,
-                                                    pageIndex,
-                                                    scaleFactor
-                                                )
-                                                bitmapState.value = bitmap
-                                            }
-                                        }
-                                    }
-
-                                    val state = remember { mutableStateOf(DrawingState()) }
 
 
-
-                                    if (!highlight.value) {
-                                        selectedcolor.value = mcolor.value
-                                        pageStates[pageIndex]?.value?.selectedColor =
-                                            selectedcolor.value
-
-                                    } else {
-                                        selectedcolor.value = mcolor.value.copy(0.2f)
-                                        pageStates[pageIndex]?.value?.selectedColor =
-                                            selectedcolor.value.copy(0.2f)
-                                    }
-
-
-                                    pageStates[pageIndex]?.value?.thickness =
-                                        thickness
-
-                                    if (undo.value) {
-
-                                        pageStates[pageIndex]?.value =
-                                            pageStates[pageIndex]?.value!!.copy(
-                                                paths = pageStates[pageIndex]?.value?.paths!!.dropLast(
-                                                    1
-                                                )
-                                            )
-                                        undo.value = undo.value.not()
-                                    }
-
-
-                                    state.value.isErasing = earse.value
-
-                                    if (!pageStates.contains(pageIndex)) {
-                                        pageStates[pageIndex] = state
-                                    }
-
-
-                                    // Display the rendered page
-                                    bitmapState.value?.let { bitmap ->
-
-                                        if (!edit.value) {
-
-                                            Image(
-                                                bitmap = bitmap.asImageBitmap(),
-                                                contentDescription = "Page $pageIndex",
-                                                modifier = Modifier.fillMaxWidth()
-                                            )
-                                        } else {
-
-                                            DrawingScreen(
-                                                draw,
-                                                scale,
-                                                offset,
-                                                // transformablestate ,
-                                                bitmap,
-                                                state = pageStates[pageIndex] ?: state,
-                                                modifier = Modifier
-                                                //  .transformable(state = transformablestate)
-                                                //  .aspectRatio(PDRectangle.A4.width / PDRectangle.A4.height)
-
-
-                                            )
-                                        }
-                                    }
-
-                                    // Add a placeholder while the page is being rendered
-                                    if (bitmapState.value == null) {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(200.dp) // Adjust height as needed
-                                                .background(Color.LightGray)
-                                        ) {
-                                            CircularProgressIndicator(
-                                                modifier = Modifier.align(
-                                                    Alignment.Center
-                                                )
-                                            )
-                                        }
-                                    }
-                                }
-                                /* itemsIndexed(renderedPages){ pageIndex , page ->
-
-
-
-
-                                     val state = remember { mutableStateOf(DrawingState()) }
-
-
-                                     state.value.selectedColor = selectedcolor.value
-
-                                     state.value.thickness = thicknessTextfield.value.toFloat()
-
-                                     if (undo.value) {
-
-                                         state.value = state.value.copy(
-                                             paths = state.value.paths.dropLast(1)
-                                         )
-                                         undo.value = undo.value.not()
-                                     }
-
-
-                                     state.value.isErasing = earse.value
-
-
-                                     pageStates.add(state)
-
-
-                                     val graphicsLayer = rememberGraphicsLayer()
-
-                                     AsyncImage(model = page , contentDescription = "")
-                                     /* Box(
-                                          modifier = Modifier
-                                              .padding(bottom = 16.dp)
-                                              .drawWithContent {
-
-
-                                                  if (PDFViewerActivity.Companion.elayers.size <= index) {
-                                                      PDFViewerActivity.Companion.elayers.add(
-                                                          graphicsLayer
-                                                      )
-                                                      graphicsLayer.record {
-                                                          this@drawWithContent.drawContent()
-                                                      }
-                                                  }
-                                                  drawLayer(PDFViewerActivity.Companion.elayers[index])
-
-
-                                              }
-
-
-                                      ) {
-
-                                          if (ok.value){
-
-                                              /*  AndroidView(
-
-                                                    factory = { context ->
-                                                        MyGLSurfaceView(context,pdfBitmapConverter, Uri.parse(uri) , renderedPages)
-                                                    },
-                                                    modifier = Modifier
-                                                        .aspectRatio(PDRectangle.A4.width / PDRectangle.A4.height)// Bu kısmı istediğiniz gibi ayarlayın
-                                                )*/
-
-                                              DrawingScreen(
-                                                  draw,
-                                                  scale,
-                                                  offset,
-                                                  // transformablestate ,
-                                                  page,
-                                                  pageStates[index],
-                                                  modifier = Modifier
-                                                  //  .transformable(state = transformablestate)
-                                                  //  .aspectRatio(PDRectangle.A4.width / PDRectangle.A4.height)
-
-
-                                              )
-                                          }
-                                          /*  DrawingScreen(
-                                                draw,
-                                                scale,
-                                                offset,
-                                                // transformablestate ,
-                                                page,
-                                                pageStates[index],
-                                                modifier = Modifier
-                                                    //  .transformable(state = transformablestate)
-                                                  //  .aspectRatio(PDRectangle.A4.width / PDRectangle.A4.height)
-
-
-                                            )*/
-                                      }*/
-                                 }*/
-                            }
-
-
-
-
-
-                            if (paletteVisible) {
-                                Surface(
-                                    shape = RoundedCornerShape(8.dp),
-                                    shadowElevation = 8.dp,
-                                    color = Color.White,
+                                Column(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 8.dp)
-                                        .height(300.dp)
-                                        .align(Alignment.BottomCenter)
-                                        .navigationBarsPadding()
-                                    //.offset(0.dp, -60.dp)
+                                        .fillMaxSize()
+                                        .verticalScroll(rememberScrollState())
                                 ) {
 
 
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .verticalScroll(rememberScrollState())
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
 
-
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        Canvas(
+                                            modifier = Modifier
+                                                .width(100.dp)
+                                                .height(100.dp)
                                         ) {
-
-                                            Canvas(
-                                                modifier = Modifier
-                                                    .width(100.dp)
-                                                    .height(100.dp)
-                                            ) {
-                                                val path = Path().apply {
-                                                    moveTo(0f, size.height / 2)
-                                                    quadraticBezierTo(
-                                                        size.width / 4,
-                                                        size.height / 4,
-                                                        size.width / 2,
-                                                        size.height / 2
-                                                    )
-                                                    quadraticBezierTo(
-                                                        size.width * 3 / 4,
-                                                        size.height * 3 / 4,
-                                                        size.width,
-                                                        size.height / 2
-                                                    )
-                                                }
-
-                                                drawPath(
-                                                    path = path,
-                                                    color = Color.Green,
-                                                    style = Stroke(
-                                                        width = thickness,
-                                                        cap = StrokeCap.Round
-                                                    )
+                                            val path = Path().apply {
+                                                moveTo(0f, size.height / 2)
+                                                quadraticBezierTo(
+                                                    size.width / 4,
+                                                    size.height / 4,
+                                                    size.width / 2,
+                                                    size.height / 2
+                                                )
+                                                quadraticBezierTo(
+                                                    size.width * 3 / 4,
+                                                    size.height * 3 / 4,
+                                                    size.width,
+                                                    size.height / 2
                                                 )
                                             }
-                                            Slider(
-                                                value = thickness,
-                                                onValueChange = { thickness = it },
-                                                valueRange = 5f..50f,
-                                                modifier = Modifier.fillMaxWidth()
+
+                                            drawPath(
+                                                path = path,
+                                                color = Color.Green,
+                                                style = Stroke(
+                                                    width = thickness,
+                                                    cap = StrokeCap.Round
+                                                )
                                             )
-
-
                                         }
+                                        Slider(
+                                            value = thickness,
+                                            onValueChange = { thickness = it },
+                                            valueRange = 5f..50f,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
 
 
-                                        Row(
-                                            modifier = Modifier
-                                                .horizontalScroll(rememberScrollState())
-                                        ) {
-
-                                            colorlist.value.forEachIndexed { index, clist ->
-                                                Column {
-                                                    clist.palet.forEachIndexed { index, color ->
-
-                                                        val isSelected =
-                                                            selectedcolor.value == color
-
-                                                        Box(
-                                                            modifier = Modifier
-
-                                                                .background(color) // Set the background color
-                                                                .size(24.dp) // Set the size of the box
-                                                                .graphicsLayer {
-                                                                    val scale =
-                                                                        if (isSelected) 0.5f else 1f
-                                                                    scaleX = scale
-                                                                    scaleY = scale
-                                                                }
-                                                                .border(
-                                                                    width = 1.dp,
-                                                                    color = if (selectedcolor.value == color) {
-                                                                        Color.Black
-                                                                    } else {
-                                                                        Color.Transparent
-                                                                    },
-                                                                    shape = RectangleShape
-                                                                )
-                                                                .clickable(
-                                                                    enabled = true,
-                                                                    role = Role.Checkbox,
-                                                                    onClick = {
-
-                                                                        mcolor.value = color
-                                                                        if (highlight.value) {
-
-                                                                            selectedcolor.value =
-                                                                                color.copy(0.2f)
-                                                                        } else {
-                                                                            selectedcolor.value =
-                                                                                color
-                                                                        }
-                                                                    }
-                                                                )
-
-
-                                                        )
-                                                    }
-                                                }
-                                            }
-
-                                        }
                                     }
-                                }
 
-
-                            }
-
-                            if (edit.value) {
-
-                                Surface(
-                                    shape = RectangleShape,
-                                    // color = colorResource(id = R.color.e),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(32.dp)
-                                        .align(Alignment.BottomCenter)
-
-
-                                )
-                                {
 
                                     Row(
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier
-                                            .padding(5.dp)
-                                    )
-                                    {
-                                        OutlinedIconButton(
-                                            onClick = {
+                                            .horizontalScroll(rememberScrollState())
+                                    ) {
 
-                                                if (!colorPaletteVisible) {
-                                                    colorPaletteVisible =
-                                                        colorPaletteVisible.not()
+                                        colorlist.value.forEachIndexed { index, clist ->
+                                            Column {
+                                                clist.palet.forEachIndexed { index, color ->
+
+                                                    val isSelected =
+                                                        selectedcolor.value == color
+
+                                                    Box(
+                                                        modifier = Modifier
+
+                                                            .background(color) // Set the background color
+                                                            .size(24.dp) // Set the size of the box
+                                                            .graphicsLayer {
+                                                                val scale =
+                                                                    if (isSelected) 0.5f else 1f
+                                                                scaleX = scale
+                                                                scaleY = scale
+                                                            }
+                                                            .border(
+                                                                width = 1.dp,
+                                                                color = if (selectedcolor.value == color) {
+                                                                    Color.Black
+                                                                } else {
+                                                                    Color.Transparent
+                                                                },
+                                                                shape = RectangleShape
+                                                            )
+                                                            .clickable(
+                                                                enabled = true,
+                                                                role = Role.Checkbox,
+                                                                onClick = {
+
+                                                                    mcolor.value = color
+                                                                    if (highlight.value) {
+
+                                                                        selectedcolor.value =
+                                                                            color.copy(0.2f)
+                                                                    } else {
+                                                                        selectedcolor.value =
+                                                                            color
+                                                                    }
+                                                                }
+                                                            )
+
+
+                                                    )
                                                 }
-                                                if (highlight.value) {
-                                                    highlight.value = highlight.value.not()
-                                                }
-                                                if (earse.value) {
-                                                    earse.value = earse.value.not()
-                                                }
-                                            },
-                                            border = null,
-                                            colors = IconButtonDefaults.iconButtonColors(
-                                                containerColor = Color.Transparent
-                                            ),
-                                            modifier = Modifier
-                                                .size(24.dp)
-                                        )
-                                        {
-                                            Icon(
-                                                painter = painterResource(R.drawable.pen_icon),
-                                                contentDescription = "",
-                                                modifier = Modifier
-                                                    .size(16.dp)
-                                            )
-                                        }
-                                        OutlinedIconButton(
-                                            onClick = {
-
-                                                if (!colorPaletteVisible) {
-                                                    colorPaletteVisible =
-                                                        colorPaletteVisible.not()
-                                                }
-
-                                                if (earse.value) {
-                                                    earse.value = earse.value.not()
-                                                }
-                                                highlight.value = highlight.value.not()
-                                            },
-                                            border = null,
-                                            colors = IconButtonDefaults.iconButtonColors(
-                                                containerColor = Color.Transparent
-                                            ),
-                                            modifier = Modifier
-                                                .size(24.dp)
-
-                                        )
-                                        {
-                                            Icon(
-                                                painter = painterResource(R.drawable.brush_icon),
-                                                contentDescription = "",
-                                                modifier = Modifier
-
-                                                    .size(24.dp)
-                                            )
-                                        }
-
-                                        Box(
-                                            modifier = Modifier
-                                                .background(selectedcolor.value)
-                                                .clickable {
-                                                    paletteVisible = paletteVisible.not()
-
-                                                }
-
-                                                .size(16.dp)
-                                        )
-                                        OutlinedIconButton(
-                                            onClick = {
-                                                undo.value = undo.value.not()
-                                            },
-                                            border = null,
-                                            colors = IconButtonDefaults.iconButtonColors(
-                                                containerColor = Color.Transparent
-                                            ),
-                                            modifier = Modifier
-                                                .size(24.dp)
-
-                                        )
-                                        {
-                                            Icon(
-                                                painter = painterResource(R.drawable.undo_icon),
-                                                contentDescription = "",
-                                                modifier = Modifier
-
-                                                    .size(24.dp)
-                                            )
-                                        }
-                                        OutlinedIconButton(
-                                            onClick = {
-                                                earse.value = earse.value.not()
-                                            },
-                                            border = null,
-                                            colors = IconButtonDefaults.iconButtonColors(
-                                                containerColor = Color.Transparent
-                                            ),
-                                            modifier = Modifier
-                                                .size(24.dp)
-
-
-                                        )
-                                        {
-                                            Icon(
-                                                painter = painterResource(R.drawable.erase_icon),
-                                                contentDescription = "",
-                                                modifier = Modifier
-
-                                                    .size(24.dp)
-                                            )
-                                        }
-                                        OutlinedIconButton(
-                                            onClick = {
-                                                draw.value = draw.value.not()
-                                            },
-                                            border = null,
-                                            colors = IconButtonDefaults.iconButtonColors(
-                                                containerColor = Color.Transparent
-                                            ),
-                                            modifier = Modifier
-                                                .size(24.dp)
-
-
-                                        )
-                                        {
-                                            if (draw.value) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.lock_open_24px),
-                                                    contentDescription = "",
-                                                    modifier = Modifier
-
-                                                        .size(24.dp)
-                                                )
-
-                                            } else {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.lock_24px),
-                                                    contentDescription = "",
-                                                    modifier = Modifier
-
-                                                        .size(24.dp)
-                                                )
-
                                             }
                                         }
 
+                                    }
+                                }
+                            }
 
+
+                        }
+
+                        if (edit.value) {
+
+                            Surface(
+                                shape = RectangleShape,
+                                // color = colorResource(id = R.color.e),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(32.dp)
+                                    .align(Alignment.BottomCenter)
+
+
+                            )
+                            {
+
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .padding(5.dp)
+                                )
+                                {
+                                    OutlinedIconButton(
+                                        onClick = {
+
+                                            if (!colorPaletteVisible) {
+                                                colorPaletteVisible =
+                                                    colorPaletteVisible.not()
+                                            }
+                                            if (highlight.value) {
+                                                highlight.value = highlight.value.not()
+                                            }
+                                            if (earse.value) {
+                                                earse.value = earse.value.not()
+                                            }
+                                        },
+                                        border = null,
+                                        colors = IconButtonDefaults.iconButtonColors(
+                                            containerColor = Color.Transparent
+                                        ),
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                    )
+                                    {
+                                        Icon(
+                                            painter = painterResource(R.drawable.pen_icon),
+                                            contentDescription = "",
+                                            modifier = Modifier
+                                                .size(16.dp)
+                                        )
+                                    }
+                                    OutlinedIconButton(
+                                        onClick = {
+
+                                            if (!colorPaletteVisible) {
+                                                colorPaletteVisible =
+                                                    colorPaletteVisible.not()
+                                            }
+
+                                            if (earse.value) {
+                                                earse.value = earse.value.not()
+                                            }
+                                            highlight.value = highlight.value.not()
+                                        },
+                                        border = null,
+                                        colors = IconButtonDefaults.iconButtonColors(
+                                            containerColor = Color.Transparent
+                                        ),
+                                        modifier = Modifier
+                                            .size(24.dp)
+
+                                    )
+                                    {
+                                        Icon(
+                                            painter = painterResource(R.drawable.brush_icon),
+                                            contentDescription = "",
+                                            modifier = Modifier
+
+                                                .size(24.dp)
+                                        )
                                     }
 
+                                    Box(
+                                        modifier = Modifier
+                                            .background(selectedcolor.value)
+                                            .clickable {
+                                                paletteVisible = paletteVisible.not()
+
+                                            }
+
+                                            .size(16.dp)
+                                    )
+                                    OutlinedIconButton(
+                                        onClick = {
+                                            undo.value = undo.value.not()
+                                        },
+                                        border = null,
+                                        colors = IconButtonDefaults.iconButtonColors(
+                                            containerColor = Color.Transparent
+                                        ),
+                                        modifier = Modifier
+                                            .size(24.dp)
+
+                                    )
+                                    {
+                                        Icon(
+                                            painter = painterResource(R.drawable.undo_icon),
+                                            contentDescription = "",
+                                            modifier = Modifier
+
+                                                .size(24.dp)
+                                        )
+                                    }
+                                    OutlinedIconButton(
+                                        onClick = {
+                                            earse.value = earse.value.not()
+                                        },
+                                        border = null,
+                                        colors = IconButtonDefaults.iconButtonColors(
+                                            containerColor = Color.Transparent
+                                        ),
+                                        modifier = Modifier
+                                            .size(24.dp)
+
+
+                                    )
+                                    {
+                                        Icon(
+                                            painter = painterResource(R.drawable.erase_icon),
+                                            contentDescription = "",
+                                            modifier = Modifier
+
+                                                .size(24.dp)
+                                        )
+                                    }
+                                    OutlinedIconButton(
+                                        onClick = {
+                                            draw.value = draw.value.not()
+                                        },
+                                        border = null,
+                                        colors = IconButtonDefaults.iconButtonColors(
+                                            containerColor = Color.Transparent
+                                        ),
+                                        modifier = Modifier
+                                            .size(24.dp)
+
+
+                                    )
+                                    {
+                                        if (draw.value) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.lock_open_24px),
+                                                contentDescription = "",
+                                                modifier = Modifier
+
+                                                    .size(24.dp)
+                                            )
+
+                                        } else {
+                                            Icon(
+                                                painter = painterResource(R.drawable.lock_24px),
+                                                contentDescription = "",
+                                                modifier = Modifier
+
+                                                    .size(24.dp)
+                                            )
+
+                                        }
+                                    }
+
+
                                 }
+
                             }
                         }
                     }

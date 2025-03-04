@@ -247,6 +247,8 @@ extern "C"{
 
     JNI_FUNC(void , icore , nativeInitLibrary)(JNIEnv* env, jobject thiz){
     FPDF_InitLibrary();
+
+    LOGE("Library initialized...");
     }
 
     JNI_FUNC(void , icore , nativeDestroyLibrary)(JNIEnv* env, jobject thiz){
@@ -254,14 +256,17 @@ extern "C"{
     }
 
     JNI_FUNC(jlong, icore, nativeLoadPage)(JNI_ARGS, jlong docPtr, jint pageIndex){
+
+    LOGE("docPtr: %lld, pageIndex: %d", docPtr, pageIndex);
         DocumentFile *doc = reinterpret_cast<DocumentFile*>(docPtr);
         return loadPageInternal(env, doc, (int)pageIndex);
     }
 
 
-    JNI_FUNC(jlong, icore, nativeMemPage)(JNI_ARGS, jlong docPtr, jint pageIndex){
+    JNI_FUNC(jlong, icore, nativeMemPage)(JNIEnv* env, jobject thiz, jlong docPtr, jint pageIndex){
 
 
+LOGE("docPtr: %lld, pageIndex: %d", docPtr, pageIndex);
         // Döküman handle'ını kontrol et
         FPDF_DOCUMENT document = reinterpret_cast<FPDF_DOCUMENT>(docPtr);
         if (!document) {
@@ -269,14 +274,8 @@ extern "C"{
         return 0;
         }
 
-// Toplam sayfa sayısını alın
-int pageCount = FPDF_GetPageCount(document);
-if (pageIndex < 0 || pageIndex >= pageCount) {
-LOGE("Invalid page index: %d", pageIndex);
-return 0;
-}
         // Sayfayı yükle
-        FPDF_PAGE page = FPDF_LoadPage(document, pageIndex);
+        FPDF_PAGE page = FPDF_LoadPage(document,(int) pageIndex);
         if (!page) {
         LOGE("Failed to load page %d", pageIndex);
         return 0;
@@ -351,6 +350,15 @@ return 0;
     return (jint)(FPDF_GetPageHeight(page) * dpi / 72);
     }
 
+
+JNI_FUNC(jint, icore, nativeInternalGetPageWidthPixel)(JNIEnv* env,jobject thiz, jlong pagePtr, jint dpi){
+FPDF_PAGE page = reinterpret_cast<FPDF_PAGE>(pagePtr);
+return (jint)(FPDF_GetPageWidth(page) * dpi / 72);
+}
+JNI_FUNC(jint, icore, nativeInternalGetPageHeightPixel)(JNIEnv* env,jobject thiz, jlong pagePtr, jint dpi){
+FPDF_PAGE page = reinterpret_cast<FPDF_PAGE>(pagePtr);
+return (jint)(FPDF_GetPageHeight(page) * dpi / 72);
+}
 
     JNI_FUNC(jint, icore, nativeGetPageCount)(JNI_ARGS, jlong documentPtr){
     DocumentFile *doc = reinterpret_cast<DocumentFile*>(documentPtr);
@@ -501,95 +509,49 @@ LOGI("Page count: %d", pageCount);
 return reinterpret_cast<jlong>(document);; // Return true if the page is successfully added
 }
 
-JNI_FUNC(void , icore , nativeDrawPath)(JNIEnv* env , jobject thiz , jlong docPtr , jint pageIndex , jobject pathsListObj){
+JNI_FUNC(void , icore , nativeDrawPath)(JNIEnv* env , jobject thiz , jstring filePath , jint pageIndex , jobject pathsListObj){
 
+const char* nativeFilePath = env->GetStringUTFChars(filePath, NULL);
 
 // Döküman handle'ını kontrol et
-FPDF_DOCUMENT document = reinterpret_cast<FPDF_DOCUMENT>(docPtr);
+FPDF_DOCUMENT document = FPDF_LoadDocument(nativeFilePath,"");
 if (!document) {
 LOGE("Invalid document handle!");
 return;
 }
 
+// Log the page count
+int pageCount = FPDF_GetPageCount(document);
+LOGI("Page count: %d", pageCount);
+
 // Sayfayı yükle
-FPDF_PAGE page = FPDF_LoadPage(document, 0);
+FPDF_PAGE page = FPDF_LoadPage(document, pageIndex);
 if (!page) {
 LOGE("Failed to load page %d", pageIndex);
 return;
 }
 
-// Liste sınıfını alıyoruz
-jclass listClass = env->FindClass("java/util/List");
-jmethodID getSizeMethod = env->GetMethodID(listClass, "size", "()I");
-jmethodID getGetMethod = env->GetMethodID(listClass, "get", "(I)Ljava/lang/Object;");
 
-// Liste boyutunu öğreniyoruz
-jint pathsSize = env->CallIntMethod(pathsListObj, getSizeMethod);
+// Sayfa nesnesi oluşturuluyor
+FPDF_PAGEOBJECT path = FPDFPageObj_CreateNewPath(0,0);
 
-// PathData sınıfının içindeki verileri alabilmek için sınıfı buluyoruz
-jclass pathDataClass = env->FindClass("com/example/yourapp/PathData");
+// Çizim modunu ayarlıyoruz (örneğin, sadece çizim yapmak için)
+FPDFPath_SetDrawMode(path, FPDF_FILLMODE_WINDING, true);
 
-// Paths listesi üzerinde gezinip her path'i çiziyoruz
-for (jint i = 0; i < pathsSize; i++) {
-jobject pathDataObj = env->CallObjectMethod(pathsListObj, getGetMethod, i);
-
-// Path içindeki renk, kalınlık ve noktaları alıyoruz
-jmethodID getColorMethod = env->GetMethodID(pathDataClass, "getColor", "()Landroid/graphics/Color;");
-jmethodID getThicknessMethod = env->GetMethodID(pathDataClass, "getThickness", "()F");
-jmethodID getPathMethod = env->GetMethodID(pathDataClass, "getPath", "()Ljava/util/List;");
-
-jobject pathList = env->CallObjectMethod(pathDataObj, getPathMethod);
-jfloat thickness = env->CallFloatMethod(pathDataObj, getThicknessMethod);
-
-// Yeni bir path nesnesi oluşturuyoruz
-FPDF_PAGEOBJECT pathObj = FPDFPageObj_CreateNewPath(0, 0);
-
-// Path içindeki noktalar üzerinde gezinme
-jint pathSize = env->CallIntMethod(pathList, getSizeMethod);
-if (pathSize > 0) {
-// İlk noktayı alıyoruz
-jobject firstOffsetWrapper = env->CallObjectMethod(pathList, getGetMethod, 0);
-jclass offsetWrapperClass = env->GetObjectClass(firstOffsetWrapper);
-jmethodID getOffsetXMethod = env->GetMethodID(offsetWrapperClass, "getOffsetX", "()F");
-jmethodID getOffsetYMethod = env->GetMethodID(offsetWrapperClass, "getOffsetY", "()F");
-
-jfloat startX = env->CallFloatMethod(firstOffsetWrapper, getOffsetXMethod);
-jfloat startY = env->CallFloatMethod(firstOffsetWrapper, getOffsetYMethod);
-
-FPDFPath_MoveTo(pathObj, startX, startY);
-
-// Cubic Bezier için her iki kontrol noktası ve bitiş noktası arasında gezinme
-for (jint j = 1; j < pathSize - 1; j += 2) {
-jobject controlPoint1 = env->CallObjectMethod(pathList, getGetMethod, j);
-jobject controlPoint2 = env->CallObjectMethod(pathList, getGetMethod, j + 1);
-
-jfloat x1 = env->CallFloatMethod(controlPoint1, getOffsetXMethod);
-jfloat y1 = env->CallFloatMethod(controlPoint1, getOffsetYMethod);
-
-jfloat x2 = env->CallFloatMethod(controlPoint2, getOffsetXMethod);
-jfloat y2 = env->CallFloatMethod(controlPoint2, getOffsetYMethod);
-
-// Sonraki bitiş noktası
-jobject endPoint = env->CallObjectMethod(pathList, getGetMethod, j + 2);
-jfloat x3 = env->CallFloatMethod(endPoint, getOffsetXMethod);
-jfloat y3 = env->CallFloatMethod(endPoint, getOffsetYMethod);
-
-// Cubic Bezier eğrisi ekleme
-FPDFPath_BezierTo(pathObj, x1, y1, x2, y2, x3, y3);
-}
-
-// Son noktayı kapatıyoruz
-FPDFPath_Close(pathObj);
+// Çizim yapmaya başlıyoruz
+FPDFPath_MoveTo(path, 100.0f, 100.0f); // Başlangıç noktası
+FPDFPath_LineTo(path, 200.0f, 100.0f); // Çizgi çiz
+FPDFPath_LineTo(path, 200.0f, 200.0f);
+FPDFPath_LineTo(path, 100.0f, 200.0f);
+FPDFPath_Close(path); // Kapalı yol oluştur
 
 // Path stilini ayarlıyoruz
-FPDFPageObj_SetStrokeColor(pathObj, 0, 0, 0, 255); // Siyah renk
-FPDFPageObj_SetStrokeWidth(pathObj, thickness);
+FPDFPageObj_SetStrokeColor(path, 0, 0, 0, 255); // Siyah renk
+FPDFPageObj_SetStrokeWidth(path, 20.0);
 
 // Path'i sayfaya ekliyoruz
-FPDFPage_InsertObject(page, pathObj);
+FPDFPage_InsertObject(page, path);
 FPDFPage_GenerateContent(page); // Sayfa içeriğini güncelle
-}
-}
 
 // Temizleme işlemleri
 FPDF_ClosePage(page);
