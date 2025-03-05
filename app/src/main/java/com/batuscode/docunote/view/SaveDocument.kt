@@ -38,10 +38,12 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.batuscode.docunote.CreatePDFActivity
@@ -51,6 +53,7 @@ import com.batuscode.docunote.R
 import com.batuscode.docunote.model.Folder
 import com.batuscode.docunote.utils.PDFConverter
 import com.batuscode.docunote.utils.PDFCreator
+import com.batuscode.pdfium.OffsetWrapper
 import com.batuscode.pdfium.icore
 import com.mohamedrejeb.richeditor.model.RichTextState
 import kotlinx.coroutines.launch
@@ -279,8 +282,26 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                                   PDFViewerActivity.mpageStates , context.contentResolver)*/
 
                             scope.launch{
-                                val paths = PDFViewerActivity.mpageStates[0]?.value?.paths
-                                converter.drawPathToPage(context,PDFViewerActivity.muri,0,paths!!)
+                                PDFViewerActivity.mpageStates.filter { (index , state) -> state.value.paths.isNotEmpty() }
+                                    .map { (index,state)->
+                                    if (!state.value.paths.isEmpty()){
+                                        Log.d("saveDocument" , "path is not empty to page :: " + index)
+                                        val paths = state.value.paths.map { pathData ->
+                                            pathData.copy(
+                                                path = pathData.path.map { point ->
+
+                                                    // Koordinatları tersine çevir, ardından ölçekle
+                                                    val transformedPoint = point.transformToBottomLeftOrigin(842f, point.offset)
+                                                    val scaledPoint = point.scalePointForPDF(transformedPoint, 0.5f, 0.5f)
+                                                    OffsetWrapper(scaledPoint)
+                                                }
+                                            )
+                                        }
+                                        val color = PDFViewerActivity.mpageStates[index]?.value?.selectedColor?.toArgb()
+                                        Log.d("saveDocument" , "colorInt :: " + color)
+                                        converter.drawPathToPage(context,PDFViewerActivity.muri,index,paths,color!!)
+                                    }
+                                }
 
 
                                 saveTempFileToDocuments(context,PDFConverter.mfilePath,text)
@@ -329,6 +350,29 @@ fun saveTempFileToDocuments(context: Context, tempFilePath: String, text:String)
             file = File(dir, "${filename}.pdf")
         }
 
+
+
+        val contentResolver = context.contentResolver
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, "${filename}") // Dosya adı
+            put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf") // Dosya türü
+            put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOCUMENTS}") // Documents dizini
+        }
+        val uri = contentResolver.insert(MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL), contentValues)
+
+        uri?.let {
+
+            MainActivity.fileManager.addDocument(context = context, uri = it.toString(), fileName = filename!!)
+            val file = com.batuscode.docunote.utils.File(it.toString(), filename)
+            MainActivity._appViewModel.addRecentlyFile(file)
+            val outputStream: OutputStream? = contentResolver.openOutputStream(it)
+
+            tempFile.inputStream().use { input ->
+                outputStream?.use { stream ->
+                    input.copyTo(stream)
+                }
+            }
+        }
         // Dosyayı yeni dizine taşımak
         tempFile.copyTo(file, overwrite = true)
 

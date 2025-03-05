@@ -149,12 +149,13 @@ class PDFConverter(private val context: Context) {
         context: Context,
         uri: Uri,
         pageIndex: Int,
-        pathData:List<PathData>
+        pathData:List<PathData> ,
+        color:Int
     ){
         val filePath = getFilePathFromUri(context,uri)
         mfilePath = filePath!!
 
-        MainActivity.mainicore.drawPath(filePath ,pageIndex , pathData)
+        MainActivity.mainicore.drawPath(filePath ,pageIndex , pathData , color)
 
         /*context.contentResolver.openFileDescriptor(uri , "r")?.use { descriptor ->
             Log.d("drawPathToPage" , "uri :: " + uri)

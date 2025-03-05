@@ -139,7 +139,7 @@ fun DrawingCanvas(
         paths.fastForEach { pathData ->
             drawPath(
                 path = pathData.path,
-                color = pathData.color,
+                color = pathData.mcolor,
                 thickness = pathData.thickness,
                 scale.value
             )
@@ -147,11 +147,12 @@ fun DrawingCanvas(
         currentPath?.let {
             drawPath(
                 path = it.path,
-                color = it.color,
+                color = it.mcolor,
                 thickness = it.thickness,
                 scale.value
             )
         }
+
 
         /*val canvasHeight = size.height
         val transformedPaths = paths.map { pathData ->
@@ -238,7 +239,7 @@ private fun onNewPathStart(state: MutableState<DrawingState>) {
     state.value = state.value.copy(
         currentPath = PathData(
             id = System.currentTimeMillis().toString(),
-            color = state.value.selectedColor,
+            mcolor = state.value.selectedColor,
             path = emptyList() ,
             thickness = state.value.thickness
         )

@@ -509,7 +509,8 @@ LOGI("Page count: %d", pageCount);
 return reinterpret_cast<jlong>(document);; // Return true if the page is successfully added
 }
 
-JNI_FUNC(void , icore , nativeDrawPath)(JNIEnv* env , jobject thiz , jstring filePath , jint pageIndex , jobject pathsListObj){
+JNI_FUNC(void , icore , nativeDrawPath)(JNIEnv* env , jobject thiz ,
+        jstring filePath , jint pageIndex , jobject pathsListObj , jint colorInt){
 
 const char* nativeFilePath = env->GetStringUTFChars(filePath, NULL);
 
@@ -532,9 +533,106 @@ return;
 }
 
 
-// Sayfa nesnesi oluşturuluyor
-FPDF_PAGEOBJECT path = FPDFPageObj_CreateNewPath(0,0);
+jclass listClass = env->GetObjectClass(pathsListObj);
 
+jmethodID listSizeMethod = env->GetMethodID(listClass, "size", "()I");
+
+jint pathCount = env->CallIntMethod(pathsListObj, listSizeMethod);
+
+jmethodID listGetMethod = env->GetMethodID(listClass, "get", "(I)Ljava/lang/Object;");
+
+
+// PathData class and its fields
+jclass pathDataClass = env->FindClass("com/batuscode/pdfium/PathData");
+jfieldID pathField = env->GetFieldID(pathDataClass, "path", "Ljava/util/List;");
+//jfieldID colorField = env->GetFieldID(pathDataClass, "mcolor", "Landroidx/compose/ui/graphics/Color;");
+jfieldID thicknessField = env->GetFieldID(pathDataClass, "thickness", "F");
+
+// OffsetWrapper class and its methods
+jclass offsetWrapperClass = env->FindClass("com/batuscode/pdfium/OffsetWrapper");
+jmethodID getXMethod = env->GetMethodID(offsetWrapperClass, "getX", "()F");
+jmethodID getYMethod = env->GetMethodID(offsetWrapperClass, "getY", "()F");
+
+
+// Iterate over paths (List<PathData>)
+for (int i = 0; i < pathCount; i++) {
+jobject pathDataObj = env->CallObjectMethod(pathsListObj, listGetMethod, i);
+
+// Get color and thickness for this path
+//jobject colorObj = env->GetObjectField(pathDataObj, colorField);
+jfloat thickness = env->GetFloatField(pathDataObj, thicknessField);
+
+
+/*jclass colorClass = env->FindClass("androidx/compose/ui/graphics/Color");
+jmethodID toArgbMethod = env->GetMethodID(colorClass, "toArgb", "()I");
+int colorInt = env->CallIntMethod(colorObj, toArgbMethod);
+*/
+
+// Get the path (List<OffsetWrapper>) from PathData
+jobject offsetWrapperList = env->GetObjectField(pathDataObj, pathField);
+jint pointCount = env->CallIntMethod(offsetWrapperList, listSizeMethod);
+
+// Create new PDF path object
+FPDF_PAGEOBJECT path = FPDFPageObj_CreateNewPath(0,0);
+FPDFPath_SetDrawMode(path, false, true);  // Sadece çizgi çiz, içini doldurma
+
+
+for (int j = 0; j < pointCount; j++) {
+jobject offsetWrapperObj = env->CallObjectMethod(offsetWrapperList, listGetMethod, j);
+
+jfloat x = env->CallFloatMethod(offsetWrapperObj, getXMethod);
+jfloat y = env->CallFloatMethod(offsetWrapperObj, getYMethod);
+
+
+if (j == 0) {
+FPDFPath_MoveTo(path, x, y);
+} else {
+//FPDFPath_LineTo(path, x, y);
+
+
+jobject from = env->CallObjectMethod(offsetWrapperList, listGetMethod, j - 1);
+
+jobject to = env->CallObjectMethod(offsetWrapperList, listGetMethod, j);
+
+jfloat toX = env->CallFloatMethod(to, getXMethod);
+jfloat toY = env->CallFloatMethod(to, getYMethod);
+
+jfloat fromX = env->CallFloatMethod(from, getXMethod);
+jfloat fromY = env->CallFloatMethod(from, getYMethod);
+
+// İlk kontrol noktası ve ikinci kontrol noktası
+jfloat controlX = (fromX + toX) / 2.0f;
+jfloat controlY = (fromY + toY) / 2.0f;
+
+jfloat scale = 0.5f;  // Örnek bir değer, scale parametresini burada belirleyin
+jint smoothness = std::max(static_cast<int>(5 / scale), 1);
+
+jfloat dx = std::abs(fromX - toX);
+jfloat dy = std::abs(fromY - toY);
+
+if(dx >= smoothness || dy >= smoothness){
+// Cubic Bezier eğrisine ekle
+FPDFPath_BezierTo(path, controlX, controlY, toX, toY, toX, toY);
+}
+}
+
+LOGI("Drawing point at (%f, %f)", x, y);
+}
+int rgba[4];
+rgba[0] = (colorInt >> 16) & 0xFF; // Red
+rgba[1] = (colorInt >> 8) & 0xFF;  // Green
+rgba[2] = colorInt & 0xFF;         // Blue
+rgba[3] = (colorInt >> 24) & 0xFF; // Alpha
+
+FPDFPageObj_SetStrokeColor(path, rgba[0], rgba[1], rgba[2], rgba[3]);
+FPDFPageObj_SetStrokeWidth(path, thickness);
+// Add path to the PDF page
+FPDFPage_InsertObject(page, path);
+
+// Finalize the content generation for the page
+FPDFPage_GenerateContent(page);
+}
+/*
 // Çizim modunu ayarlıyoruz (örneğin, sadece çizim yapmak için)
 FPDFPath_SetDrawMode(path, FPDF_FILLMODE_WINDING, true);
 
@@ -544,15 +642,36 @@ FPDFPath_LineTo(path, 200.0f, 100.0f); // Çizgi çiz
 FPDFPath_LineTo(path, 200.0f, 200.0f);
 FPDFPath_LineTo(path, 100.0f, 200.0f);
 FPDFPath_Close(path); // Kapalı yol oluştur
-
-// Path stilini ayarlıyoruz
-FPDFPageObj_SetStrokeColor(path, 0, 0, 0, 255); // Siyah renk
-FPDFPageObj_SetStrokeWidth(path, 20.0);
+*/
 
 // Path'i sayfaya ekliyoruz
-FPDFPage_InsertObject(page, path);
-FPDFPage_GenerateContent(page); // Sayfa içeriğini güncelle
+//FPDFPage_InsertObject(page, path);
 
+
+
+// Open the file for writing
+FILE* outputFile = fopen(nativeFilePath, "wb");
+if (!outputFile) {
+LOGE("Failed to open file for writing: %s", nativeFilePath);
+env->ReleaseStringUTFChars(filePath, nativeFilePath);
+return  ;
+}
+
+// Initialize CustomFileWriter
+CustomFileWriter writer;
+writer.fileWrite.version = 1;
+writer.fileWrite.WriteBlock = WriteBlock; // Use your existing WriteBlock implementation
+writer.file = outputFile;
+
+
+if (!FPDF_SaveWithVersion(document, reinterpret_cast<FPDF_FILEWRITE*>(&writer), FPDF_NO_INCREMENTAL, 15)) {
+LOGE("Failed to save the document!");
+return  ;
+} else {
+LOGI("Document saved successfully with PDF version: %d", 15);
+}
+
+fclose(outputFile);
 // Temizleme işlemleri
 FPDF_ClosePage(page);
 }
