@@ -2,6 +2,7 @@ package com.batuscode.docunote.view
 
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
@@ -96,6 +97,14 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
         PDFConverter(context)
     }
 
+    var streamSaved = remember {
+        mutableStateOf(false)
+    }
+
+    var fileSaved = remember {
+        mutableStateOf(false)
+    }
+
     val scope = rememberCoroutineScope()
 
     if (newFolder.value){
@@ -165,7 +174,7 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                         val dir = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) , "${FolderName}")
 
                         dir.mkdirs()
-
+                        val file = File(dir, "${text}.pdf")
                         val filePath = File(dir, "${text}.pdf").absolutePath
 
 
@@ -176,6 +185,9 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                        // creat.savePDF( text , file = File(dir , "${text}.pdf") , CreatePDFActivity.pagesContainer , CreatePDFActivity.cpageStates , context.contentResolver)
 
                         if (create){
+
+                            val tempFile = File(context.cacheDir, "temp_file.pdf")
+                            val mfilePath = tempFile.absolutePath
                             val contentResolver = context.contentResolver
                             val contentValues = ContentValues().apply {
                                 put(MediaStore.MediaColumns.DISPLAY_NAME, "${text}") // Dosya adı
@@ -206,7 +218,7 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                                 uri?.let {
                                     val outputStream: OutputStream? = contentResolver.openOutputStream(it)
                                     outputStream?.use { stream ->
-                                        MainActivity.mainicore.saveDocumentAsStream(CreatePDFActivity.docptr , stream)
+                                        MainActivity.mainicore.saveDocumentAsStream(CreatePDFActivity.docptr , stream , context)
                                     }
                                 }
                                 val saveOk = MainActivity.mainicore.saveDocument(CreatePDFActivity.docptr,filePath)
@@ -215,11 +227,48 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                                     CreatePDFActivity.pdfActivity.onBackPressed()
                                 }
                             }
-                        } else {
+                        }
+                        else {
+
+                            // save as copy
 
                             scope.launch{
-                                creat.saveDrawingsToPDF(text , file = File(dir , "${text}.pdf") ,
-                                    PDFViewerActivity.mpageStates ,context.contentResolver , context)
+                                val pdfPageWidth = 595.0f
+                                val pdfPageHeight = 842.0f
+                                val canvasWidth = 1080.0f
+                                val canvasHeight = 1528.0f
+
+                                val scaleX = pdfPageWidth / canvasWidth
+                                val scaleY = pdfPageHeight / canvasHeight
+                                scope.launch{
+                                    PDFViewerActivity.mpageStates.filter { (index , state) -> state.value.paths.isNotEmpty() }
+                                        .map { (index,state)->
+                                            if (!state.value.paths.isEmpty()){
+                                                Log.d("saveDocument" , "path is not empty to page :: " + index)
+                                                val paths = state.value.paths.map { pathData ->
+                                                    pathData.copy(
+                                                        path = pathData.path.map { point ->
+
+                                                            // Koordinatları tersine çevir, ardından ölçekle
+                                                            val transformedPoint = point.transformToBottomLeftOrigin(1528.0f,point.offset)
+                                                            val scaledPoint = point.scalePointForPDF(transformedPoint, scaleX, scaleY)
+                                                            OffsetWrapper(scaledPoint)
+                                                        }
+                                                    )
+                                                }
+                                                val color = PDFViewerActivity.mpageStates[index]?.value?.selectedColor?.toArgb()
+                                                Log.d("saveDocument" , "colorInt :: " + color)
+                                                converter.drawPathToPage(context,PDFViewerActivity.muri,index,paths,color!!)
+                                            }
+                                        }
+
+
+                                    saveTempFileToDocuments(file,true,context,PDFConverter.mfilePath,text)
+                                    // val saveOk = MainActivity.mainicore.saveDocument(PDFConverter.midoc.mNativeDocPtr,filePath)
+
+                                    /*creat.saveDrawingsToPDF(text , file = File(dir , "${text}.pdf") ,
+                                        PDFViewerActivity.mpageStates ,context.contentResolver , context)*/
+                                }
                             }
                           /*  creat.saveDrawingsToPDF(text,file = File(dir , "${text}.pdf") ,
                                 PDFViewerActivity.mrendererPages ,
@@ -241,6 +290,8 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                         val uri = contentResolver.insert(MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL), contentValues)
                         // create page
                         if (create){
+                            val tempFile = File(context.cacheDir, "temp_file.pdf")
+                            val mfilePath = tempFile.absolutePath
                             Log.d("page count" , "in save" + CreatePDFActivity.docptr)
                             var ptr = CreatePDFActivity.docptr
 
@@ -261,14 +312,15 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                                 val file2 = com.batuscode.docunote.utils.File(uri.toString() , text)
                                 MainActivity._appViewModel.addRecentlyFile(file2)
                                 uri?.let {
+
                                     val outputStream: OutputStream? = contentResolver.openOutputStream(it)
                                     outputStream?.use { stream ->
-                                        MainActivity.mainicore.saveDocumentAsStream(CreatePDFActivity.docptr , stream)
+                                       streamSaved.value = MainActivity.mainicore.saveDocumentAsStream(CreatePDFActivity.docptr , stream , context)
                                     }
                                 }
-                                val saveOk = MainActivity.mainicore.saveDocument(CreatePDFActivity.docptr,filePath)
+                                fileSaved.value = MainActivity.mainicore.saveDocument(CreatePDFActivity.docptr,filePath)
 
-                                if (saveOk){
+                                if (fileSaved.value && streamSaved.value){
                                     CreatePDFActivity.pdfActivity.onBackPressed()
                                 }
                             }
@@ -280,7 +332,14 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                              /* creat.saveDrawingsToPDF(text , file = File(dir , "${text}.pdf") ,
                                   PDFViewerActivity.mrendererPages ,
                                   PDFViewerActivity.mpageStates , context.contentResolver)*/
+                            val dpi = context.getResources().getDisplayMetrics().densityDpi
+                            val pdfPageWidth = 595.0f
+                            val pdfPageHeight = 842.0f
+                            val canvasWidth = 1080.0f
+                            val canvasHeight = 1528.0f
 
+                            val scaleX = pdfPageWidth / canvasWidth
+                            val scaleY = pdfPageHeight / canvasHeight
                             scope.launch{
                                 PDFViewerActivity.mpageStates.filter { (index , state) -> state.value.paths.isNotEmpty() }
                                     .map { (index,state)->
@@ -291,8 +350,8 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                                                 path = pathData.path.map { point ->
 
                                                     // Koordinatları tersine çevir, ardından ölçekle
-                                                    val transformedPoint = point.transformToBottomLeftOrigin(842f, point.offset)
-                                                    val scaledPoint = point.scalePointForPDF(transformedPoint, 0.5f, 0.5f)
+                                                    val transformedPoint = point.transformToBottomLeftOrigin(1528.0f,point.offset)
+                                                    val scaledPoint = point.scalePointForPDF(transformedPoint, scaleX, scaleY)
                                                     OffsetWrapper(scaledPoint)
                                                 }
                                             )
@@ -304,7 +363,7 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                                 }
 
 
-                                saveTempFileToDocuments(context,PDFConverter.mfilePath,text)
+                                saveTempFileToDocuments(null,false,context,PDFConverter.mfilePath,text)
                                // val saveOk = MainActivity.mainicore.saveDocument(PDFConverter.midoc.mNativeDocPtr,filePath)
 
                                 /*creat.saveDrawingsToPDF(text , file = File(dir , "${text}.pdf") ,
@@ -329,7 +388,7 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
 }
 
 
-fun saveTempFileToDocuments(context: Context, tempFilePath: String, text:String): String? {
+fun saveTempFileToDocuments(mfile: File? , toFolder:Boolean , context: Context, tempFilePath: String, text:String): String? {
     try {
         var filename = text
         val tempFile = File(tempFilePath)
@@ -374,7 +433,11 @@ fun saveTempFileToDocuments(context: Context, tempFilePath: String, text:String)
             }
         }
         // Dosyayı yeni dizine taşımak
-        tempFile.copyTo(file, overwrite = true)
+        if (toFolder){
+            tempFile.copyTo(mfile!!, overwrite = true)
+        } else {
+            tempFile.copyTo(file, overwrite = true)
+        }
 
         // Yeni dosyanın yolu
         return file.absolutePath

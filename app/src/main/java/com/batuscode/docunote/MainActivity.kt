@@ -339,7 +339,8 @@ class MainActivity : ComponentActivity() {
                  }
 
              }
-         } else {
+         }
+         else {
              Log.d("realdevice" , "sikinti var...")
          }
 
@@ -433,6 +434,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        // to folder
+
         mergeDocumentLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
@@ -480,6 +484,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        // open pdf
+
         openDocumentLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->

@@ -82,13 +82,13 @@ public class icore {
 
     private native int nativeGetPageCount(long docPtr);
     private native boolean nativeSaveDocument(long docPtr , String filePath);
-    private native boolean nativeSaveDocumentAsStream(long docPtr , OutputStream outputStream);
+    private native boolean nativeSaveDocumentAsStream(long docPtr , OutputStream outputStream , Context context);
     public native long nativecreateNewDocument();
     public native long nativeaddPageToDocument(long docPtr, PDFPage page);
     public native void nativeAddTextToPage(long docPtr , int index , byte[] text , float x , float y , float fontSize , float lineHeight);
     public native void nativeInitLibrary();
     public native void nativeDestroyLibrary();
-    public native void nativeDrawPath(String filePath , int pageIndex , List<PathData> pathData , int color);
+    public native void nativeDrawPath(String filePath , int pageIndex , List<PathData> pathData , int color , int mCurrentDpi);
     private native long nativeMemPage(long docPtr , int pageIndex);
     private native void nativeAddAnnotationToPage(long documentPtr, int pageIndex, List<PathData> paths , File file );
     public void addAnnotations(PdfDocument document, int pageIndex, List<PathData> paths , File file) {
@@ -260,11 +260,11 @@ public class icore {
     public void drawPath(String filePath , int pageIndex , List<PathData> pathData , int color){
         Log.d("drawPathToPage" , "icore ::: " + "filePath :: " + filePath + " pageIndex :: " + pageIndex);
 
-        nativeDrawPath(filePath, pageIndex, pathData , color);
+        nativeDrawPath(filePath, pageIndex, pathData , color , mCurrentDpi);
     }
 
-    public boolean saveDocumentAsStream(long docPtr , OutputStream outputStream){
-        return nativeSaveDocumentAsStream(docPtr,outputStream);
+    public boolean saveDocumentAsStream(long docPtr , OutputStream outputStream , Context context){
+        return nativeSaveDocumentAsStream(docPtr,outputStream,context);
     };
 
 }

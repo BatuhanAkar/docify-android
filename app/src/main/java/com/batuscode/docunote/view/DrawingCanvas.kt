@@ -131,7 +131,7 @@ fun DrawingCanvas(
 
     ) {
 
-
+        Log.d("canvasSize" , "size :: " + size.height + " " + size.width)
         drawImage(
             page.asImageBitmap(),
             dstSize = IntSize(size.width.toInt(), size.height.toInt()))
@@ -154,14 +154,6 @@ fun DrawingCanvas(
         }
 
 
-        /*val canvasHeight = size.height
-        val transformedPaths = paths.map { pathData ->
-            pathData.copy(
-                path = pathData.path.map { point ->
-                    transformToBottomLeftOrigin(canvasHeight, point)
-                }
-            )
-        }*/
     }
 }
 

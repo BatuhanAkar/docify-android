@@ -510,7 +510,7 @@ return reinterpret_cast<jlong>(document);; // Return true if the page is success
 }
 
 JNI_FUNC(void , icore , nativeDrawPath)(JNIEnv* env , jobject thiz ,
-        jstring filePath , jint pageIndex , jobject pathsListObj , jint colorInt){
+        jstring filePath , jint pageIndex , jobject pathsListObj , jint colorInt , jint dpi){
 
 const char* nativeFilePath = env->GetStringUTFChars(filePath, NULL);
 
@@ -575,13 +575,20 @@ jint pointCount = env->CallIntMethod(offsetWrapperList, listSizeMethod);
 // Create new PDF path object
 FPDF_PAGEOBJECT path = FPDFPageObj_CreateNewPath(0,0);
 FPDFPath_SetDrawMode(path, false, true);  // Sadece çizgi çiz, içini doldurma
+FPDFPageObj_SetLineCap(path,FPDF_LINECAP_ROUND);
+FPDFPageObj_SetLineJoin(path,FPDF_LINEJOIN_ROUND);
 
+jint pageWidth = FPDF_GetPageWidth(page)  ;
+jint pageHeigth = FPDF_GetPageHeight(page)  ;
+
+float scaleX = pageWidth / 1080.0f ;
+float scaleY = pageHeigth / 1528.0f ;
 
 for (int j = 0; j < pointCount; j++) {
 jobject offsetWrapperObj = env->CallObjectMethod(offsetWrapperList, listGetMethod, j);
 
-jfloat x = env->CallFloatMethod(offsetWrapperObj, getXMethod);
-jfloat y = env->CallFloatMethod(offsetWrapperObj, getYMethod);
+float x = env->CallFloatMethod(offsetWrapperObj, getXMethod)  ;
+float y = env->CallFloatMethod(offsetWrapperObj, getYMethod)  ;
 
 
 if (j == 0) {
@@ -594,21 +601,21 @@ jobject from = env->CallObjectMethod(offsetWrapperList, listGetMethod, j - 1);
 
 jobject to = env->CallObjectMethod(offsetWrapperList, listGetMethod, j);
 
-jfloat toX = env->CallFloatMethod(to, getXMethod);
-jfloat toY = env->CallFloatMethod(to, getYMethod);
+float toX = env->CallFloatMethod(to, getXMethod);
+float toY = env->CallFloatMethod(to, getYMethod);
 
-jfloat fromX = env->CallFloatMethod(from, getXMethod);
-jfloat fromY = env->CallFloatMethod(from, getYMethod);
+float fromX = env->CallFloatMethod(from, getXMethod);
+float fromY = env->CallFloatMethod(from, getYMethod);
 
 // İlk kontrol noktası ve ikinci kontrol noktası
-jfloat controlX = (fromX + toX) / 2.0f;
-jfloat controlY = (fromY + toY) / 2.0f;
+float controlX = (fromX + toX) / 2.0f;
+float controlY = (fromY + toY) / 2.0f;
 
-jfloat scale = 0.5f;  // Örnek bir değer, scale parametresini burada belirleyin
-jint smoothness = std::max(static_cast<int>(5 / scale), 1);
+float scale = 1.0f;  // Örnek bir değer, scale parametresini burada belirleyin
+int smoothness = std::max(static_cast<int>(5 / scale), 1);
 
-jfloat dx = std::abs(fromX - toX);
-jfloat dy = std::abs(fromY - toY);
+float dx = std::abs(fromX - toX);
+float dy = std::abs(fromY - toY);
 
 if(dx >= smoothness || dy >= smoothness){
 // Cubic Bezier eğrisine ekle
@@ -785,6 +792,7 @@ env->ReleaseByteArrayElements(text, utf16Bytes, JNI_ABORT);
 FPDF_ClosePage(page);
 }
 
+JNI_FUNC(jboolean,icore,nativeMergeDocument)
 
 JNI_FUNC(jboolean, icore, nativeSaveDocument)(
         JNIEnv* env, jobject thiz, jlong docPtr, jstring filePath) {
@@ -829,7 +837,7 @@ return JNI_TRUE ;
 }
 
 JNI_FUNC(jboolean, icore, nativeSaveDocumentAsStream)(
-        JNIEnv* env, jobject thiz, jlong docPtr, jobject outputStream) {
+        JNIEnv* env, jobject thiz, jlong docPtr, jobject outputStream , jobject context) {
 
 FPDF_DOCUMENT document = reinterpret_cast<FPDF_DOCUMENT>(docPtr);
 if (!document) {
@@ -841,10 +849,20 @@ return JNI_FALSE;
 jclass outputStreamClass = env->GetObjectClass(outputStream);
 jmethodID writeMethod = env->GetMethodID(outputStreamClass, "write", "([B)V");
 
+jclass contextClass = env->GetObjectClass(context);
+jmethodID getCacheDirMethod = env->GetMethodID(contextClass, "getCacheDir", "()Ljava/io/File;");
+jobject cacheDir = env->CallObjectMethod(context, getCacheDirMethod);
+
+jclass fileClass = env->GetObjectClass(cacheDir);
+jmethodID getAbsolutePathMethod = env->GetMethodID(fileClass, "getAbsolutePath", "()Ljava/lang/String;");
+jstring cacheDirPath = (jstring) env->CallObjectMethod(cacheDir, getAbsolutePathMethod);
+
 // Geçici dosya açın
-FILE* tempFile = tmpfile();
+const char* nativeCacheDir = env->GetStringUTFChars(cacheDirPath, 0);
+std::string tempFilePath = std::string(nativeCacheDir) + "/temp_fileXXXXXX";
+FILE* tempFile = fopen(tempFilePath.c_str(), "w+b");
 if (!tempFile) {
-LOGE("Failed to create temp file!");
+LOGE("Failed to create temp file in cache directory!");
 return JNI_FALSE;
 }
 
