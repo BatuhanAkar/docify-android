@@ -24,7 +24,6 @@ extern "C" {
 #include <sys/stat.h>
 #include <string.h>
 #include <stdio.h>
-
 }
 
 #include <android/native_window.h>
@@ -32,6 +31,7 @@ extern "C" {
 #include <android/bitmap.h>
 #include <sstream> // Add this line
 #include <jni.h>
+#include <fstream>
 
 #include "../include/fpdfview.h"
 #include "../include/fpdf_doc.h"
@@ -39,6 +39,7 @@ extern "C" {
 #include "../include/fpdf_edit.h"
 #include "../include/fpdf_save.h"
 #include "../include/fpdf_text.h"
+#include "../include/fpdf_ppo.h"
 #include <string>
 #include <vector>
 
@@ -202,11 +203,24 @@ void rgbBitmapTo565(void *source, int sourceStride, void *dest, AndroidBitmapInf
         dest = (char*) dest + info->stride;
     }
 }
-// Example font data for Helvetica (replace with actual font data)
-static const uint8_t helveticaFontData[] = {
-        // Insert the actual font data here
-};
+std::vector<uint8_t> globalFontData;  // Font verisini saklamak için global değişken
+bool isFontLoaded = false;
 extern "C"{
+
+JNI_FUNC(void,icore,nativeLoadFont)(JNIEnv *env , jobject thiz , jbyteArray fontData){
+
+jbyte *byteArray = env->GetByteArrayElements(fontData, nullptr);
+jsize length = env->GetArrayLength(fontData);
+
+// Byte array'ı std::vector'a dönüştürme
+globalFontData = std::vector<uint8_t>(byteArray, byteArray + length);
+
+env->ReleaseByteArrayElements(fontData, byteArray, 0);
+
+isFontLoaded = true;  // Font başarıyla yüklendi
+
+LOGI("Font successfully loaded");
+}
 
     static int getBlock(void* param, unsigned long position, unsigned char* outBuffer,
                         unsigned long size) {
@@ -713,12 +727,19 @@ charcodes.push_back(static_cast<uint32_t>(charCode));
 }
 
 
-FPDF_FONT font = FPDFText_LoadStandardFont(document, "Arial");
+FPDF_FONT font = FPDFText_LoadFont(document, globalFontData.data(), globalFontData.size(), FPDF_FONT_TRUETYPE, true);
+if (!font) {
+LOGE("Failed to load font into PDF document");
+FPDF_CloseDocument(document);
+return;
+}
+
+/*FPDF_FONT font = FPDFText_LoadStandardFont(document, "Arial");
 if (!font) {
 LOGE("Failed to load font!");
 FPDF_ClosePage(page);
 return;
-}
+}*/
 
 // Satırları tutacak vektör
 std::vector<std::vector<uint32_t>> lines;
@@ -792,7 +813,236 @@ env->ReleaseByteArrayElements(text, utf16Bytes, JNI_ABORT);
 FPDF_ClosePage(page);
 }
 
-JNI_FUNC(jboolean,icore,nativeMergeDocument)
+JNI_FUNC(jboolean,icore,nativeMergeDocument)(JNIEnv* env, jobject thiz , jobject filePathMapObject , jobject outputStream , jobject context){
+
+    // get class
+    jclass mapClass = env->FindClass("java/util/Map");
+    if (mapClass == NULL) {
+    // Hata işleme
+    return false;
+    }
+
+    jmethodID sizeMethod = env->GetMethodID(mapClass, "size", "()I");
+    if (sizeMethod == NULL) {
+    // Hata işleme
+    return false;
+    }
+
+    jint mapSize = env->CallIntMethod(filePathMapObject, sizeMethod);
+    LOGD("File Path Map Size :: %d" , mapSize);
+
+    jmethodID entrySetMethod = env->GetMethodID(mapClass, "entrySet", "()Ljava/util/Set;");
+    if (entrySetMethod == NULL) {
+    // Hata işleme
+    return false ;
+    }
+
+    jobject entrySet = env->CallObjectMethod(filePathMapObject, entrySetMethod);
+    if (entrySet == NULL) {
+    // Hata işleme
+    return false ;
+    }
+
+    jclass setClass = env->FindClass("java/util/Set");
+    jmethodID iteratorMethod = env->GetMethodID(setClass, "iterator", "()Ljava/util/Iterator;");
+    jobject iterator = env->CallObjectMethod(entrySet, iteratorMethod);
+
+    jclass iteratorClass = env->FindClass("java/util/Iterator");
+    jmethodID hasNextMethod = env->GetMethodID(iteratorClass, "hasNext", "()Z");
+    jmethodID nextMethod = env->GetMethodID(iteratorClass, "next", "()Ljava/lang/Object;");
+
+
+FPDF_DOCUMENT destDocument = nullptr;
+int firstIndexToPage = 0;
+bool isFirstDocument = true;  // İlk dokümanı tanımlamak için sayaç
+
+while (env->CallBooleanMethod(iterator, hasNextMethod)) {
+jobject entry = env->CallObjectMethod(iterator, nextMethod);
+
+// Map Entry'den key ve value'yu alın
+jclass entryClass = env->FindClass("java/util/Map$Entry");
+jmethodID getKeyMethod = env->GetMethodID(entryClass, "getKey", "()Ljava/lang/Object;");
+jmethodID getValueMethod = env->GetMethodID(entryClass, "getValue", "()Ljava/lang/Object;");
+
+jobject key = env->CallObjectMethod(entry, getKeyMethod);
+jobject value = env->CallObjectMethod(entry, getValueMethod);
+
+// value'yu string'e dönüştür
+const char* nativeFilePath = env->GetStringUTFChars((jstring)value, NULL);
+
+if (isFirstDocument) {
+// İlk döküman olarak destDocument'i yükle
+destDocument = FPDF_LoadDocument(nativeFilePath, "");
+if (!destDocument) {
+LOGE("Invalid destination document handle!");
+env->ReleaseStringUTFChars((jstring)value, nativeFilePath);  // Bellek temizliği
+return false;
+}
+
+// İlk dökümanın sayfa sayısını al
+firstIndexToPage = FPDF_GetPageCount(destDocument);
+LOGI("First document page count: %d", firstIndexToPage);
+
+isFirstDocument = false;  // İlk doküman işlendi, artık srcDocument'ler eklenecek
+} else {
+// Yeni kaynak dökümanı (srcDocument) yükle
+FPDF_DOCUMENT srcDocument = FPDF_LoadDocument(nativeFilePath, "");
+if (!srcDocument) {
+LOGE("Invalid source document handle!");
+env->ReleaseStringUTFChars((jstring)value, nativeFilePath);  // Bellek temizliği
+continue;  // Hatalı dokümanı atla ve bir sonrakine geç
+}
+
+// Tüm sayfaları destDocument'e ekle
+std::string pageRange = "1-" + std::to_string(FPDF_GetPageCount(srcDocument));  // Tüm sayfaları eklemek için dize
+if (!FPDF_ImportPages(destDocument, srcDocument, pageRange.c_str(), firstIndexToPage)) {
+LOGE("Failed to import pages from source document!");
+}
+
+// Sayfa ekleme işleminden sonra destDocument'in sayfa sayısını güncelle
+firstIndexToPage = FPDF_GetPageCount(destDocument);
+LOGI("New document page count: %d", firstIndexToPage);
+
+// Kaynak dokümanı kapat
+FPDF_CloseDocument(srcDocument);
+}
+
+// Bellek temizliği: nativeFilePath'i serbest bırak
+env->ReleaseStringUTFChars((jstring)value, nativeFilePath);
+}
+
+// Java OutputStream sınıfını kullanmak için metodları alın
+jclass outputStreamClass = env->GetObjectClass(outputStream);
+jmethodID writeMethod = env->GetMethodID(outputStreamClass, "write", "([B)V");
+
+jclass contextClass = env->GetObjectClass(context);
+jmethodID getCacheDirMethod = env->GetMethodID(contextClass, "getCacheDir", "()Ljava/io/File;");
+jobject cacheDir = env->CallObjectMethod(context, getCacheDirMethod);
+
+jclass fileClass = env->GetObjectClass(cacheDir);
+jmethodID getAbsolutePathMethod = env->GetMethodID(fileClass, "getAbsolutePath", "()Ljava/lang/String;");
+jstring cacheDirPath = (jstring) env->CallObjectMethod(cacheDir, getAbsolutePathMethod);
+
+// Geçici dosya açın
+const char* nativeCacheDir = env->GetStringUTFChars(cacheDirPath, 0);
+std::string tempFilePath = std::string(nativeCacheDir) + "/temp_fileXXXXXX";
+FILE* tempFile = fopen(tempFilePath.c_str(), "w+b");
+if (!tempFile) {
+LOGE("Failed to create temp file in cache directory!");
+return JNI_FALSE;
+}
+
+// CustomFileWriter yapılandırın
+CustomFileWriter writer;
+writer.fileWrite.version = 1;
+writer.fileWrite.WriteBlock = WriteBlock;  // Var olan WriteBlock fonksiyonunuz
+writer.file = tempFile;
+
+// PDF dosyasını yazın
+if (!FPDF_SaveWithVersion(destDocument, reinterpret_cast<FPDF_FILEWRITE*>(&writer), FPDF_NO_INCREMENTAL, 15)) {
+LOGE("Failed to save the document!");
+fclose(tempFile);
+return JNI_FALSE;
+}
+
+// Temp dosyasından okuyun ve OutputStream'e yazın
+fseek(tempFile, 0, SEEK_SET);
+char buffer[4096];
+size_t bytesRead;
+while ((bytesRead = fread(buffer, 1, sizeof(buffer), tempFile)) > 0) {
+jbyteArray byteArray = env->NewByteArray(bytesRead);
+env->SetByteArrayRegion(byteArray, 0, bytesRead, (jbyte*)buffer);
+env->CallVoidMethod(outputStream, writeMethod, byteArray);
+env->DeleteLocalRef(byteArray);
+}
+
+// Temizleme işlemi
+fclose(tempFile);
+
+return true;
+}
+
+JNI_FUNC(jboolean,icore,nativeSplitDocument)(JNIEnv* env , jobject thiz , jstring filePath , jobject outputStream , jobject context ){
+
+// Convert Java string to C string
+const char* filePathStr = env->GetStringUTFChars(filePath, nullptr);
+if (!filePathStr) {
+LOGE("Failed to convert Java string to C string!");
+return false ;
+}
+
+FPDF_DOCUMENT destDocument = FPDF_LoadDocument(filePathStr, "");
+if (!destDocument) {
+LOGE("Failed to create a new PDF document!");
+return false;
+}
+FPDF_DOCUMENT srcDocument = FPDF_CreateNewDocument();
+if (!srcDocument) {
+LOGE("Failed to create a new PDF document!");
+return false;
+}
+
+// Tüm sayfaları destDocument'e ekle
+std::string pageRange = "1-3" ;
+if (!FPDF_ImportPages(srcDocument, destDocument, pageRange.c_str(), 0)) {
+LOGE("Failed to import pages from source document!");
+}
+
+
+// Java OutputStream sınıfını kullanmak için metodları alın
+jclass outputStreamClass = env->GetObjectClass(outputStream);
+jmethodID writeMethod = env->GetMethodID(outputStreamClass, "write", "([B)V");
+
+jclass contextClass = env->GetObjectClass(context);
+jmethodID getCacheDirMethod = env->GetMethodID(contextClass, "getCacheDir", "()Ljava/io/File;");
+jobject cacheDir = env->CallObjectMethod(context, getCacheDirMethod);
+
+jclass fileClass = env->GetObjectClass(cacheDir);
+jmethodID getAbsolutePathMethod = env->GetMethodID(fileClass, "getAbsolutePath", "()Ljava/lang/String;");
+jstring cacheDirPath = (jstring) env->CallObjectMethod(cacheDir, getAbsolutePathMethod);
+
+// Geçici dosya açın
+const char* nativeCacheDir = env->GetStringUTFChars(cacheDirPath, 0);
+std::string tempFilePath = std::string(nativeCacheDir) + "/temp_fileXXXXXX";
+FILE* tempFile = fopen(tempFilePath.c_str(), "w+b");
+if (!tempFile) {
+LOGE("Failed to create temp file in cache directory!");
+return JNI_FALSE;
+}
+
+// CustomFileWriter yapılandırın
+CustomFileWriter writer;
+writer.fileWrite.version = 1;
+writer.fileWrite.WriteBlock = WriteBlock;  // Var olan WriteBlock fonksiyonunuz
+writer.file = tempFile;
+
+// PDF dosyasını yazın
+if (!FPDF_SaveWithVersion(srcDocument, reinterpret_cast<FPDF_FILEWRITE*>(&writer), FPDF_NO_INCREMENTAL, 15)) {
+LOGE("Failed to save the document!");
+fclose(tempFile);
+return JNI_FALSE;
+}
+
+// Temp dosyasından okuyun ve OutputStream'e yazın
+fseek(tempFile, 0, SEEK_SET);
+char buffer[4096];
+size_t bytesRead;
+while ((bytesRead = fread(buffer, 1, sizeof(buffer), tempFile)) > 0) {
+jbyteArray byteArray = env->NewByteArray(bytesRead);
+env->SetByteArrayRegion(byteArray, 0, bytesRead, (jbyte*)buffer);
+env->CallVoidMethod(outputStream, writeMethod, byteArray);
+env->DeleteLocalRef(byteArray);
+}
+
+// Temizleme işlemi
+fclose(tempFile);
+
+return true ;
+
+
+
+}
+
 
 JNI_FUNC(jboolean, icore, nativeSaveDocument)(
         JNIEnv* env, jobject thiz, jlong docPtr, jstring filePath) {

@@ -3,17 +3,21 @@ package com.batuscode.pdfium;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import com.google.android.apps.common.testing.accessibility.framework.BuildConfig;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 
 public class icore {
 
@@ -50,9 +54,30 @@ public class icore {
             return -1;
         }
     }
+
+    // InputStream'i byte[]'a dönüştüren yardımcı fonksiyon
+    private byte[] convertInputStreamToByteArray(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = inputStream.read(buffer)) != -1) {
+            byteArrayOutputStream.write(buffer, 0, length);
+        }
+        return byteArrayOutputStream.toByteArray();
+    }
     public icore(Context ctx) {
         mCurrentDpi = ctx.getResources().getDisplayMetrics().densityDpi;
         Log.d(TAG, "Starting PdfiumAndroid " + BuildConfig.VERSION_NAME);
+        InputStream inputStream = ctx.getResources().openRawResource(R.font.notosans_regular);
+
+        // Fontu byte[] formatında okuyalım
+        byte[] fontData;
+        try {
+            fontData = convertInputStreamToByteArray(inputStream);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        loadFont(fontData);
     }
 
     private native long nativeOpenDocument(int fd, String password);
@@ -266,5 +291,23 @@ public class icore {
     public boolean saveDocumentAsStream(long docPtr , OutputStream outputStream , Context context){
         return nativeSaveDocumentAsStream(docPtr,outputStream,context);
     };
+
+    public native boolean nativeMergeDocument(Map<Integer, String> filePathMap , OutputStream outputStream , Context context);
+    public boolean mergeDocument(Map<Integer,String> filePathMap , OutputStream outputStream , Context context){
+        return nativeMergeDocument(filePathMap , outputStream , context);
+    }
+
+    public native boolean nativeSplitDocument(String filePath , OutputStream outputStream , Context context);
+
+    public boolean splitDocument(String filePath , OutputStream outputStream , Context context){
+        return nativeSplitDocument(filePath, outputStream, context);
+    }
+
+    public native void nativeLoadFont(byte[] font_path);
+
+    public void loadFont(byte[] font_path){
+        nativeLoadFont(font_path);
+    }
+
 
 }

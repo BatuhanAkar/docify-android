@@ -1,5 +1,6 @@
 package com.batuscode.docunote.utils
 
+import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -7,8 +8,11 @@ import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.Debug
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
+import com.batuscode.docunote.CreatePDFActivity
 import com.batuscode.docunote.MainActivity
 import com.batuscode.docunote.PDFViewerActivity
 import com.batuscode.pdfium.PDFPage
@@ -20,6 +24,8 @@ import com.batuscode.pdfium.icore
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import java.io.File
+import java.io.OutputStream
+import kotlin.io.use
 import kotlin.use
 
 class PDFConverter(private val context: Context) {
@@ -130,10 +136,10 @@ class PDFConverter(private val context: Context) {
         }
         return@withContext null
     }
-    fun getFilePathFromUri(context: Context, uri: Uri): String? {
+    fun getFilePathFromUri(context: Context, uri: Uri , fileName:String): String? {
         try {
             val inputStream = context.contentResolver.openInputStream(uri) ?: return null
-            val tempFile = File(context.cacheDir, "temp_file.pdf")
+            val tempFile = File(context.cacheDir, fileName)
             inputStream.use { input ->
                 tempFile.outputStream().use { output ->
                     input.copyTo(output)
@@ -152,7 +158,7 @@ class PDFConverter(private val context: Context) {
         pathData:List<PathData> ,
         color:Int
     ){
-        val filePath = getFilePathFromUri(context,uri)
+        val filePath = getFilePathFromUri(context,uri,"temp_file.pdf")
         mfilePath = filePath!!
 
         MainActivity.mainicore.drawPath(filePath ,pageIndex , pathData , color)
@@ -169,6 +175,76 @@ class PDFConverter(private val context: Context) {
             MainActivity.mainicore.drawPath(idoc.mNativeDocPtr ,pageIndex , pathData)
 
         }*/
+    }
+
+    fun mergePDFs(
+        uriMap: MutableMap<Int, Uri> ,
+        context: Context,
+        fileName: String
+    ) {
+        var ok = mutableStateOf(false)
+        // ilk dökümanı destination olarak kullan diğerlerini src olarak ...
+        var filePathMap : MutableMap<Int, String> = mutableMapOf()
+        uriMap.map { it ->
+            val filePath = getFilePathFromUri(context,it.value,"temp_file${it.key}.pdf")
+            filePathMap.put(it.key,filePath!!)
+        }
+        val contentResolver = context.contentResolver
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, "${fileName}.pdf") // Dosya adı
+            put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf") // Dosya türü
+            put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOCUMENTS}") // Documents dizini
+        }
+        val uri = contentResolver.insert(MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL), contentValues)
+        uri?.let {
+
+            val outputStream: OutputStream? = contentResolver.openOutputStream(it)
+            outputStream?.use { stream ->
+
+               ok.value = MainActivity.mainicore.mergeDocument(filePathMap , stream , context)
+
+                if (ok.value){
+
+                    val fileUri = it.toString()
+                    MainActivity.fileManager.addDocument(context = context, uri = fileUri, fileName = fileName!!)
+                    val file = com.batuscode.docunote.utils.File(fileUri, fileName)
+                    MainActivity._appViewModel.addRecentlyFile(file)
+                }
+            }
+        }
+
+    }
+
+    fun splitPDF(
+        uri: Uri ,
+        context: Context ,
+        displayName: String
+    ){
+        var ok = mutableStateOf(false)
+        val filePath = getFilePathFromUri(context,uri,"temp_file.pdf")
+        val contentResolver = context.contentResolver
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, "${displayName}.pdf") // Dosya adı
+            put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf") // Dosya türü
+            put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOCUMENTS}") // Documents dizini
+        }
+        val uri = contentResolver.insert(MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL), contentValues)
+        uri?.let {
+
+            val outputStream: OutputStream? = contentResolver.openOutputStream(it)
+            outputStream?.use { stream ->
+
+                ok.value = MainActivity.mainicore.splitDocument(filePath,stream,context)
+
+                if (ok.value){
+
+                    val fileUri = it.toString()
+                    MainActivity.fileManager.addDocument(context = context, uri = fileUri, fileName = displayName!!)
+                    val file = com.batuscode.docunote.utils.File(fileUri, displayName)
+                    MainActivity._appViewModel.addRecentlyFile(file)
+                }
+            }
+        }
     }
 
     suspend fun dff(uri: Uri, ): List<Bitmap> = withContext(Dispatchers.IO) {

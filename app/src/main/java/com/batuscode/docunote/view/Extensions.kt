@@ -303,8 +303,6 @@ fun ButtonFlow(button: ExtensionButton , modalbottomsheetstate: SheetState , app
                                 putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
 
                             }
-                           // MainActivity.mainActivity.startActivityForResult(intent, 1)
-
                             intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
                             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                             MainActivity.mergeDocumentLauncher.launch(intent)
@@ -312,6 +310,16 @@ fun ButtonFlow(button: ExtensionButton , modalbottomsheetstate: SheetState , app
 
                         3 -> {
                             //split pdf button
+
+                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                                addCategory(Intent.CATEGORY_OPENABLE)
+                                type = "*/*"
+                                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
+
+                            }
+                            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            MainActivity.splitDocumentLauncher.launch(intent)
 
                         }
                     }

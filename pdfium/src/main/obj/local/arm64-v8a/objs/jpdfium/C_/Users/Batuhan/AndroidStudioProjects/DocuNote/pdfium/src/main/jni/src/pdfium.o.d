@@ -7,7 +7,8 @@ C:/Users/Batuhan/AndroidStudioProjects/DocuNote/pdfium/src/main/obj/local/arm64-
   C:/Users/Batuhan/AndroidStudioProjects/DocuNote/pdfium/src/main/jni/src/../include/fpdf_formfill.h \
   C:/Users/Batuhan/AndroidStudioProjects/DocuNote/pdfium/src/main/jni/src/../include/fpdf_edit.h \
   C:/Users/Batuhan/AndroidStudioProjects/DocuNote/pdfium/src/main/jni/src/../include/fpdf_save.h \
-  C:/Users/Batuhan/AndroidStudioProjects/DocuNote/pdfium/src/main/jni/src/../include/fpdf_text.h
+  C:/Users/Batuhan/AndroidStudioProjects/DocuNote/pdfium/src/main/jni/src/../include/fpdf_text.h \
+  C:/Users/Batuhan/AndroidStudioProjects/DocuNote/pdfium/src/main/jni/src/../include/fpdf_ppo.h
 C:/Users/Batuhan/AndroidStudioProjects/DocuNote/pdfium/src/main/jni/src/util.hpp:
 C:/Users/Batuhan/AndroidStudioProjects/DocuNote/pdfium/src/main/jni/src/../include/fpdfview.h:
 C:/Users/Batuhan/AndroidStudioProjects/DocuNote/pdfium/src/main/jni/src/../include/fpdf_doc.h:
@@ -16,3 +17,4 @@ C:/Users/Batuhan/AndroidStudioProjects/DocuNote/pdfium/src/main/jni/src/../inclu
 C:/Users/Batuhan/AndroidStudioProjects/DocuNote/pdfium/src/main/jni/src/../include/fpdf_edit.h:
 C:/Users/Batuhan/AndroidStudioProjects/DocuNote/pdfium/src/main/jni/src/../include/fpdf_save.h:
 C:/Users/Batuhan/AndroidStudioProjects/DocuNote/pdfium/src/main/jni/src/../include/fpdf_text.h:
+C:/Users/Batuhan/AndroidStudioProjects/DocuNote/pdfium/src/main/jni/src/../include/fpdf_ppo.h:

@@ -7,6 +7,7 @@ import android.app.ComponentCaller
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Debug
 import android.os.Environment
@@ -19,6 +20,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
+import androidx.activity.result.registerForActivityResult
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -103,6 +105,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.batuscode.docunote.utils.PDFConverter
 import com.batuscode.pdfium.icore
 import java.io.File
 import java.io.FileOutputStream
@@ -117,11 +120,17 @@ class MainActivity : ComponentActivity() {
         lateinit var mainActivity: ComponentActivity
         lateinit var context: Context
         lateinit var openDocumentLauncher: ActivityResultLauncher<Intent>
+        lateinit var toFolderDocumentLauncher: ActivityResultLauncher<Intent>
         lateinit var mergeDocumentLauncher: ActivityResultLauncher<Intent>
+        lateinit var splitDocumentLauncher: ActivityResultLauncher<Intent>
         lateinit var multiplyselectTofolderDocumentLauncher: ActivityResultLauncher<Intent>
+        var memUri = mutableStateOf<Uri?>(null)
         var newFolder = mutableStateOf(false)
+        var pdfsplitOP = mutableStateOf(false)
+        var pdfmergeOP = mutableStateOf(false)
         lateinit var mainicore: icore
         lateinit var fileManager: FileManager
+        var uriMap : MutableMap<Int, Uri> = mutableMapOf()
     }
 
 
@@ -373,6 +382,8 @@ class MainActivity : ComponentActivity() {
         mainicore = icore(this)
         mainicore.nativeInitLibrary()
         fileManager = FileManager(this)
+        var converter = PDFConverter(this)
+
 
       //  PDFBoxResourceLoader.init(getApplicationContext());
 
@@ -435,9 +446,68 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // to folder
+        // merge PDF document
 
         mergeDocumentLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ){
+            result ->
+            if (result.resultCode == RESULT_OK){
+                val data: Intent? = result.data
+                data?.let { it ->
+                    if (it.clipData != null){
+                        if (uriMap.isNotEmpty()){
+                            uriMap.clear()
+                        }
+                        val count = it.clipData?.itemCount ?: 0
+                        for (i in 0 until count){
+                            val uri = it.clipData?.getItemAt(i)?.uri
+                            uri?.let {
+                                uriMap.put(i,uri)
+                               // _appViewModel.add_urlist(it)
+
+                                val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+// Check for the freshest data.
+                                contentResolver.takePersistableUriPermission(it, takeFlags)
+                            }
+                            Log.d("newuri" , uri.toString())
+
+                        }
+                        pdfmergeOP.value = pdfmergeOP.value.not()
+
+                    }
+                }
+
+            }
+        }
+
+        // split PDF document
+
+        splitDocumentLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ){ result ->
+            if (result.resultCode == RESULT_OK){
+                var uriMap : MutableMap<Int, Uri> = mutableMapOf()
+                val data: Intent? = result.data
+                data?.let { it ->
+                    val uri = it.data
+                    uri?.let {
+                        val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+// Check for the freshest data.
+                        contentResolver.takePersistableUriPermission(it, takeFlags)
+                        memUri.value = uri
+                        pdfsplitOP.value = pdfsplitOP.value.not()
+                    }
+                    Log.d("newuri" , uri.toString())
+                }
+            }
+        }
+
+        // to folder
+
+        toFolderDocumentLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
             if (result.resultCode == RESULT_OK){
@@ -591,6 +661,30 @@ class MainActivity : ComponentActivity() {
 
                 ) { innerPadding ->
 
+
+                    if (pdfmergeOP.value){
+                        mCustomDialog(
+                            onDismissRequest = { pdfmergeOP.value = pdfmergeOP.value.not() },
+                            onConfirm = { fileName ->
+                                uriMap.let {
+                                    converter.mergePDFs(uriMap,context,fileName)
+                                }
+                                pdfmergeOP.value = pdfmergeOP.value.not()
+                            }
+                        )
+                    }
+                    if (pdfsplitOP.value){
+                        mCustomDialog(
+                            onDismissRequest = { pdfsplitOP.value = pdfsplitOP.value.not() },
+                            onConfirm = { fileName ->
+                                memUri.value.let {
+
+                                    converter.splitPDF(it!!,context,fileName)
+                                }
+                                pdfsplitOP.value = pdfsplitOP.value.not()
+                            }
+                        )
+                    }
                     if (newFolder.value){
                         mCustomDialog(
                             onDismissRequest = { newFolder.value = newFolder.value.not() },
