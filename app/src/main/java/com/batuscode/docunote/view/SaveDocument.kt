@@ -300,7 +300,9 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                                 textStates?.forEach { (index, state) ->
 
                                     val text = state.toMarkdown()
-                                    val utf16Bytes = text.toByteArray(Charsets.UTF_16LE)
+                                    val cleanedText = text.replace("<br>", "")
+
+                                    val utf16Bytes = cleanedText.toByteArray(Charsets.UTF_16LE)
                                     Log.d("new character", "utf-16 :: " + utf16Bytes)
                                     Log.d("new character", "utf-16 :: " + utf16Bytes.joinToString(", ") { it.toString() })
                                     MainActivity.mainicore.addText(CreatePDFActivity.docptr, index, utf16Bytes, 50f, 800f, 12f, 14f)

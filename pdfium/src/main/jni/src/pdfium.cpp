@@ -205,6 +205,8 @@ void rgbBitmapTo565(void *source, int sourceStride, void *dest, AndroidBitmapInf
 }
 std::vector<uint8_t> globalFontData;  // Font verisini saklamak için global değişken
 bool isFontLoaded = false;
+
+
 extern "C"{
 
 JNI_FUNC(void,icore,nativeLoadFont)(JNIEnv *env , jobject thiz , jbyteArray fontData){
@@ -701,6 +703,17 @@ JNI_FUNC(void, icore, nativeAddTextToPage)(
 JNIEnv* env, jobject thiz, jlong docPtr, jint pageIndex, jbyteArray text, jfloat x, jfloat y, jfloat fontSize, jfloat lineHeight) {
 
 
+// Sabit değerler
+const float PAGE_WIDTH = 595.0f;          // A4 sayfa genişliği (nokta)
+const float PAGE_HEIGHT = 842.0f;         // A4 sayfa yüksekliği (nokta)
+const float TOP_MARGIN = 56.7f;           // Üst kenar boşluğu (nokta)
+const float BOTTOM_MARGIN = 56.7f;        // Alt kenar boşluğu (nokta)
+const float LEFT_MARGIN = 42.5f;          // Sol kenar boşluğu (nokta)
+const float RIGHT_MARGIN = 42.5f;         // Sağ kenar boşluğu (nokta)
+const float FONT_SIZE = 12.0f;            // Font boyutu (nokta)
+const float LINE_HEIGHT = 14.4f;          // Satır yüksekliği (nokta)
+const float MAX_LINE_LENGTH = PAGE_WIDTH - RIGHT_MARGIN ; // Maksimum satır uzunluğu (nokta)
+
 // Döküman handle'ını kontrol et
 FPDF_DOCUMENT document = reinterpret_cast<FPDF_DOCUMENT>(docPtr);
 if (!document) {
@@ -719,14 +732,7 @@ return;
 jbyte* utf16Bytes = env->GetByteArrayElements(text, nullptr);
 jsize length = env->GetArrayLength(text);
 
-// uint32_t dizisi oluştur
-std::vector<uint32_t> charcodes;
-for (jsize i = 0; i < length; i += 2) {
-uint16_t charCode = static_cast<uint16_t>(utf16Bytes[i]) | (static_cast<uint16_t>(utf16Bytes[i + 1]) << 8);
-charcodes.push_back(static_cast<uint32_t>(charCode));
-}
-
-
+// Fontu yükle
 FPDF_FONT font = FPDFText_LoadFont(document, globalFontData.data(), globalFontData.size(), FPDF_FONT_TRUETYPE, true);
 if (!font) {
 LOGE("Failed to load font into PDF document");
@@ -734,44 +740,34 @@ FPDF_CloseDocument(document);
 return;
 }
 
-/*FPDF_FONT font = FPDFText_LoadStandardFont(document, "Arial");
-if (!font) {
-LOGE("Failed to load font!");
-FPDF_ClosePage(page);
-return;
-}*/
-
 // Satırları tutacak vektör
-std::vector<std::vector<uint32_t>> lines;
-std::vector<uint32_t> currentLine;
+std::vector<std::vector<uint16_t>> lines;
+std::vector<uint16_t> currentLine;
 
 // Karakter genişliği (fontSize'a bağlı olarak hesaplanır)
-float charWidth = fontSize * 0.55f;
+float charWidth = FONT_SIZE * 0.55f;
 
 // Satır uzunluğunu takip et
 float lineLength = 0.0f;
 
-// Maksimum satır uzunluğu (495f)
-float maxLineLength = 595.0f;
-
 // Metni satırlara ayır
-for (size_t i = 0; i < charcodes.size(); i++) {
-if (charcodes[i] == 0x000A || (lineLength + charWidth > maxLineLength)) {
+for (jsize i = 0; i < length; i += 2) {
+uint16_t charCode = static_cast<uint16_t>(utf16Bytes[i] & 0xFF) | (static_cast<uint16_t>(utf16Bytes[i + 1] & 0xFF) << 8);
+
+if (charCode == 0x000A || (lineLength + charWidth > MAX_LINE_LENGTH)) {
 // Yeni satıra geç
-if (!currentLine.empty()) {
 lines.push_back(currentLine);
-}
 currentLine.clear();
 lineLength = 0.0f; // Satır uzunluğunu sıfırla
 
 // Satır sonu karakteriyse, bir sonraki karaktere geç
-if (charcodes[i] == 0x000A) {
+if (charCode == 0x000A) {
 continue;
 }
 }
 
 // Karakteri mevcut satıra ekle
-currentLine.push_back(charcodes[i]);
+currentLine.push_back(charCode);
 lineLength += charWidth; // Satır uzunluğunu güncelle
 }
 
@@ -781,20 +777,33 @@ lines.push_back(currentLine);
 }
 
 // Koordinatlar
-float currentX = x; // Başlangıç x koordinatı (50f)
-float currentY = y; // Başlangıç y koordinatı
+float currentX = LEFT_MARGIN; // Başlangıç x koordinatı (sol kenar boşluğu)
+float currentY = PAGE_HEIGHT - TOP_MARGIN; // Başlangıç y koordinatı (üst kenar boşluğu)
 
 // Her satırı PDF'e ekle
 for (const auto& line : lines) {
 // Metin objesi oluştur
-FPDF_PAGEOBJECT textObject = FPDFPageObj_CreateTextObj(document, font, fontSize);
+FPDF_PAGEOBJECT textObject = FPDFPageObj_CreateTextObj(document, font, FONT_SIZE);
 if (!textObject) {
 LOGE("Failed to create text object!");
 return;
 }
 
+// Satırı UTF-16LE byte dizisine dönüştür
+std::vector<uint8_t> utf16Line;
+for (uint16_t charCode : line) {
+utf16Line.push_back(static_cast<uint8_t>(charCode & 0xFF)); // Düşük byte
+utf16Line.push_back(static_cast<uint8_t>((charCode >> 8) & 0xFF)); // Yüksek byte
+}
+
+// Null-terminator ekle (UTF-16LE için 0x0000)
+utf16Line.push_back(0x00); // Düşük byte
+utf16Line.push_back(0x00); // Yüksek byte
+
 // Satırı metin nesnesine ekle
-FPDFText_SetCharcodes(textObject, line.data(), line.size());
+if (!utf16Line.empty()) {
+FPDFText_SetText(textObject, reinterpret_cast<FPDF_WIDESTRING>(utf16Line.data()));
+}
 
 // Metin objesini konumlandır
 FPDFPageObj_Transform(textObject, 1, 0, 0, 1, currentX, currentY);
@@ -803,8 +812,15 @@ FPDFPageObj_Transform(textObject, 1, 0, 0, 1, currentX, currentY);
 FPDFPage_InsertObject(page, textObject);
 
 // Y koordinatını bir sonraki satır için azalt
-currentY -= lineHeight;
+currentY -= LINE_HEIGHT;
+
+// Sayfa yüksekliğini aştıysa yeni bir sayfaya geç
+if (currentY < BOTTOM_MARGIN) {
+LOGE("Sayfa doldu, yeni bir sayfa oluşturulmalı.");
+break;
 }
+}
+
 // Sayfa içeriğini güncelle
 FPDFPage_GenerateContent(page);
 
