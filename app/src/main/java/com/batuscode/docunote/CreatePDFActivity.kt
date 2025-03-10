@@ -30,6 +30,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
@@ -46,6 +47,7 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -84,6 +86,7 @@ import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.PlatformParagraphStyle
 import androidx.compose.ui.text.PlatformSpanStyle
 import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -117,6 +120,9 @@ import kotlinx.coroutines.delay
 import kotlin.collections.forEach
 import kotlin.collections.forEachIndexed
 import com.batuscode.pdfium.PdfDocument
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
+import com.mohamedrejeb.richeditor.model.RichSpanStyle
 
 class CreatePDFActivity : ComponentActivity() {
     companion object {
@@ -448,6 +454,9 @@ class CreatePDFActivity : ComponentActivity() {
                         if (showSaveDialog.value){
                             SaveDocument(create = true, onDismissRequest = {showSaveDialog.value = showSaveDialog.value.not()} , textStates)
                         }
+                        var text = remember{
+                            mutableStateOf("")
+                        }
 
                         val mCurrentDpi = context.getResources().getDisplayMetrics().densityDpi;
                         val customTitleLineBreak =
@@ -470,10 +479,6 @@ class CreatePDFActivity : ComponentActivity() {
                                     itemsIndexed(pages){
                                             index , page ->
                                         val state = textStates.getOrPut(index) { rememberRichTextState() }
-                                        state.addParagraphStyle(ParagraphStyle(
-                                            textAlign = TextAlign.Start,
-                                            lineBreak = customTitleLineBreak
-                                        ))
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
@@ -490,11 +495,11 @@ class CreatePDFActivity : ComponentActivity() {
                                                     fontSize = 12f.sp,
                                                     lineHeight = 14f.sp,
                                                     lineBreak = LineBreak(
-                                                        strategy = LineBreak.Strategy.HighQuality,
+                                                        strategy = LineBreak.Strategy.Simple,
                                                         strictness = LineBreak.Strictness.Strict,
-                                                        wordBreak = LineBreak.WordBreak.Default
+                                                        wordBreak = LineBreak.WordBreak.Phrase
                                                     ),
-                                                    textAlign = TextAlign.Start,
+                                                    textAlign = TextAlign.Left,
 
 
                                                 ),
