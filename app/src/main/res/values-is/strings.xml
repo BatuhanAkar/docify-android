@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">Opna PDF</string>
     <string name="createpdf">Búa til PDF</string>
     <string name="mergepdf">Sameina PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF í EXCEL</string>
     <string name="exceltopdf">EXCEL í PDF</string>
     <string name="pdftojpeg">PDF í JPEG</string>
+    <string name="startRange">Byrjunarbil</string>
+    <string name="endRange">Endarbil</string>
+    <string name="explain_folder_part_text">Við skulum halda skjölunum þínum saman.</string>
+    <string name="documentfolder">Skjalamappa</string>
+    <string name="explain_recently_read_part_text">Listi yfir skjölin sem þú hefur lesið verður alltaf hér.</string>
+    <string name="opendocument">Opna skjal</string>
+    <string name="recently_read_item1">Rafsegulsvið</string>
+    <string name="recently_read_item2">Fyrirlestrarnótur</string>
+    <string name="thickness">Þykkt :</string>
+    <string name="opacity">Ógegnsæi :</string>
 </resources>

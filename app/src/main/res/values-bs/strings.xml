@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">Otvori PDF</string>
     <string name="createpdf">Kreiraj PDF</string>
     <string name="mergepdf">Spoji PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF u EXCEL</string>
     <string name="exceltopdf">EXCEL u PDF</string>
     <string name="pdftojpeg">PDF u JPEG</string>
+    <string name="startRange">Početni raspon</string>
+    <string name="endRange">Završni raspon</string>
+    <string name="explain_folder_part_text">Hajde da držimo tvoje dokumente zajedno.</string>
+    <string name="documentfolder">Dokumenti fascikla</string>
+    <string name="explain_recently_read_part_text">Lista dokumenata koje ste pročitali uvijek će biti ovdje.</string>
+    <string name="opendocument">Otvorite dokument</string>
+    <string name="recently_read_item1">Elektromagnetna polja</string>
+    <string name="recently_read_item2">Bilješke sa predavanja</string>
+    <string name="thickness">Debljina :</string>
+    <string name="opacity">Neprozirnost :</string>
 </resources>

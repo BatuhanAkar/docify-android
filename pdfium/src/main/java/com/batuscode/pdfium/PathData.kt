@@ -10,7 +10,10 @@ data class PathData(
     val path: List<OffsetWrapper>,
     val thickness: Float = 10f
 ){
-    fun toArgb(): Int {
+    fun getMcolorValue(): ULong {
+        return mcolor.value // Örnek: Color'ın temel değeri
+    }
+    public fun toArgb(): Int {
         return mcolor.toArgb()
     }
 }

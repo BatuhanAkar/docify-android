@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">PDF irekia</string>
     <string name="createpdf">PDF sortu</string>
     <string name="mergepdf">PDF bat egin</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDFtik EXCELera</string>
     <string name="exceltopdf">" EXCELtik PDFra"</string>
     <string name="pdftojpeg">PDFtik JPEGra</string>
+    <string name="startRange">Hasiera-tartea</string>
+    <string name="endRange">Amaiera-tartea</string>
+    <string name="explain_folder_part_text">Mantendu ditzagun zure dokumentuak elkarrekin.</string>
+    <string name="documentfolder">Dokumentu karpeta</string>
+    <string name="explain_recently_read_part_text">Irakurri dituzun dokumentuen zerrenda beti hemen egongo da.</string>
+    <string name="opendocument">Ireki dokumentua</string>
+    <string name="recently_read_item1">Eremu elektromagnetikoak</string>
+    <string name="recently_read_item2">Ikasmaterialak</string>
+    <string name="thickness">Lodiera :</string>
+    <string name="opacity">Opakotasuna :</string>
 </resources>

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">Hap PDF</string>
     <string name="createpdf">Krijo PDF</string>
     <string name="mergepdf">Bashko PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF në EXCEL</string>
     <string name="exceltopdf">EXCEL në PDF</string>
     <string name="pdftojpeg">PDF në JPEG</string>
+    <string name="startRange">Gama fillestare</string>
+    <string name="endRange">Gama përfundimtare</string>
+    <string name="explain_folder_part_text">Le t\'i mbajmë dokumentet tuaja së bashku.</string>
+    <string name="documentfolder">Dosja e dokumenteve</string>
+    <string name="explain_recently_read_part_text">Një listë e dokumenteve që keni lexuar do të jetë gjithmonë këtu.</string>
+    <string name="opendocument">Hap një dokument</string>
+    <string name="recently_read_item1">Fushat elektromagnetike</string>
+    <string name="recently_read_item2">Shënimet e leksioneve</string>
+    <string name="thickness">Trashësia :</string>
+    <string name="opacity">Opakësia :</string>
 </resources>

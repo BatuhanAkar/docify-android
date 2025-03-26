@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">PDF کردنەوە</string>
     <string name="createpdf">دروستکردنی PDF</string>
     <string name="mergepdf">تێکەڵکردنی PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF بۆ EXCEL</string>
     <string name="exceltopdf">EXCEL بۆ PDF</string>
     <string name="pdftojpeg">PDF بۆ JPEG</string>
+    <string name="startRange">Rêza destpêkê</string>
+    <string name="endRange">Rêza dawî</string>
+    <string name="explain_folder_part_text">Em belgen herdu yekem binin.</string>
+    <string name="documentfolder">Peldanka belgeyê</string>
+    <string name="explain_recently_read_part_text">Lîsteya belgeyên ku hûn xwendin her dem dê li vir be.</string>
+    <string name="opendocument">Belgeyek vekirin</string>
+    <string name="recently_read_item1">Zemanên elektromîyê</string>
+    <string name="recently_read_item2">Nîşeya xwendinê</string>
+    <string name="thickness">Girî :</string>
+    <string name="opacity">Taraş :</string>
 </resources>

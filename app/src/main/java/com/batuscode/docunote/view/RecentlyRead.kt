@@ -103,7 +103,7 @@ fun RecentlyRead(appViewModel: AppViewModel){
             modifier = Modifier
         )
 
-        if (files.value.isNotEmpty()){
+        if (MainActivity.recentlyStat.value){
 
             LazyColumn(
                 modifier = Modifier

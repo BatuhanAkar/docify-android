@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">Open PDF</string>
     <string name="createpdf">Maak PDF</string>
     <string name="mergepdf">Voeg PDF samen</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF naar EXCEL</string>
     <string name="exceltopdf">EXCEL naar PDF</string>
     <string name="pdftojpeg">PDF naar JPEG</string>
+    <string name="startRange">Startbereik</string>
+    <string name="endRange">Eindbereik</string>
+    <string name="explain_folder_part_text">Laten we je documenten bij elkaar houden.</string>
+    <string name="documentfolder">Documentenmap</string>
+    <string name="explain_recently_read_part_text">Een lijst met documenten die u hebt gelezen, zal altijd hier zijn.</string>
+    <string name="opendocument">Een document openen</string>
+    <string name="recently_read_item1">Elektromagnetische velden</string>
+    <string name="recently_read_item2">Collegedictaten</string>
+    <string name="thickness">Dikte :</string>
+    <string name="opacity">Ondoorzichtigheid :</string>
 </resources>

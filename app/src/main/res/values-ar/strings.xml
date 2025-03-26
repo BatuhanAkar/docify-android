@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">افتح PDF</string>
     <string name="createpdf">إنشاء PDF</string>
     <string name="mergepdf">دمج PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF إلى EXCEL</string>
     <string name="exceltopdf">EXCEL إلى PDF</string>
     <string name="pdftojpeg">PDF إلى JPEG</string>
+    <string name="startRange">النطاق الابتدائي</string>
+    <string name="endRange">النطاق النهائي</string>
+    <string name="explain_folder_part_text">دعونا نحافظ على مستنداتك معًا.</string>
+    <string name="documentfolder">مجلد المستندات</string>
+    <string name="explain_recently_read_part_text">قائمة الوثائق التي قرأتها ستكون دائمًا هنا.</string>
+    <string name="opendocument">افتح مستندًا</string>
+    <string name="recently_read_item1">المجالات الكهرومغناطيسية</string>
+    <string name="recently_read_item2">ملاحظات المحاضرة</string>
+    <string name="thickness">السماكة :</string>
+    <string name="opacity">التعتيم :</string>
 </resources>

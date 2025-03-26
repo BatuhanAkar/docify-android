@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">Ava PDF</string>
     <string name="createpdf">Loo PDF</string>
     <string name="mergepdf">Ühenda PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF-st EXCEL-iks</string>
     <string name="exceltopdf">EXCEL-ist PDF-iks</string>
     <string name="pdftojpeg">PDF-st JPEG-iks</string>
+    <string name="startRange">Alustamisvahemik</string>
+    <string name="endRange">Lõppvahemik</string>
+    <string name="explain_folder_part_text">Hoidame teie dokumendid koos.</string>
+    <string name="documentfolder">Dokumentide kaust</string>
+    <string name="explain_recently_read_part_text">Loetud dokumentide loetelu on alati siin.</string>
+    <string name="opendocument">Ava dokument</string>
+    <string name="recently_read_item1">Elektromagnetilised väljad</string>
+    <string name="recently_read_item2">Loengumärkmed</string>
+    <string name="thickness">Paksus :</string>
+    <string name="opacity">Läbipaistmatus :</string>
 </resources>

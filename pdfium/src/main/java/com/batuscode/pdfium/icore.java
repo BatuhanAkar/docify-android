@@ -113,7 +113,6 @@ public class icore {
     public native void nativeAddTextToPage(long docPtr , int index , byte[] text , float x , float y , float fontSize , float lineHeight);
     public native void nativeInitLibrary();
     public native void nativeDestroyLibrary();
-    public native void nativeDrawPath(String filePath , int pageIndex , List<PathData> pathData , int color , int mCurrentDpi);
     private native long nativeMemPage(long docPtr , int pageIndex);
     private native void nativeAddAnnotationToPage(long documentPtr, int pageIndex, List<PathData> paths , File file );
     public void addAnnotations(PdfDocument document, int pageIndex, List<PathData> paths , File file) {
@@ -282,10 +281,18 @@ public class icore {
         return nativeSaveDocument(docptr, filePath);
     }
 
+   /* public native void nativeDrawPath(String filePath , int pageIndex , List<PathData> pathData , int color , int mCurrentDpi);
     public void drawPath(String filePath , int pageIndex , List<PathData> pathData , int color){
         Log.d("drawPathToPage" , "icore ::: " + "filePath :: " + filePath + " pageIndex :: " + pageIndex);
 
         nativeDrawPath(filePath, pageIndex, pathData , color , mCurrentDpi);
+    }*/
+
+    public native boolean nativeDrawPath(String filePath , Map<Integer, List<PathData>> filePathMap , int mCurrentDpi);
+    public boolean drawPath(String filePath , Map<Integer, List<PathData>> filePathMap ){
+        //Log.d("drawPathToPage" , "icore ::: " + "filePath :: " + filePath + " pageIndex :: " + pageIndex);
+
+        return nativeDrawPath(filePath, filePathMap , mCurrentDpi);
     }
 
     public boolean saveDocumentAsStream(long docPtr , OutputStream outputStream , Context context){
@@ -297,10 +304,10 @@ public class icore {
         return nativeMergeDocument(filePathMap , outputStream , context);
     }
 
-    public native boolean nativeSplitDocument(String filePath , OutputStream outputStream , Context context);
+    public native boolean nativeSplitDocument(String filePath , OutputStream outputStream , Context context , String range);
 
-    public boolean splitDocument(String filePath , OutputStream outputStream , Context context){
-        return nativeSplitDocument(filePath, outputStream, context);
+    public boolean splitDocument(String filePath , OutputStream outputStream , Context context , String range){
+        return nativeSplitDocument(filePath, outputStream, context , range);
     }
 
     public native void nativeLoadFont(byte[] font_path);

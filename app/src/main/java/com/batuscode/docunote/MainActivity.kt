@@ -131,9 +131,83 @@ class MainActivity : ComponentActivity() {
         lateinit var mainicore: icore
         lateinit var fileManager: FileManager
         var uriMap : MutableMap<Int, Uri> = mutableMapOf()
+        var recentlyStat = mutableStateOf(false)
+        var folderStat = mutableStateOf(false)
     }
 
 
+    @Composable
+    fun splitDialog(
+        onDismissRequest: () -> Unit,
+        onConfirm: (String,String) -> Unit
+    ){
+
+        var textFieldValue by remember { mutableStateOf("") }
+        var startRangeValue by remember { mutableStateOf("") }
+        var endRangeValue by remember { mutableStateOf("") }
+        var range by remember { mutableStateOf("") }
+
+        Dialog(
+            onDismissRequest = onDismissRequest,
+            properties = DialogProperties(dismissOnClickOutside = false) // Dışına tıklayınca kapanmasın
+        ) {
+            Surface(
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+
+                    // TextField for user input
+                    OutlinedTextField(
+                        value = textFieldValue,
+                        onValueChange = { textFieldValue = it },
+                        label = { Text(text = stringResource(R.string.documentname)) }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    // TextField for user input
+                    OutlinedTextField(
+                        value = startRangeValue,
+                        onValueChange = { startRangeValue = it },
+                        label = { Text(text = stringResource(R.string.startRange)) }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+                    // TextField for user input
+                    OutlinedTextField(
+                        value = endRangeValue,
+                        onValueChange = { endRangeValue = it },
+                        label = { Text(text = stringResource(R.string.endRange)) }
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Buttons row
+                    Row {
+                        Button(
+                            onClick = { onDismissRequest() },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(text = stringResource(R.string.cancel))
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Button(
+                            onClick = {
+
+                                onConfirm(textFieldValue,"${startRangeValue}-${endRangeValue}")
+                                      },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(text = stringResource(R.string.ok))
+                        }
+                    }
+                }
+            }
+        }
+    }
     @Composable
     fun mCustomDialog(
         onDismissRequest: () -> Unit,
@@ -383,6 +457,8 @@ class MainActivity : ComponentActivity() {
         mainicore.nativeInitLibrary()
         fileManager = FileManager(this)
         var converter = PDFConverter(this)
+        folderStat.value = fileManager.getFoldersStat(this)
+        recentlyStat.value = fileManager.getRecentlyStat(this)
 
 
       //  PDFBoxResourceLoader.init(getApplicationContext());
@@ -431,6 +507,10 @@ class MainActivity : ComponentActivity() {
                             Log.d("newuri" , uri.toString())
                         }
 
+                        if (!folderStat.value){
+                            folderStat.value = folderStat.value.not()
+                            fileManager.saveFoldersStat(context,true)
+                        }
                         newFolder.value = true
 
 
@@ -597,6 +677,11 @@ class MainActivity : ComponentActivity() {
                             Log.d("newuri" , displayName)
                             lifecycleScope.launch(Dispatchers.Main){
 
+                                if (!recentlyStat.value){
+                                    recentlyStat.value = recentlyStat.value.not()
+                                    fileManager.saveRecentlyStat(context,true)
+                                }
+
                                 val intent = Intent(context , PDFViewerActivity::class.java).apply {
                                     putExtra("fileUri" , uri.toString())
                                     putExtra("fileDisplayName" , fileNameWithoutExtension)
@@ -674,16 +759,17 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     if (pdfsplitOP.value){
-                        mCustomDialog(
+                        splitDialog(
                             onDismissRequest = { pdfsplitOP.value = pdfsplitOP.value.not() },
-                            onConfirm = { fileName ->
+                            onConfirm = { fileName,range ->
                                 memUri.value.let {
 
-                                    converter.splitPDF(it!!,context,fileName)
+                                    converter.splitPDF(it!!,context,fileName,range)
                                 }
                                 pdfsplitOP.value = pdfsplitOP.value.not()
                             }
                         )
+
                     }
                     if (newFolder.value){
                         mCustomDialog(

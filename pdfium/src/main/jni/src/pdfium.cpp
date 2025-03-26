@@ -525,8 +525,8 @@ LOGI("Page count: %d", pageCount);
 return reinterpret_cast<jlong>(document);; // Return true if the page is successfully added
 }
 
-JNI_FUNC(void , icore , nativeDrawPath)(JNIEnv* env , jobject thiz ,
-        jstring filePath , jint pageIndex , jobject pathsListObj , jint colorInt , jint dpi){
+JNI_FUNC(jboolean , icore , nativeDrawPath)(JNIEnv* env , jobject thiz ,
+        jstring filePath , jobject PathMapObject , jint dpi){
 
 const char* nativeFilePath = env->GetStringUTFChars(filePath, NULL);
 
@@ -534,28 +534,89 @@ const char* nativeFilePath = env->GetStringUTFChars(filePath, NULL);
 FPDF_DOCUMENT document = FPDF_LoadDocument(nativeFilePath,"");
 if (!document) {
 LOGE("Invalid document handle!");
-return;
+return false;
 }
 
 // Log the page count
 int pageCount = FPDF_GetPageCount(document);
 LOGI("Page count: %d", pageCount);
 
-// Sayfayı yükle
-FPDF_PAGE page = FPDF_LoadPage(document, pageIndex);
-if (!page) {
-LOGE("Failed to load page %d", pageIndex);
-return;
+
+
+// get class
+jclass mapClass = env->FindClass("java/util/Map");
+if (mapClass == NULL) {
+// Hata işleme
+return false;
 }
 
+jmethodID sizeMethod = env->GetMethodID(mapClass, "size", "()I");
+if (sizeMethod == NULL) {
+// Hata işleme
+return false;
+}
+
+jint mapSize = env->CallIntMethod(PathMapObject, sizeMethod);
+LOGD("File Path Map Size :: %d" , mapSize);
+
+jmethodID entrySetMethod = env->GetMethodID(mapClass, "entrySet", "()Ljava/util/Set;");
+if (entrySetMethod == NULL) {
+// Hata işleme
+return false ;
+}
+
+jobject entrySet = env->CallObjectMethod(PathMapObject, entrySetMethod);
+if (entrySet == NULL) {
+// Hata işleme
+return false ;
+}
+
+jclass setClass = env->FindClass("java/util/Set");
+jmethodID iteratorMethod = env->GetMethodID(setClass, "iterator", "()Ljava/util/Iterator;");
+jobject iterator = env->CallObjectMethod(entrySet, iteratorMethod);
+
+jclass iteratorClass = env->FindClass("java/util/Iterator");
+jmethodID hasNextMethod = env->GetMethodID(iteratorClass, "hasNext", "()Z");
+jmethodID nextMethod = env->GetMethodID(iteratorClass, "next", "()Ljava/lang/Object;");
+
+
+while (env->CallBooleanMethod(iterator, hasNextMethod)) {
+jobject entry = env->CallObjectMethod(iterator, nextMethod);
+
+// Map Entry'den key ve value'yu alın
+jclass entryClass = env->FindClass("java/util/Map$Entry");
+jmethodID getKeyMethod = env->GetMethodID(entryClass, "getKey", "()Ljava/lang/Object;");
+jmethodID getValueMethod = env->GetMethodID(entryClass, "getValue", "()Ljava/lang/Object;");
+
+// İlk olarak, Integer sınıfını alalım
+jclass integerClass = env->FindClass("java/lang/Integer");
+if (integerClass == nullptr) {
+LOGE("Integer class not found!");
+return false;
+}
+
+// intValue metodunu alalım
+jmethodID intValueMethod = env->GetMethodID(integerClass, "intValue", "()I");
+if (intValueMethod == nullptr) {
+LOGE("intValue method not found!");
+return false ;
+}
+
+jobject key = env->CallObjectMethod(entry, getKeyMethod); // key
+
+jobject pathsListObj = env->CallObjectMethod(entry, getValueMethod); // value
 
 jclass listClass = env->GetObjectClass(pathsListObj);
 
 jmethodID listSizeMethod = env->GetMethodID(listClass, "size", "()I");
 
-jint pathCount = env->CallIntMethod(pathsListObj, listSizeMethod);
+int pathCount = env->CallIntMethod(pathsListObj, listSizeMethod);
 
 jmethodID listGetMethod = env->GetMethodID(listClass, "get", "(I)Ljava/lang/Object;");
+
+jint pageIndex = env->CallIntMethod(key, intValueMethod);
+
+LOGD("Key (Page Index) as Integer: %d", pageIndex);
 
 
 // PathData class and its fields
@@ -563,6 +624,12 @@ jclass pathDataClass = env->FindClass("com/batuscode/pdfium/PathData");
 jfieldID pathField = env->GetFieldID(pathDataClass, "path", "Ljava/util/List;");
 //jfieldID colorField = env->GetFieldID(pathDataClass, "mcolor", "Landroidx/compose/ui/graphics/Color;");
 jfieldID thicknessField = env->GetFieldID(pathDataClass, "thickness", "F");
+
+jmethodID getMcolorValueMethod = env->GetMethodID(pathDataClass, "getMcolorValue", "()J");
+if (getMcolorValueMethod == nullptr) {
+// Hata: Metot bulunamadı
+return false ;
+}
 
 // OffsetWrapper class and its methods
 jclass offsetWrapperClass = env->FindClass("com/batuscode/pdfium/OffsetWrapper");
@@ -572,17 +639,26 @@ jmethodID getYMethod = env->GetMethodID(offsetWrapperClass, "getY", "()F");
 
 // Iterate over paths (List<PathData>)
 for (int i = 0; i < pathCount; i++) {
+
+// Sayfayı yükle
+FPDF_PAGE page = FPDF_LoadPage(document, pageIndex);
+if (!page) {
+LOGE("Failed to load page %d", pageIndex);
+return false;
+}
 jobject pathDataObj = env->CallObjectMethod(pathsListObj, listGetMethod, i);
 
 // Get color and thickness for this path
 //jobject colorObj = env->GetObjectField(pathDataObj, colorField);
 jfloat thickness = env->GetFloatField(pathDataObj, thicknessField);
 
+jobject colorObj = env->CallObjectMethod(pathDataObj, getMcolorValueMethod);
 
-/*jclass colorClass = env->FindClass("androidx/compose/ui/graphics/Color");
+
+jclass colorClass = env->FindClass("androidx/compose/ui/graphics/Color");
 jmethodID toArgbMethod = env->GetMethodID(colorClass, "toArgb", "()I");
 int colorInt = env->CallIntMethod(colorObj, toArgbMethod);
-*/
+
 
 // Get the path (List<OffsetWrapper>) from PathData
 jobject offsetWrapperList = env->GetObjectField(pathDataObj, pathField);
@@ -655,6 +731,11 @@ FPDFPage_InsertObject(page, path);
 // Finalize the content generation for the page
 FPDFPage_GenerateContent(page);
 }
+
+}
+
+
+
 /*
 // Çizim modunu ayarlıyoruz (örneğin, sadece çizim yapmak için)
 FPDFPath_SetDrawMode(path, FPDF_FILLMODE_WINDING, true);
@@ -677,7 +758,7 @@ FILE* outputFile = fopen(nativeFilePath, "wb");
 if (!outputFile) {
 LOGE("Failed to open file for writing: %s", nativeFilePath);
 env->ReleaseStringUTFChars(filePath, nativeFilePath);
-return  ;
+return false ;
 }
 
 // Initialize CustomFileWriter
@@ -689,14 +770,14 @@ writer.file = outputFile;
 
 if (!FPDF_SaveWithVersion(document, reinterpret_cast<FPDF_FILEWRITE*>(&writer), FPDF_NO_INCREMENTAL, 15)) {
 LOGE("Failed to save the document!");
-return  ;
+return false ;
 } else {
 LOGI("Document saved successfully with PDF version: %d", 15);
 }
 
 fclose(outputFile);
 // Temizleme işlemleri
-FPDF_ClosePage(page);
+return true ;
 }
 
 JNI_FUNC(void, icore, nativeAddTextToPage)(
@@ -978,11 +1059,17 @@ fclose(tempFile);
 return true;
 }
 
-JNI_FUNC(jboolean,icore,nativeSplitDocument)(JNIEnv* env , jobject thiz , jstring filePath , jobject outputStream , jobject context ){
+JNI_FUNC(jboolean,icore,nativeSplitDocument)(JNIEnv* env , jobject thiz , jstring filePath , jobject outputStream , jobject context ,jstring range){
 
 // Convert Java string to C string
 const char* filePathStr = env->GetStringUTFChars(filePath, nullptr);
 if (!filePathStr) {
+LOGE("Failed to convert Java string to C string!");
+return false ;
+}
+
+const char* rangeStr = env->GetStringUTFChars(range, nullptr);
+if (!rangeStr) {
 LOGE("Failed to convert Java string to C string!");
 return false ;
 }
@@ -999,7 +1086,7 @@ return false;
 }
 
 // Tüm sayfaları destDocument'e ekle
-std::string pageRange = "1-3" ;
+std::string pageRange = rangeStr ;
 if (!FPDF_ImportPages(srcDocument, destDocument, pageRange.c_str(), 0)) {
 LOGE("Failed to import pages from source document!");
 }

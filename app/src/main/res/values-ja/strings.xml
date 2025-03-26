@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">"PDFを開く "</string>
     <string name="createpdf">"PDFを作成 "</string>
     <string name="mergepdf">"PDFを結合 "</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">"PDFからEXCEL "</string>
     <string name="exceltopdf">"EXCELからPDF "</string>
     <string name="pdftojpeg">"PDFからJPEG "</string>
+    <string name="startRange">開始範囲</string>
+    <string name="endRange">最終範囲</string>
+    <string name="explain_folder_part_text">ドキュメントを一緒に保管しましょう。</string>
+    <string name="documentfolder">ドキュメントフォルダ</string>
+    <string name="explain_recently_read_part_text">あなたが読んだ文書のリストは常にここにあります。</string>
+    <string name="opendocument">ドキュメントを開く</string>
+    <string name="recently_read_item1">電磁界</string>
+    <string name="recently_read_item2">講義ノート</string>
+    <string name="thickness">厚さ :</string>
+    <string name="opacity">不透明度 :</string>
 </resources>

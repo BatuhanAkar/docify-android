@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">Բացեք PDF</string>
     <string name="createpdf">Ստեղծել PDF</string>
     <string name="mergepdf">Միավորել PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF-ից EXCEL</string>
     <string name="exceltopdf">EXCEL-ից PDF</string>
     <string name="pdftojpeg">PDF-ից JPEG</string>
+    <string name="startRange">Սկզբնական սահման</string>
+    <string name="endRange">Վերջին սահման</string>
+    <string name="explain_folder_part_text">Եկեք միասին պահենք ձեր փաստաթղթերը:</string>
+    <string name="documentfolder">Փաստաթղթերի թղթապանակ</string>
+    <string name="explain_recently_read_part_text">Կարդացած փաստաթղթերի ցանկը միշտ այստեղ կլինի.</string>
+    <string name="opendocument">Բացել փաստաթուղթը</string>
+    <string name="recently_read_item1">Էլեկտրամագնիսական դաշտեր</string>
+    <string name="recently_read_item2">Դասընթացի նշումներ</string>
+    <string name="thickness">Հաստություն :</string>
+    <string name="opacity">Անթափանցելիություն :</string>
 </resources>

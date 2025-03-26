@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">PDF opmaachen</string>
     <string name="createpdf">PDF erstellen</string>
     <string name="mergepdf">PDF zesummesetzen</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF op EXCEL</string>
     <string name="exceltopdf">EXCEL op PDF</string>
     <string name="pdftojpeg">PDF op JPEG</string>
+    <string name="startRange">Startbereich</string>
+    <string name="endRange">Endbereich</string>
+    <string name="explain_folder_part_text">Looss eis Är Dokumenter zesummenhalen.</string>
+    <string name="documentfolder">Dokumentemappe</string>
+    <string name="explain_recently_read_part_text">Eng Lëscht vun den Dokumenter, déi Dir gelies hutt, wäert ëmmer hei sinn.</string>
+    <string name="opendocument">Öffnen e Dokument</string>
+    <string name="recently_read_item1">Elektromagnetesch Felder</string>
+    <string name="recently_read_item2">Virliesung Notizen</string>
+    <string name="thickness">Dicke :</string>
+    <string name="opacity">Opazitéit :</string>
 </resources>

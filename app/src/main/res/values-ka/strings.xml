@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">გახსენით PDF</string>
     <string name="createpdf">შექმენით PDF</string>
     <string name="mergepdf">PDF-ის გაერთიანება</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF-დან EXCEL-ში</string>
     <string name="exceltopdf">EXCEL-დან PDF-ში</string>
     <string name="pdftojpeg">PDF-დან JPEG-ში</string>
+    <string name="startRange">საწყისი დიაპაზონი</string>
+    <string name="endRange">ბოლო დიაპაზონი</string>
+    <string name="explain_folder_part_text">მოდით, ერთად შევინახოთ თქვენი დოკუმენტები.</string>
+    <string name="documentfolder">დოკუმენტების საქაღალდე</string>
+    <string name="explain_recently_read_part_text">დოკუმენტების სია, რომლებიც წაგიკითხავთ, ყოველთვის აქ იქნება.</string>
+    <string name="opendocument">გახსენით დოკუმენტი</string>
+    <string name="recently_read_item1">ელექტრომაგნიტური ველები</string>
+    <string name="recently_read_item2">ლექციის ჩანაწერები</string>
+    <string name="thickness">სისქე :</string>
+    <string name="opacity">გაუმჭვირვალობა :</string>
 </resources>

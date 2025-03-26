@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">PDF ખોલો</string>
     <string name="createpdf">PDF બનાવો</string>
     <string name="mergepdf">PDF મર્જ કરો</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF ને EXCEL માં</string>
     <string name="exceltopdf">EXCEL ને PDF માં</string>
     <string name="pdftojpeg">PDF ને JPEG માં</string>
+    <string name="startRange">પ્રારંભ શ્રેણી</string>
+    <string name="endRange">અંતિમ શ્રેણી</string>
+    <string name="explain_folder_part_text">ચાલો તમારા દસ્તાવેજો સાથે રાખીએ.</string>
+    <string name="documentfolder">દસ્તાવેજ ફોલ્ડર</string>
+    <string name="explain_recently_read_part_text">તમે વાંચેલ દસ્તાવેજોની યાદી હંમેશા અહીં હશે.</string>
+    <string name="opendocument">દસ્તાવેજ ખોલો</string>
+    <string name="recently_read_item1">વિદ્યુત ચુંબકીય ક્ષેત્રો</string>
+    <string name="recently_read_item2">વ્યાખ્યાન નોટ્સ</string>
+    <string name="thickness">જાડાઈ :</string>
+    <string name="opacity">અધ્ધરતા :</string>
 </resources>

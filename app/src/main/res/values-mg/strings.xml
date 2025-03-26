@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">Sokafy PDF</string>
     <string name="createpdf">Mamorona PDF</string>
     <string name="mergepdf">Mitambatra PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF ho EXCEL</string>
     <string name="exceltopdf">EXCEL ho PDF</string>
     <string name="pdftojpeg">PDF ho JPEG</string>
+    <string name="startRange">Faritra fanombohana</string>
+    <string name="endRange">Faritra fiafaran\'ny</string>
+    <string name="explain_folder_part_text">Andao hitahiry ny antontan-taratasyo miaraka.</string>
+    <string name="documentfolder">Fitehirizana antontan-taratasy</string>
+    <string name="explain_recently_read_part_text">Hisy foana eto ny lisitry ny antontan-taratasy novakianao.</string>
+    <string name="opendocument">Sokafy ny antontan-taratasy</string>
+    <string name="recently_read_item1">Saha elektromagnetika</string>
+    <string name="recently_read_item2">Fanamarihana momba ny famelabelarana</string>
+    <string name="thickness">Hakitroky :</string>
+    <string name="opacity">Mangarahara :</string>
 </resources>

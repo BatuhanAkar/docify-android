@@ -29,13 +29,15 @@
     <string name="tofolder">To new folder</string>
     <string name="foldername">Folder name</string>
     <string name="documents">Documents</string>
-    <string name="explain_folder_part_text" translatable="false">Let\'s keep your documents together.</string>
-    <string name="documentfolder" translatable="false">Document folder</string>
-    <string name="explain_recently_read_part_text" translatable="false">A list of the documents you have read will always be here.</string>
-    <string name="opendocument" translatable="false">Open a document</string>
+    <string name="explain_folder_part_text">Let\'s keep your documents together.</string>
+    <string name="documentfolder">Document folder</string>
+    <string name="explain_recently_read_part_text">A list of the documents you have read will always be here.</string>
+    <string name="opendocument">Open a document</string>
     <string name="recently_read_item1">Electromagnetic fields</string>
     <string name="recently_read_item2">Lecture notes</string>
     <string name="thickness">Thickness :</string>
     <string name="opacity">Opacity :</string>
     <string name="title_activity_viewer">ViewerActivity</string>
+    <string name="startRange">Start range</string>
+    <string name="endRange">End range</string>
 </resources>

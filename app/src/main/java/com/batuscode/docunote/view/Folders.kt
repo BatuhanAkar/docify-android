@@ -113,6 +113,8 @@ fun Folders(appViewModel: AppViewModel){
     exList.add(folder1)
 
     val folders = appViewModel.folders.collectAsState()
+
+
     Column(
         modifier = Modifier
 
@@ -128,7 +130,7 @@ fun Folders(appViewModel: AppViewModel){
         )
 
 
-        if (folders.value.isNotEmpty()){
+        if (MainActivity.folderStat.value){
             LazyRow (
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier
@@ -148,75 +150,6 @@ fun Folders(appViewModel: AppViewModel){
 
                     .requiredHeight(200.dp)
             ) {
-                /*
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-
-
-                ) {
-                    exList.forEach {
-                        item ->
-
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-
-                        ) {
-
-                            Icon(
-                                tint = Color.LightGray,
-                                painter = painterResource(id = folder.icon),
-                                contentDescription = "icon",
-                                modifier = Modifier
-                                    .size(200.dp)
-                                    .align(Alignment.Center)
-
-                            )
-                            Text(
-                                softWrap = true,
-                                textAlign = TextAlign.Center,
-                                text = folder.name,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontSize = 20.sp,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                fontWeight = FontWeight.Black,
-                                color = Color.Black,
-                                modifier = Modifier
-                                    .width(120.dp)
-                                    .wrapContentHeight()
-                                    .align(Alignment.Center)
-                                    .padding(top = 80.dp)
-                                    .clipToBounds()
-                            )
-                        }
-                    }
-                }*/
-
-               /* Surface(
-                    color = colorResource(R.color.modified).copy(0.5f),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .align(Alignment.Center)
-                        .padding(start = 20.dp , end = 20.dp , top = 10.dp)
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center
-                    ) {
-
-                        Text("Dökümanları klasörleyin" ,
-                            fontSize = 30.sp,
-                            fontWeight = FontWeight.Black,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .padding(start = 40.dp , end = 40.dp , top = 10.dp)
-
-                        )
-                    }
-                }*/
-
                 Row(
                     horizontalArrangement = Arrangement.Center ,
                     verticalAlignment = Alignment.CenterVertically

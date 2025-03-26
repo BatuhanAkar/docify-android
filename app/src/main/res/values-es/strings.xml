@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">"Abrir PDF "</string>
     <string name="createpdf">Crear PDF</string>
     <string name="mergepdf">Fusionar PDF</string>
@@ -11,7 +10,6 @@
     <string name="cancel">Cancelar</string>
     <string name="documentname">"Nombre del documento "</string>
     <string name="save_copy">"Guardar copia "</string>
-    <string name="save">Guardar</string>
     <string name="tofolder">"A nueva carpeta "</string>
     <string name="foldername">"Nombre de la carpeta "</string>
     <string name="pdftopng">"PDF a PNG "</string>
@@ -24,4 +22,15 @@
     <string name="pdftoexcel">"PDF a EXCEL "</string>
     <string name="exceltopdf">"EXCEL a PDF "</string>
     <string name="pdftojpeg">"PDF a JPEG "</string>
+    <string name="startRange">Rango inicial</string>
+    <string name="endRange">Rango final</string>
+    <string name="explain_folder_part_text">Mantengamos tus documentos juntos.</string>
+    <string name="documentfolder">Carpeta de documentos</string>
+    <string name="explain_recently_read_part_text">Una lista de los documentos que has leído siempre estará aquí.</string>
+    <string name="opendocument">Abrir un documento</string>
+    <string name="recently_read_item1">Campos electromagnéticos</string>
+    <string name="recently_read_item2">Apuntes de la conferencia</string>
+    <string name="thickness">Grosor :</string>
+    <string name="opacity">Opacidad :</string>
+    <string name="save">Guardar</string>
 </resources>

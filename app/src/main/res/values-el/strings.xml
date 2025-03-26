@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">Άνοιγμα PDF</string>
     <string name="createpdf">Δημιουργία PDF</string>
     <string name="mergepdf">Συγχώνευση PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF σε EXCEL</string>
     <string name="exceltopdf">EXCEL σε PDF</string>
     <string name="pdftojpeg">PDF σε JPEG</string>
+    <string name="startRange">Αρχικό εύρος</string>
+    <string name="endRange">Τελικό εύρος</string>
+    <string name="explain_folder_part_text">Ας κρατήσουμε τα έγγραφά σας μαζί.</string>
+    <string name="documentfolder">Φάκελος εγγράφων</string>
+    <string name="explain_recently_read_part_text">Μια λίστα με τα έγγραφα που έχετε διαβάσει θα είναι πάντα εδώ.</string>
+    <string name="opendocument">Άνοιξε ένα έγγραφο</string>
+    <string name="recently_read_item1">Ηλεκτρομαγνητικά πεδία</string>
+    <string name="recently_read_item2">Σημειώσεις διαλέξεων</string>
+    <string name="thickness">Πάχος :</string>
+    <string name="opacity">Αδιαφάνεια :</string>
 </resources>

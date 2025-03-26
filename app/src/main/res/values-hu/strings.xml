@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">PDF megnyitása</string>
     <string name="createpdf">PDF létrehozása</string>
     <string name="mergepdf">PDF egyesítése</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF-ből EXCEL</string>
     <string name="exceltopdf">EXCEL-ből PDF</string>
     <string name="pdftojpeg">PDF-ből JPEG</string>
+    <string name="startRange">Kezdési tartomány</string>
+    <string name="endRange">Végső tartomány</string>
+    <string name="explain_folder_part_text">Tartsuk együtt a dokumentumaidat.</string>
+    <string name="documentfolder">Dokumentum mappa</string>
+    <string name="explain_recently_read_part_text">Az olvasott dokumentumok listája mindig itt lesz.</string>
+    <string name="opendocument">Dokumentum megnyitása</string>
+    <string name="recently_read_item1">Elektromágneses terek</string>
+    <string name="recently_read_item2">Előadásjegyzetek</string>
+    <string name="thickness">Vastagság :</string>
+    <string name="opacity">Átlátszatlanság :</string>
 </resources>

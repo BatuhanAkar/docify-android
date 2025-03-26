@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">Avaa PDF</string>
     <string name="createpdf">Luo PDF</string>
     <string name="mergepdf">Yhdistä PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF:stä EXCEL:ksi</string>
     <string name="exceltopdf">EXCEL:stä PDF:ksi</string>
     <string name="pdftojpeg">PDF:stä JPEG:ksi</string>
+    <string name="startRange">Alueen alku</string>
+    <string name="endRange">Loppualue</string>
+    <string name="explain_folder_part_text">Pidetään asiakirjasi yhdessä.</string>
+    <string name="documentfolder">Asiakirjakansio</string>
+    <string name="explain_recently_read_part_text">Luettujen asiakirjojen luettelo on aina täällä.</string>
+    <string name="opendocument">Avaa asiakirja</string>
+    <string name="recently_read_item1">Sähkömagneettiset kentät</string>
+    <string name="recently_read_item2">Luentomuistiinpanot</string>
+    <string name="thickness">Paksuus :</string>
+    <string name="opacity">Läpinäkymättömyys :</string>
 </resources>

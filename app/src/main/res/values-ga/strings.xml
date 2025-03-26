@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">Oscail PDF</string>
     <string name="createpdf">Cruthaigh PDF</string>
     <string name="mergepdf">Comhcheangail PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF go EXCEL</string>
     <string name="exceltopdf">EXCEL go PDF</string>
     <string name="pdftojpeg">PDF go JPEG</string>
+    <string name="startRange">Raon tosaigh</string>
+    <string name="endRange">Raon deiridh</string>
+    <string name="explain_folder_part_text">Coinneoimis do chuid doiciméad le chéile.</string>
+    <string name="documentfolder">Fillteán doiciméad</string>
+    <string name="explain_recently_read_part_text">Beidh liosta de na doiciméid a léigh tú anseo i gcónaí.</string>
+    <string name="opendocument">Oscail doiciméad</string>
+    <string name="recently_read_item1">Réimsí leictreamaighnéadacha</string>
+    <string name="recently_read_item2">Nótaí léachta</string>
+    <string name="thickness">Tiús :</string>
+    <string name="opacity">Neamhtrédhearcacht :</string>
 </resources>

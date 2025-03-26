@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">ເປີດ PDF</string>
     <string name="createpdf">ສ້າງ PDF</string>
     <string name="mergepdf">ລວມ PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF ເປັນ EXCEL</string>
     <string name="exceltopdf">EXCEL ເປັນ PDF</string>
     <string name="pdftojpeg">PDF ເປັນ JPEG</string>
+    <string name="startRange">ຊ່ວງເລີ່ມຕົ້ນ</string>
+    <string name="endRange">ຊ່ວງສຸດທ້າຍ</string>
+    <string name="explain_folder_part_text">ມາເກັບເອກະສານຂອງເຈົ້າໄວ້ດ້ວຍກັນ.</string>
+    <string name="documentfolder">ແຟ້ມເອກະສານ</string>
+    <string name="explain_recently_read_part_text">ລາຍຊື່ເອກະສານທີ່ທ່ານໄດ້ອ່ານຈະຢູ່ຢູ່ນີ້ເສມີ.</string>
+    <string name="opendocument">ເປີດເອກະສານ</string>
+    <string name="recently_read_item1">ຂົງເຄົາຫຼັງເມັດຕອນິກ</string>
+    <string name="recently_read_item2">ບັນທຶກບົດບານ</string>
+    <string name="thickness">ຄວາມໜາ :</string>
+    <string name="opacity">ຄວາມຂຸ້ມ :</string>
 </resources>

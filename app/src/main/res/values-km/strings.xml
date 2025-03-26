@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">បើក PDF</string>
     <string name="createpdf">បង្កើត PDF</string>
     <string name="mergepdf">បញ្ចូល PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF ទៅ EXCEL</string>
     <string name="exceltopdf">EXCEL ទៅ PDF</string>
     <string name="pdftojpeg">PDF ទៅ JPEG</string>
+    <string name="startRange">ជួរចាប់ផ្តើម</string>
+    <string name="endRange">ជួរចុងក្រោយ</string>
+    <string name="explain_folder_part_text">ចូររក្សាឯកសាររបស់អ្នកនៅជាមួយគ្នា។</string>
+    <string name="documentfolder">ថតឯកសារ</string>
+    <string name="explain_recently_read_part_text">បញ្ជីឯកសារដែលអ្នកបានអាននឹងតែងតែមាននៅទីនេះ។</string>
+    <string name="opendocument">បើកឯកសារ</string>
+    <string name="recently_read_item1">វាលអេឡិចត្រូម៉ាញេទិក</string>
+    <string name="recently_read_item2">កំណត់ត្រាការបង្រៀន</string>
+    <string name="thickness">កម្រាស់ :</string>
+    <string name="opacity">ភាពអាប់អួរ :</string>
 </resources>

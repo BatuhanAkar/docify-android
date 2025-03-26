@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">"打开 PDF "</string>
     <string name="createpdf">"创建 PDF "</string>
     <string name="mergepdf">"合并 PDF "</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">"PDF 转 EXCEL "</string>
     <string name="exceltopdf">"EXCEL 转 PDF "</string>
     <string name="pdftojpeg">"PDF 转 JPEG "</string>
+    <string name="startRange">起始范围</string>
+    <string name="endRange">结束范围</string>
+    <string name="explain_folder_part_text">让我们把你的文件保存在一起。</string>
+    <string name="documentfolder">文档文件夹</string>
+    <string name="explain_recently_read_part_text">你阅读过的文档列表将始终在这里。</string>
+    <string name="opendocument">打开文档</string>
+    <string name="recently_read_item1">电磁场</string>
+    <string name="recently_read_item2">讲义笔记</string>
+    <string name="thickness">厚度 :</string>
+    <string name="opacity">不透明度 :</string>
 </resources>

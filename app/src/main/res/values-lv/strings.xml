@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">Atvērt PDF</string>
     <string name="createpdf">Izveidot PDF</string>
     <string name="mergepdf">Apvienot PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF uz EXCEL</string>
     <string name="exceltopdf">EXCEL uz PDF</string>
     <string name="pdftojpeg">PDF uz JPEG</string>
+    <string name="startRange">Sākuma diapazons</string>
+    <string name="endRange">Beigu diapazons</string>
+    <string name="explain_folder_part_text">Saglabāsim jūsu dokumentus kopā.</string>
+    <string name="documentfolder">Dokumentu mape</string>
+    <string name="explain_recently_read_part_text">Dokumentu saraksts, kurus esat lasījis, vienmēr būs šeit.</string>
+    <string name="opendocument">Atvērt dokumentu</string>
+    <string name="recently_read_item1">Elektromagnētiskie lauki</string>
+    <string name="recently_read_item2">Lekciju piezīmes</string>
+    <string name="thickness">Biezums :</string>
+    <string name="opacity">Necaurredzamība :</string>
 </resources>

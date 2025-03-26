@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">PDF 열기</string>
     <string name="createpdf">PDF 생성</string>
     <string name="mergepdf">PDF 병합</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF에서 EXCEL로</string>
     <string name="exceltopdf">EXCEL에서 PDF로</string>
     <string name="pdftojpeg">PDF에서 JPEG로</string>
+    <string name="startRange">시작 범위</string>
+    <string name="endRange">최종 범위</string>
+    <string name="explain_folder_part_text">문서를 함께 보관합시다.</string>
+    <string name="documentfolder">문서 폴더</string>
+    <string name="explain_recently_read_part_text">당신이 읽은 문서 목록이 항상 여기에 있습니다.</string>
+    <string name="opendocument">문서 열기</string>
+    <string name="recently_read_item1">전자기장</string>
+    <string name="recently_read_item2">강의 노트</string>
+    <string name="thickness">두께 :</string>
+    <string name="opacity">불투명도 :</string>
 </resources>

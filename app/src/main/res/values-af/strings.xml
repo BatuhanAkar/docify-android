@@ -23,4 +23,14 @@
     <string name="pdftoexcel">PDF na EXCEL</string>
     <string name="exceltopdf">EXCEL na PDF</string>
     <string name="pdftojpeg">PDF na JPEG</string>
+    <string name="startRange">Startbereik</string>
+    <string name="endRange">Eindbereik</string>
+    <string name="explain_folder_part_text">Kom ons hou jou dokumente bymekaar.</string>
+    <string name="documentfolder">Dokumentmap</string>
+    <string name="explain_recently_read_part_text">’n Lys van die dokumente wat jy gelees het, sal altyd hier wees.</string>
+    <string name="opendocument">Maak ’n dokument oop</string>
+    <string name="recently_read_item1">Elektromagnetiese velde</string>
+    <string name="recently_read_item2">Lesingnotas</string>
+    <string name="thickness">Dikte :</string>
+    <string name="opacity">Ondeursigtigheid :</string>
 </resources>

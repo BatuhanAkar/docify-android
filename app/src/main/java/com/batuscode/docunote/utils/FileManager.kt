@@ -22,6 +22,36 @@ data class File (
 
 class FileManager(val context: Context) {
 
+    fun saveFoldersStat(context: Context,boolean: Boolean){
+        val sharedPref = context.getSharedPreferences("folders", Context.MODE_PRIVATE)
+        val editor = sharedPref.edit()
+
+        editor.putBoolean("folders" , boolean)
+        editor.apply()
+    }
+
+    fun getFoldersStat(context: Context): Boolean{
+        val sharedPref = context.getSharedPreferences("folders" , Context.MODE_PRIVATE)
+        val value = sharedPref.getBoolean("folders" , false)
+
+        return value
+    }
+
+    fun saveRecentlyStat(context: Context,boolean: Boolean){
+        val sharedPref = context.getSharedPreferences("recently", Context.MODE_PRIVATE)
+        val editor = sharedPref.edit()
+
+        editor.putBoolean("recently" , boolean)
+        editor.apply()
+    }
+
+    fun getRecentlyStat(context: Context): Boolean{
+        val sharedPref = context.getSharedPreferences("recently" , Context.MODE_PRIVATE)
+        val value = sharedPref.getBoolean("recently" , false)
+
+        return value
+    }
+
     fun saveDraftUri(context: Context,uri: Uri){
         val sharedPref = context.getSharedPreferences("draft_file" , Context.MODE_PRIVATE)
         val editor = sharedPref.edit()

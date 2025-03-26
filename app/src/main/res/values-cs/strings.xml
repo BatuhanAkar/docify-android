@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">Otevřít PDF</string>
     <string name="createpdf">Vytvořit PDF</string>
     <string name="mergepdf">Sloučit PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF do EXCEL</string>
     <string name="exceltopdf">EXCEL do PDF</string>
     <string name="pdftojpeg">PDF do JPEG</string>
+    <string name="startRange">Počáteční rozsah</string>
+    <string name="endRange">Konečný rozsah</string>
+    <string name="explain_folder_part_text">Pojďme vaše dokumenty udržet pohromadě.</string>
+    <string name="documentfolder">Složka dokumentů</string>
+    <string name="explain_recently_read_part_text">Seznam dokumentů, které jste přečetli, bude vždy zde.</string>
+    <string name="opendocument">Otevřít dokument</string>
+    <string name="recently_read_item1">Elektromagnetická pole</string>
+    <string name="recently_read_item2">Poznámky z přednášky</string>
+    <string name="thickness">Tloušťka :</string>
+    <string name="opacity">Neprůhlednost :</string>
 </resources>

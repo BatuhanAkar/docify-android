@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">Atidaryti PDF</string>
     <string name="createpdf">Sukurti PDF</string>
     <string name="mergepdf">Sujungti PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF į EXCEL</string>
     <string name="exceltopdf">EXCEL į PDF</string>
     <string name="pdftojpeg">PDF į JPEG</string>
+    <string name="startRange">Pradinis diapazonas</string>
+    <string name="endRange">Galinis diapazonas</string>
+    <string name="explain_folder_part_text">Palaikykime jūsų dokumentus kartu.</string>
+    <string name="documentfolder">Dokumentų aplankas</string>
+    <string name="explain_recently_read_part_text">Dokumentų, kuriuos perskaitėte, sąrašas visada bus čia.</string>
+    <string name="opendocument">Atidaryti dokumentą</string>
+    <string name="recently_read_item1">Elektromagnetiniai laukai</string>
+    <string name="recently_read_item2">Paskaitų užrašai</string>
+    <string name="thickness">Storis :</string>
+    <string name="opacity">Nepermatomumas :</string>
 </resources>

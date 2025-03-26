@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">"Открыть PDF "</string>
     <string name="createpdf">"Создать PDF "</string>
     <string name="mergepdf">"Объединить PDF "</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">"PDF в EXCEL "</string>
     <string name="exceltopdf">"EXCEL в PDF "</string>
     <string name="pdftojpeg">"PDF в JPEG "</string>
+    <string name="startRange">Начальный диапазон</string>
+    <string name="endRange">Конечный диапазон</string>
+    <string name="explain_folder_part_text">Давайте сохраним ваши документы вместе.</string>
+    <string name="documentfolder">Папка с документами</string>
+    <string name="explain_recently_read_part_text">Список документов, которые вы прочитали, всегда будет здесь.</string>
+    <string name="opendocument">Открыть документ</string>
+    <string name="recently_read_item1">Электромагнитные поля</string>
+    <string name="recently_read_item2">Лекционные заметки</string>
+    <string name="thickness">Толщина :</string>
+    <string name="opacity">Непрозрачность :</string>
 </resources>

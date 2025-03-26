@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">Yab PDF</string>
     <string name="createpdf">Yub PDF</string>
     <string name="mergepdf">Rib PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF me EXCEL</string>
     <string name="exceltopdf">EXCEL me doko PDF</string>
     <string name="pdftojpeg">PDF me doko JPG</string>
+    <string name="startRange">Opimo okwok mewano</string>
+    <string name="endRange">Opimo okwok nekeno</string>
+    <string name="explain_folder_part_text">Ayo wa tiŵe kany nu dyu mwa na fwoti mwa.</string>
+    <string name="documentfolder">Mwalako mukano.</string>
+    <string name="explain_recently_read_part_text">Ndayo otetno mukano ni waloyo kabido.</string>
+    <string name="opendocument">Yabedo petokno</string>
+    <string name="recently_read_item1">Obanga magië ebindwö</string>
+    <string name="recently_read_item2">Noto me nyoora</string>
+    <string name="thickness">Tikic :</string>
+    <string name="opacity">Neaa nyoora :</string>
 </resources>

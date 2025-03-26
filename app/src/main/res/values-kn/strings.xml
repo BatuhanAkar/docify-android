@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">PDF ತೆರೆಯಿರಿ</string>
     <string name="createpdf">PDF ರಚಿಸಿ</string>
     <string name="mergepdf">PDF ವಿಲೀನಗೊಳಿಸಿ</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF ಅನ್ನು EXCEL ಗೆ</string>
     <string name="exceltopdf">EXCEL ಅನ್ನು PDF ಗೆ</string>
     <string name="pdftojpeg">PDF ಅನ್ನು JPEG ಗೆ</string>
+    <string name="startRange">ಪ್ರಾರಂಭ ಶ್ರೇಣಿ</string>
+    <string name="endRange">ಅಂತಿಮ ಶ್ರೇಣಿ</string>
+    <string name="explain_folder_part_text">ನಿಮ್ಮ ಡಾಕ್ಯುಮೆಂಟ್ಗಳನ್ನು ಒಂದೇ ಜೊತೆಯಲ್ಲಿ ಇಟ್ಟುಕೊಳ್ಳೋಣ.</string>
+    <string name="documentfolder">ಡಾಕ್ಯುಮೆಂಟ್ ಫೋಲ್ಡರ್</string>
+    <string name="explain_recently_read_part_text">ನೀವು ಓದಿದ ಡಾಕ್ಯುಮೆಂಟ್‌ಗಳ ಪಟ್ಟಿ ಯಾವಾಗಲೂ ಇಲ್ಲಿ ಇರುತ್ತದೆ.</string>
+    <string name="opendocument">ಡಾಕ್ಯುಮೆಂಟ್ ತೆರೆಯಿರಿ</string>
+    <string name="recently_read_item1">ಎಲೆಕ್ಟ್ರೋಮ್ಯಾಗ್ನೆಟಿಕ್ ಕ್ಷೇತ್ರಗಳು</string>
+    <string name="recently_read_item2">ಉಪನ್ಯಾಸ ಟಿಪ್ಪಣಿಗಳು</string>
+    <string name="thickness">ದಪ್ಪತನ :</string>
+    <string name="opacity">ಅಶ್ರಾವ್ಯತೆ :</string>
 </resources>

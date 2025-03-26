@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">ፒዲኤፍ ክፈት</string>
     <string name="createpdf">ፒዲኤፍ ፍጠር</string>
     <string name="mergepdf">ፒዲኤፍ አንድ በማድረግ</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF እስከ EXCEL</string>
     <string name="exceltopdf">EXCEL እስከ PDF</string>
     <string name="pdftojpeg">PDF እስከ JPEG</string>
+    <string name="startRange">የመጀመሪያ ክምር</string>
+    <string name="endRange">አሽናት ክምር</string>
+    <string name="explain_folder_part_text">እንከባቢ እቅድ በአንድ ላይ.</string>
+    <string name="documentfolder">እቅድ ፎልደር</string>
+    <string name="explain_recently_read_part_text">ያንተ ያንተ ያንተ ያንተ ያንተ ያንተ</string>
+    <string name="opendocument">አንድ ሰነድ ክፈት</string>
+    <string name="recently_read_item1">ኤሌክትሮማግኔቲክ መስኮች</string>
+    <string name="recently_read_item2">የትምህርት ማስታወሻ</string>
+    <string name="thickness">ለፍልፍነት :</string>
+    <string name="opacity">"ብርጭቅነት : "</string>
 </resources>

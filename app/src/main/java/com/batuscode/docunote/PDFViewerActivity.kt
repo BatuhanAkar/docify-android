@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -424,31 +425,8 @@ class PDFViewerActivity : ComponentActivity() {
                                 if (edit.value) {
                                     FilledTonalButton(onClick = {
                                         scope.launch {
-                                            // val bitmap = graphicsLayer.toImageBitmap()
-                                            // do something with the newly acquired bitmap
-
-
-                                            /*  Log.d("drawbitmap" , "bitmap list size in save button " + graphicsLayers.value.size)
-                                            graphicsLayers.value.forEach {
-                                                val bitmap = it.toImageBitmap()
-                                                graphicsLayersBitmaps.value.toMutableList().add(bitmap)
-                                            }*/
-
-                                            /*  graphicLayersImageBitmaps = graphicsLayersBitmaps.value
-                                            */
-
-
-
-                                            //mrendererPages = renderedPages
                                             mpageStates = pageStates
-
-                                            /*  val dir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
-                                            Log.d("pathslist" , "list size :: " + pageStates.size)
-                                            creator.saveDrawingsToPDF(file = File(dir , "firstedited.pdf") , renderedPages ,
-                                                pageStates)*/
-
                                             showSaveDialog.value = showSaveDialog.value.not()
-
                                         }
                                     }) {
                                         Text(text = stringResource(R.string.save_copy))
@@ -488,6 +466,7 @@ class PDFViewerActivity : ComponentActivity() {
 
 
                         LazyColumn(
+                            state = rememberLazyListState(),
                             userScrollEnabled = canScroll.value,
                             modifier = Modifier
                                 .fillMaxSize()
@@ -506,7 +485,7 @@ class PDFViewerActivity : ComponentActivity() {
                                         )
                                 )
                         ) {
-                            items(pageCount.value) { pageIndex ->
+                            items(pageCount.value , key = {it}) { pageIndex ->
                                 Log.d("PDFViewerActivity" , "pageIndex :: " + pageIndex)
                                 val bitmapState = remember { mutableStateOf<Bitmap?>(null) }
 
@@ -548,13 +527,21 @@ class PDFViewerActivity : ComponentActivity() {
                                     thickness
 
                                 if (undo.value) {
-
+                                    Log.d("PDFViewerActivity" , "undo index ${pageIndex}")
+                                   /* pageStates.forEach {
+                                        state ->
+                                        state.value.value = state.value.value.copy(
+                                            paths = state.value.value.paths.dropLast(1)
+                                        )
+                                    }*/
                                     pageStates[pageIndex]?.value =
                                         pageStates[pageIndex]?.value!!.copy(
                                             paths = pageStates[pageIndex]?.value?.paths!!.dropLast(
                                                 1
                                             )
                                         )
+                                    var size = pageStates[pageIndex]?.value?.paths?.size
+                                    Log.d("PDFViewerActivity" , "path list size ${size}")
                                     undo.value = undo.value.not()
                                 }
 

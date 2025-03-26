@@ -151,7 +151,32 @@ class PDFConverter(private val context: Context) {
         }
         return null
     }
+
+
     suspend fun drawPathToPage(
+        context: Context,
+        uri: Uri,
+        PathMap: MutableMap<Int, List<PathData>>
+    ): Boolean{
+        val filePath = getFilePathFromUri(context,uri,"temp_file.pdf")
+        mfilePath = filePath!!
+
+        return MainActivity.mainicore.drawPath(filePath ,PathMap)
+
+        /*context.contentResolver.openFileDescriptor(uri , "r")?.use { descriptor ->
+            Log.d("drawPathToPage" , "uri :: " + uri)
+
+
+
+            val idoc = MainActivity.mainicore.newDocument(descriptor)
+            Log.d("drawPathToPage" , "docPtr :: " + idoc.mNativeDocPtr + " pageIndex :: " + pageIndex)
+            MainActivity.mainicore.openPage(idoc, pageIndex)
+
+            MainActivity.mainicore.drawPath(idoc.mNativeDocPtr ,pageIndex , pathData)
+
+        }*/
+    }
+    /*suspend fun drawPathToPage(
         context: Context,
         uri: Uri,
         pageIndex: Int,
@@ -175,7 +200,7 @@ class PDFConverter(private val context: Context) {
             MainActivity.mainicore.drawPath(idoc.mNativeDocPtr ,pageIndex , pathData)
 
         }*/
-    }
+    }*/
 
     fun mergePDFs(
         uriMap: MutableMap<Int, Uri> ,
@@ -218,7 +243,8 @@ class PDFConverter(private val context: Context) {
     fun splitPDF(
         uri: Uri ,
         context: Context ,
-        displayName: String
+        displayName: String,
+        range: String
     ){
         var ok = mutableStateOf(false)
         val filePath = getFilePathFromUri(context,uri,"temp_file.pdf")
@@ -234,7 +260,7 @@ class PDFConverter(private val context: Context) {
             val outputStream: OutputStream? = contentResolver.openOutputStream(it)
             outputStream?.use { stream ->
 
-                ok.value = MainActivity.mainicore.splitDocument(filePath,stream,context)
+                ok.value = MainActivity.mainicore.splitDocument(filePath,stream,context , range)
 
                 if (ok.value){
 

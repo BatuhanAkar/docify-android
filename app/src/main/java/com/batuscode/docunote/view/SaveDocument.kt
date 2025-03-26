@@ -55,8 +55,10 @@ import com.batuscode.docunote.model.Folder
 import com.batuscode.docunote.utils.PDFConverter
 import com.batuscode.docunote.utils.PDFCreator
 import com.batuscode.pdfium.OffsetWrapper
+import com.batuscode.pdfium.PathData
 import com.batuscode.pdfium.icore
 import com.mohamedrejeb.richeditor.model.RichTextState
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
@@ -240,7 +242,9 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
 
                                 val scaleX = pdfPageWidth / canvasWidth
                                 val scaleY = pdfPageHeight / canvasHeight
+                                var PathMap : MutableMap<Int, List<PathData>> = mutableMapOf()
                                 scope.launch{
+
                                     PDFViewerActivity.mpageStates.filter { (index , state) -> state.value.paths.isNotEmpty() }
                                         .map { (index,state)->
                                             if (!state.value.paths.isEmpty()){
@@ -256,14 +260,21 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                                                         }
                                                     )
                                                 }
+                                                PathMap.put(index,paths)
                                                 val color = PDFViewerActivity.mpageStates[index]?.value?.selectedColor?.toArgb()
                                                 Log.d("saveDocument" , "colorInt :: " + color)
-                                                converter.drawPathToPage(context,PDFViewerActivity.muri,index,paths,color!!)
+                                                //converter.drawPathToPage(context,PDFViewerActivity.muri,index,paths,color!!)
                                             }
                                         }
 
+                                    var ok = converter.drawPathToPage(context,PDFViewerActivity.muri,PathMap)
 
-                                    saveTempFileToDocuments(file,true,context,PDFConverter.mfilePath,text)
+                                    if (ok){
+                                        val saved = saveTempFileToDocuments(null,false,context,PDFConverter.mfilePath,text)
+                                        if (saved){
+                                            PDFViewerActivity.activity.onBackPressed()
+                                        }
+                                    }
                                     // val saveOk = MainActivity.mainicore.saveDocument(PDFConverter.midoc.mNativeDocPtr,filePath)
 
                                     /*creat.saveDrawingsToPDF(text , file = File(dir , "${text}.pdf") ,
@@ -342,30 +353,49 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
 
                             val scaleX = pdfPageWidth / canvasWidth
                             val scaleY = pdfPageHeight / canvasHeight
-                            scope.launch{
-                                PDFViewerActivity.mpageStates.filter { (index , state) -> state.value.paths.isNotEmpty() }
-                                    .map { (index,state)->
-                                    if (!state.value.paths.isEmpty()){
-                                        Log.d("saveDocument" , "path is not empty to page :: " + index)
-                                        val paths = state.value.paths.map { pathData ->
-                                            pathData.copy(
-                                                path = pathData.path.map { point ->
 
-                                                    // Koordinatları tersine çevir, ardından ölçekle
-                                                    val transformedPoint = point.transformToBottomLeftOrigin(1528.0f,point.offset)
-                                                    val scaledPoint = point.scalePointForPDF(transformedPoint, scaleX, scaleY)
-                                                    OffsetWrapper(scaledPoint)
+                            var PathMap : MutableMap<Int, List<PathData>> = mutableMapOf()
+                            scope.launch{
+
+                                val fill = async{
+                                    PDFViewerActivity.mpageStates.filter { (index , state) -> state.value.paths.isNotEmpty() }
+                                        .map { (index,state)->
+                                            if (!state.value.paths.isEmpty()){
+                                                Log.d("saveDocument" , "path is not empty to page :: " + index)
+                                                val paths = state.value.paths.map { pathData ->
+                                                    pathData.copy(
+                                                        path = pathData.path.map { point ->
+
+                                                            // Koordinatları tersine çevir, ardından ölçekle
+                                                            val transformedPoint = point.transformToBottomLeftOrigin(1528.0f,point.offset)
+                                                            val scaledPoint = point.scalePointForPDF(transformedPoint, scaleX, scaleY)
+                                                            OffsetWrapper(scaledPoint)
+                                                        }
+                                                    )
                                                 }
-                                            )
+                                                PathMap.put(index,paths)
+                                                val color = PDFViewerActivity.mpageStates[index]?.value?.selectedColor?.toArgb()
+                                                Log.d("saveDocument" , "colorInt :: " + color)
+                                                //converter.drawPathToPage(context,PDFViewerActivity.muri,index,paths,color!!)
+                                            }
                                         }
-                                        val color = PDFViewerActivity.mpageStates[index]?.value?.selectedColor?.toArgb()
-                                        Log.d("saveDocument" , "colorInt :: " + color)
-                                        converter.drawPathToPage(context,PDFViewerActivity.muri,index,paths,color!!)
+                                }
+
+                                fill.await()
+
+                                Log.d("saveDocument" , "map size :: " + PathMap.size)
+                                var ok = converter.drawPathToPage(context,PDFViewerActivity.muri,PathMap)
+
+                                Log.d("saveDocument" , "ok :: ${ok}")
+                                if (ok){
+                                    val saved = saveTempFileToDocuments(null,false,context,PDFConverter.mfilePath,text)
+
+                                    Log.d("saveDocument" , "saved :: ${saved}")
+                                    if (saved){
+                                        PDFViewerActivity.activity.onBackPressed()
                                     }
                                 }
 
-
-                                saveTempFileToDocuments(null,false,context,PDFConverter.mfilePath,text)
                                // val saveOk = MainActivity.mainicore.saveDocument(PDFConverter.midoc.mNativeDocPtr,filePath)
 
                                 /*creat.saveDrawingsToPDF(text , file = File(dir , "${text}.pdf") ,
@@ -390,12 +420,12 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
 }
 
 
-fun saveTempFileToDocuments(mfile: File? , toFolder:Boolean , context: Context, tempFilePath: String, text:String): String? {
+fun saveTempFileToDocuments(mfile: File? , toFolder:Boolean , context: Context, tempFilePath: String, text:String): Boolean {
     try {
         var filename = text
         val tempFile = File(tempFilePath)
         if (!tempFile.exists()) {
-            return null
+            return false
         }
 
 
@@ -442,12 +472,16 @@ fun saveTempFileToDocuments(mfile: File? , toFolder:Boolean , context: Context, 
         }
 
         // Yeni dosyanın yolu
-        return file.absolutePath
+        if (file.isAbsolute){
+            return true
+        } else {
+            return false
+        }
 
     } catch (e: IOException) {
         e.printStackTrace()
     }
-    return null
+    return false
 }
 
 

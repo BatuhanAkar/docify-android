@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">"Apri PDF "</string>
     <string name="createpdf">"Crea PDF "</string>
     <string name="mergepdf">"Unisci PDF "</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">"PDF a EXCEL "</string>
     <string name="exceltopdf">"EXCEL a PDF "</string>
     <string name="pdftojpeg">"PDF a JPEG "</string>
+    <string name="startRange">Intervallo iniziale</string>
+    <string name="endRange">Intervallo finale</string>
+    <string name="explain_folder_part_text">Teniamo i tuoi documenti insieme.</string>
+    <string name="documentfolder">Cartella dei documenti</string>
+    <string name="explain_recently_read_part_text">Un elenco dei documenti che hai letto sarà sempre qui.</string>
+    <string name="opendocument">Aprire un documento</string>
+    <string name="recently_read_item1">Campi elettromagnetici</string>
+    <string name="recently_read_item2">Appunti della lezione</string>
+    <string name="thickness">Spessore :</string>
+    <string name="opacity">Opacità :</string>
 </resources>

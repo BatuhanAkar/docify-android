@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">PDF аарттәуп</string>
     <string name="createpdf">PDF аԥҵара</string>
     <string name="mergepdf">PDF еидҵатәуп</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF EXCEL ахь</string>
     <string name="exceltopdf">EXCEL аҟынтәи PDF ахь</string>
     <string name="pdftojpeg">PDF ахь JPG ахь</string>
+    <string name="explain_folder_part_text">Аҳҧхьа абжьықәа ҳдыргылап.</string>
+    <string name="documentfolder">Адокументқәа афаил.</string>
+    <string name="explain_recently_read_part_text">Шәара изышәацыз адокументқәа рышәҟәы иаразнак араҟа иҟазаауеит.</string>
+    <string name="opendocument">Адокумент аарт.</string>
+    <string name="recently_read_item1">Электромагниттә хысцәа.</string>
+    <string name="recently_read_item2">Алекциақәа рышәҟәы.</string>
+    <string name="thickness">Азырҳашьара.:</string>
+    <string name="opacity">Аҷыдара.:</string>
+    <string name="startRange">Алагара аҟазшьа.</string>
+    <string name="endRange">Амагара аҟазшьа.</string>
 </resources>

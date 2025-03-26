@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">Bukak PDF</string>
     <string name="createpdf">Gawe PDF</string>
     <string name="mergepdf">Gabung PDF</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF menyang EXCEL</string>
     <string name="exceltopdf">EXCEL menyang PDF</string>
     <string name="pdftojpeg">PDF menyang JPEG</string>
+    <string name="startRange">Jangkauan wiwitan</string>
+    <string name="endRange">Jangkauan pungkasan</string>
+    <string name="explain_folder_part_text">Ayo kita simpen dokumen sampeyan bareng-bareng.</string>
+    <string name="documentfolder">Polder dokumen</string>
+    <string name="explain_recently_read_part_text">Dhaptar dokumen sing wis kok waca bakal tansah ana ing kene.</string>
+    <string name="opendocument">Mbukak dokumen</string>
+    <string name="recently_read_item1">Lapangan elektromagnetik</string>
+    <string name="recently_read_item2">Cathetan kuliah</string>
+    <string name="thickness">Kandelan :</string>
+    <string name="opacity">Kaburaman :</string>
 </resources>

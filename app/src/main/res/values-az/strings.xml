@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DocuNote</string>
     <string name="openpdf">PDF aç</string>
     <string name="createpdf">PDF yarat</string>
     <string name="mergepdf">PDF-ni birləşdir</string>
@@ -24,4 +23,14 @@
     <string name="pdftoexcel">PDF-dən EXCEL-ə</string>
     <string name="exceltopdf">EXCEL-dən PDF-ə</string>
     <string name="pdftojpeg">PDF-dən JPEG-ə</string>
+    <string name="startRange">Başlanğıc diapazonu</string>
+    <string name="endRange">Son diapazon</string>
+    <string name="explain_folder_part_text">Gəlin sənədlərinizi bir yerdə saxlayaq.</string>
+    <string name="documentfolder">Sənədlər qovluğu</string>
+    <string name="explain_recently_read_part_text">Oxuduğunuz sənədlərin siyahısı həmişə burada olacaq.</string>
+    <string name="opendocument">Sənədi aç</string>
+    <string name="recently_read_item1">Elektromaqnit sahələri</string>
+    <string name="recently_read_item2">Dərs qeydləri</string>
+    <string name="thickness">Qalınlıq :</string>
+    <string name="opacity">Qeyri-şəffaflıq :</string>
 </resources>
