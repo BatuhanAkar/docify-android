@@ -105,8 +105,15 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.batuscode.docunote.utils.ModelUtil
 import com.batuscode.docunote.utils.PDFConverter
+import com.batuscode.docunote.view.GenerateAiMainView
 import com.batuscode.pdfium.icore
+import com.google.mediapipe.tasks.genai.llminference.LlmInference
+import com.google.mediapipe.tasks.genai.llminference.LlmInference.LlmInferenceOptions
+import com.google.mediapipe.tasks.genai.llminference.jni.proto.LlmOptionsProto
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
@@ -133,6 +140,9 @@ class MainActivity : ComponentActivity() {
         var uriMap : MutableMap<Int, Uri> = mutableMapOf()
         var recentlyStat = mutableStateOf(false)
         var folderStat = mutableStateOf(false)
+
+        lateinit var llmInference: LlmInference
+
     }
 
 
@@ -258,177 +268,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @SuppressLint("Range")
-    override fun onActivityResult(
-        requestCode: Int,
-        resultCode: Int,
-        data: Intent?,
-        caller: ComponentCaller
-    ) {
-         if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
-            data?.let { it ->
-                // Dosya URI'sini işlemek
-
-                // Log.d("newuri" , it.toString())
-
-                if (it.clipData != null){
-                    val count = it.clipData?.itemCount ?: 0
-                    for (i in 0 until count){
-                        val uri = it.clipData?.getItemAt(i)?.uri
-                        uri?.let {
-                            _appViewModel.add_urlist(it)
-
-                            val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-// Check for the freshest data.
-                            contentResolver.takePersistableUriPermission(it, takeFlags)
-                        }
-                        Log.d("newuri" , uri.toString())
-                    }
-
-                    newFolder.value = true
-
-                    val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                        addCategory(Intent.CATEGORY_OPENABLE)
-                        type = "application/pdf"
-                       // putExtra(Intent.EXTRA_TITLE, R.string.documentname)
-
-                        // Optionally, specify a URI for the directory that should be opened in
-                        // the system file picker before your app creates the document.
-                    }
-                    mainActivity.startActivityForResult(intent, 0)
-
-                }else {
-                    // Tekli dosya seçimi
-                    val uri = it.data
-                    Log.d("newuri" , uri.toString())
-
-                }
-
-            }
-        }
-        else if (requestCode == 0 && resultCode == Activity.RESULT_OK){
-             data?.let { it ->
-                 val uri = it.data
-                 Log.d("newuri" , uri.toString())
-
-                 val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-// Check for the freshest data.
-                 contentResolver.takePersistableUriPermission(uri!!, takeFlags)
-
-                 val cursor = contentResolver.query(uri,null,null,null)
-                 val nameindex = cursor?.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                 cursor?.moveToFirst()
-                 val name = cursor?.getString(nameindex!!)
-
-                 Log.d("tahmin" , " cursor dosya adı ::: ")
-                 cursor?.close()
-
-                 lifecycleScope.launch(Dispatchers.Main){
-                     val pdfutils = PDFUtils()
-
-                     pdfutils.mergeDocument(_appViewModel.uris , name!! , uri!! , mainActivity.contentResolver)
-
-
-                 }
-             }
-         }
-         else if (requestCode == 2 && resultCode == Activity.RESULT_OK){
-
-             Log.d("newuri" ,"sonuc döndü")
-
-             data?.let { it ->
-                 val uri = it.data
-                 val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-// Check for the freshest data.
-                 contentResolver.takePersistableUriPermission(uri!!, takeFlags)
-
-                 Log.d("newuri" , uri.toString())
-
-                 val cursor = contentResolver.query(
-                     uri!! ,
-                     arrayOf(OpenableColumns.DISPLAY_NAME) ,
-                     null ,
-                     null ,
-                     null
-                 )
-
-                 cursor?.use {
-                     if (it.moveToFirst()){
-                         val displayName = it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                         val dotIndex = displayName.lastIndexOf('.')
-                         val fileNameWithoutExtension = if (dotIndex != -1) displayName.substring(0, dotIndex) else displayName
-
-                         Log.d("newuri" , displayName)
-                         lifecycleScope.launch(Dispatchers.Main){
-
-                             val intent = Intent(context , PDFViewerActivity::class.java).apply {
-                                 putExtra("fileUri" , uri.toString())
-                                 putExtra("fileDisplayName" , fileNameWithoutExtension)
-                             }
-
-                             mainActivity.startActivity(intent)
-                         }
-                     }
-                 }
-
-
-             }
-         }
-         else if (requestCode == 22 && resultCode == Activity.RESULT_OK){
-             data?.data?.also { uri ->
-                 // Perform operations on the document using its URI.
-                 val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-// Check for the freshest data.
-                 contentResolver.takePersistableUriPermission(uri, takeFlags)
-             }
-
-         }
-         else if (requestCode == 55 && resultCode == Activity.RESULT_OK) {
-             data?.let { it ->
-                 // Dosya URI'sini işlemek
-
-                 // Log.d("newuri" , it.toString())
-
-
-
-                 if (it.clipData != null){
-                     val count = it.clipData?.itemCount ?: 0
-                     for (i in 0 until count){
-                         val uri = it.clipData?.getItemAt(i)?.uri
-                         uri?.let {
-                             _appViewModel.add_urlist(it)
-
-                             val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                                     Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-// Check for the freshest data.
-                             contentResolver.takePersistableUriPermission(it, takeFlags)
-                         }
-                         Log.d("newuri" , uri.toString())
-                     }
-
-                     newFolder.value = true
-
-
-
-                 }else {
-                     // Tekli dosya seçimi
-                     val uri = it.data
-                     Log.d("newuri" , uri.toString())
-
-                 }
-
-             }
-         }
-         else {
-             Log.d("realdevice" , "sikinti var...")
-         }
-
-        super.onActivityResult(requestCode, resultCode, data, caller)
-    }
 
     val requestPermissionLauncher =
         registerForActivityResult(RequestPermission()
@@ -448,7 +287,7 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        context = this
 
         val appViewModel : AppViewModel by viewModels()
         _appViewModel = appViewModel
@@ -460,6 +299,47 @@ class MainActivity : ComponentActivity() {
         folderStat.value = fileManager.getFoldersStat(this)
         recentlyStat.value = fileManager.getRecentlyStat(this)
 
+        CoroutineScope(Dispatchers.Main).launch{
+
+            val modelPath = fileManager.getModelPath(context)
+
+            if (modelPath != null && modelPath.isNotEmpty()) {
+                // Use existing model path
+                val options = LlmInference.LlmInferenceOptions.builder()
+                    .setModelPath(modelPath) // No need for string template
+                    .setPreferredBackend(LlmInference.Backend.CPU)
+                    .setMaxTokens(10000)
+                    .setMaxTopK(40)
+                    .build()
+
+                llmInference = LlmInference.createFromOptions(context, options)
+            } else {
+                // Copy model from assets
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val newModelPath = ModelUtil.copyAssetToAppFiles(
+                        context = this@MainActivity,
+                        assetFileName = "gemma3-1b-it-int4.task"
+                    )
+
+                    // Save the new path
+                    fileManager.saveModelPath(this@MainActivity, newModelPath)
+
+                    // Create options on main thread
+                    lifecycleScope.launch(Dispatchers.Main) {
+                        val options = LlmInference.LlmInferenceOptions.builder()
+                            .setModelPath(newModelPath) // Use the path we just got
+                            .setPreferredBackend(LlmInference.Backend.CPU)
+                            .setMaxTokens(10000)
+                            .setMaxTopK(40)
+                            .build()
+
+                        llmInference = LlmInference.createFromOptions(context, options)
+                    }
+                }
+            }
+
+
+        }
 
       //  PDFBoxResourceLoader.init(getApplicationContext());
 
@@ -478,6 +358,7 @@ class MainActivity : ComponentActivity() {
         appViewModel.loadhandNotesFolders(folder2)
         appViewModel.loadhandNotesFolders(folder3)
         appViewModel.loadhandNotesFolders(folder4)*/
+
 
         multiplyselectTofolderDocumentLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -703,7 +584,7 @@ class MainActivity : ComponentActivity() {
 
             val scaleFactor = LocalContext.current.resources.displayMetrics.densityDpi / 72f
 
-            context = LocalContext.current
+
 
             var filemanager = remember {
                 FileManager(context = context)
@@ -830,10 +711,72 @@ class MainActivity : ComponentActivity() {
                     if (_extensionsOpen.value){
                         Extensions(appViewModel = appViewModel)
                     }
-                    Flow(innerPadding , appViewModel = appViewModel)
+                    Column (
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background)
+                        /*.drawBehind {
+                            val width = size.width
+                            val height = 320.dp.toPx()
+
+                            // Köşe radyuslarını tanımlıyoruz
+                            val normalRadius = 80.dp.toPx()
+                            val largeRadius = 80.dp.toPx()
+
+                            // Çizim için Path oluşturuyoruz
+                            val path = Path().apply {
+                                // Sol üst köşeden başlıyoruz
+                                moveTo(0f, 0f)
+
+                                // Sağ üst köşeye gidiyoruz
+                                lineTo(width, 0f)
+
+                                // Sağ alt köşeye gidiyoruz, burada dışa doğru büyük bir radyus uyguluyoruz
+                                lineTo(width, height - largeRadius)
+                                arcTo(
+                                    rect = Rect(
+                                        width - largeRadius, // Dışa doğru radyus
+                                        height - largeRadius + 80.dp.toPx(),
+                                        width,
+                                        height + 80.dp.toPx()
+                                    ),
+                                    startAngleDegrees = 0f,
+                                    sweepAngleDegrees = -90f,
+                                    forceMoveTo = false
+                                )
+
+                                // Sol alt köşeye gidiyoruz, burada normal bir radyus
+                                lineTo(normalRadius, height)
+                                arcTo(
+                                    rect = Rect(
+                                        0f,
+                                        height - normalRadius,
+                                        normalRadius,
+                                        height
+                                    ),
+                                    startAngleDegrees = 90f,
+                                    sweepAngleDegrees = 90f,
+                                    forceMoveTo = false
+                                )
+
+                                // Sol üst köşeye dönüyoruz
+                                lineTo(0f, 0f)
+
+                                close() // Path'i kapatıyoruz
+                            }
+
+                            // Path'i bir renkle çiziyoruz
+                            drawPath(path, color = color)
+                        }*/
+                        ,
+
+                        ) {
+                        Folders(appViewModel)
+                        RecentlyRead(appViewModel)
+                    }
                 }
             }
-
         }
     }
 
@@ -863,9 +806,9 @@ fun Flow(innerPadding: PaddingValues, appViewModel: AppViewModel) {
             .padding(innerPadding)
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .drawBehind {
+            /*.drawBehind {
                 val width = size.width
-                val height = 270.dp.toPx()
+                val height = 320.dp.toPx()
 
                 // Köşe radyuslarını tanımlıyoruz
                 val normalRadius = 80.dp.toPx()
@@ -915,22 +858,18 @@ fun Flow(innerPadding: PaddingValues, appViewModel: AppViewModel) {
 
                 // Path'i bir renkle çiziyoruz
                 drawPath(path, color = color)
-            }
-
-
-
+            }*/
         ,
 
     ) {
-
-        Folders(appViewModel)
-
-        RecentlyRead(appViewModel)
+       // Folders(appViewModel)
+       // RecentlyRead(appViewModel)
 
 
     }
 }
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {

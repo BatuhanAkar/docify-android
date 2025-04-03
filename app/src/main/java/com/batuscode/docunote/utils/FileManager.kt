@@ -52,6 +52,20 @@ class FileManager(val context: Context) {
         return value
     }
 
+    fun saveModelPath(context: Context , modelPath: String){
+        val sharedPref = context.getSharedPreferences("model_path" , Context.MODE_PRIVATE)
+        val editor = sharedPref.edit()
+
+        editor.putString("path" , modelPath)
+        editor.apply()
+    }
+
+    fun getModelPath(context: Context): String?{
+        val sharedPref = context.getSharedPreferences("model_path" , Context.MODE_PRIVATE)
+        return sharedPref.getString("path" , null)
+    }
+
+
     fun saveDraftUri(context: Context,uri: Uri){
         val sharedPref = context.getSharedPreferences("draft_file" , Context.MODE_PRIVATE)
         val editor = sharedPref.edit()
@@ -156,7 +170,7 @@ class FileManager(val context: Context) {
             val files = docFolder.listFiles()
 
 
-            Log.d("FolderQuery", "index name in files count   ${files.size}")
+            Log.d("FolderQuery", "index name in files count   ${files?.size}")
             files?.forEach { file ->
 
                 if (file.isDirectory){

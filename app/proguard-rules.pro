@@ -21,4 +21,6 @@
 #-renamesourcefileattribute SourceFile
 
 -keep class com.shockwave.**
--keep class com.batuscode.pdfium.PathData**
+-keep class com.batuscode.pdfium.PathData {
+    public *;
+}

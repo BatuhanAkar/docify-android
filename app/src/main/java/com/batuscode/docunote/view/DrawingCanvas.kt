@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
@@ -159,7 +160,7 @@ fun DrawingCanvas(
 
 private fun DrawScope.drawPath(
     path: List<OffsetWrapper>,
-    color: Color,
+    color: Int,
     thickness: Float = 10f ,
     scale: Float
 ) {
@@ -186,7 +187,7 @@ private fun DrawScope.drawPath(
     }
     drawPath(
         path = smoothedPath,
-        color = color,
+        color = Color(color),
         style = Stroke(
 
             width = thickness,
@@ -231,7 +232,7 @@ private fun onNewPathStart(state: MutableState<DrawingState>) {
     state.value = state.value.copy(
         currentPath = PathData(
             id = System.currentTimeMillis().toString(),
-            mcolor = state.value.selectedColor,
+            mcolor = state.value.selectedColor.toArgb(),
             path = emptyList() ,
             thickness = state.value.thickness
         )

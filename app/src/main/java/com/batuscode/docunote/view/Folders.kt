@@ -2,8 +2,6 @@ package com.batuscode.docunote.view
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.os.Environment
-import android.provider.DocumentsContract
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -17,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.paddingFrom
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,15 +22,10 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -41,15 +33,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
@@ -58,26 +44,12 @@ import com.batuscode.docunote.R
 import com.batuscode.docunote.model.Folder
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import com.batuscode.docunote.viewmodel.AppViewModel
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 
-import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.RadialGradientShader
-import androidx.compose.ui.graphics.Shader
-import androidx.compose.ui.graphics.ShaderBrush
-import androidx.compose.ui.graphics.TileMode
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.layout.AlignmentLine
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.batuscode.docunote.FolderScopeActivity
@@ -117,26 +89,28 @@ fun Folders(appViewModel: AppViewModel){
 
     Column(
         modifier = Modifier
-
+            .fillMaxWidth()
+            .wrapContentHeight()
     ) {
         Text(
             fontSize = 30.sp,
             fontWeight = FontWeight.Black,
-            text = stringResource(R.string.documents),
-            color = Color.White,
+            text = stringResource(R.string.folders),
+            color = Color.Black,
             modifier = Modifier
                 .wrapContentSize()
-                .padding(start = 40.dp , end = 40.dp , top = 10.dp)
+                .padding(16.dp)
         )
 
 
         if (MainActivity.folderStat.value){
             LazyRow (
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clipToBounds()
-                    .requiredHeight(200.dp)
+                    .requiredHeight(100.dp)
             ) {
                 items(folders.value) { item ->
                     ListItem(folder = item)
@@ -164,7 +138,7 @@ fun Folders(appViewModel: AppViewModel){
                     Column {
 
                         Text(text = "${stringResource(R.string.explain_folder_part_text)}\uD83E\uDEE1" ,
-                            color = Color.White,
+                            color = Color.Black,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Black,
                             textAlign = TextAlign.Left,
@@ -175,7 +149,7 @@ fun Folders(appViewModel: AppViewModel){
 
                         FilledTonalButton(
                             colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = Color.White
+                                containerColor = colorResource(R.color.modified)
                             ),
                             onClick = {
 
@@ -191,7 +165,10 @@ fun Folders(appViewModel: AppViewModel){
                         }) {
 
                             Image(painter = painterResource(R.drawable.baseline_create_new_folder_24) , "")
-                            Text(text = stringResource(R.string.documentfolder))
+                            Text(
+                                text = stringResource(R.string.documentfolder) ,
+                                color = Color.White,
+                            )
                         }
                     }
                 }
@@ -212,7 +189,11 @@ fun ListItem(folder: Folder) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-
+            .padding(start = 30.dp)
+            .width(300.dp)
+            .height(100.dp)
+            .clip(RoundedCornerShape(20))
+            .background(Color.LightGray.copy(0.5f))
             .clickable(
                 enabled = true ,
                 role = Role.Button ,
@@ -239,38 +220,45 @@ fun ListItem(folder: Folder) {
                 }
             )
     ) {
-
-        Image(
-            painter = painterResource(id = folder.icon),
-            contentDescription = "icon",
+        Row(
+            verticalAlignment = Alignment.Top ,
+            horizontalArrangement = Arrangement.Start ,
             modifier = Modifier
-                .size(200.dp)
-                .align(Alignment.Center)
+                .fillMaxSize()
+                .padding(horizontal = 20.dp , vertical = 20.dp)
+        ) {
+            Image(
+                painter = painterResource(id = folder.icon),
+                contentDescription = "icon",
+                modifier = Modifier
+                    .size(50.dp)
 
-        )
-        Text(
-            softWrap = true,
-            textAlign = TextAlign.Center,
-            text = folder.name,
-            style = MaterialTheme.typography.bodyLarge,
-            fontSize = 20.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            fontWeight = FontWeight.Black,
-            color = Color.Black,
-            modifier = Modifier
-                .width(120.dp)
-                .wrapContentHeight()
-                .align(Alignment.Center)
-                .padding(top = 80.dp)
-                .clipToBounds()
-        )
+            )
+            Text(
+                softWrap = true,
+                textAlign = TextAlign.Center,
+                text = folder.name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontSize = 20.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                fontWeight = FontWeight.Black,
+                color = Color.Black,
+                modifier = Modifier
+                    .padding(vertical = 15.dp)
+            )
+        }
+
     }
 }
 @Preview(showBackground = true)
 @Composable
 fun PreviewFolders(){
+
+    val folder = Folder( 0 ,"Downloads" , R.drawable.folder_icon_4_01)
     DocuNoteTheme {
-        Folders(AppViewModel())
+        //Folders(AppViewModel())
+        ListItem(folder)
+
     }
 }

@@ -226,7 +226,7 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                                 val saveOk = MainActivity.mainicore.saveDocument(CreatePDFActivity.docptr,filePath)
 
                                 if (saveOk){
-                                    CreatePDFActivity.pdfActivity.onBackPressed()
+                                    CreatePDFActivity.pdfActivity.onBackPressedDispatcher.onBackPressed()
                                 }
                             }
                         }
@@ -272,7 +272,7 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                                     if (ok){
                                         val saved = saveTempFileToDocuments(null,false,context,PDFConverter.mfilePath,text)
                                         if (saved){
-                                            PDFViewerActivity.activity.onBackPressed()
+                                            PDFViewerActivity.activity.onBackPressedDispatcher.onBackPressed()
                                         }
                                     }
                                     // val saveOk = MainActivity.mainicore.saveDocument(PDFConverter.midoc.mNativeDocPtr,filePath)
@@ -334,7 +334,7 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
                                 fileSaved.value = MainActivity.mainicore.saveDocument(CreatePDFActivity.docptr,filePath)
 
                                 if (fileSaved.value && streamSaved.value){
-                                    CreatePDFActivity.pdfActivity.onBackPressed()
+                                    CreatePDFActivity.pdfActivity.onBackPressedDispatcher.onBackPressed()
                                 }
                             }
                         }
@@ -392,7 +392,7 @@ fun SaveDocContent(create: Boolean,textStates: SnapshotStateMap<Int, RichTextSta
 
                                     Log.d("saveDocument" , "saved :: ${saved}")
                                     if (saved){
-                                        PDFViewerActivity.activity.onBackPressed()
+                                        PDFViewerActivity.activity.onBackPressedDispatcher.onBackPressed()
                                     }
                                 }
 

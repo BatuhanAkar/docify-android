@@ -1,4 +1,5 @@
 import com.android.build.gradle.internal.cxx.configure.defaultCmakeVersion
+import org.gradle.api.JavaVersion.VERSION_11
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 //import org.jetbrains.kotlin.gradle.idea.proto.com.google.protobuf.compiler.version
 
@@ -42,8 +43,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = VERSION_11
+        targetCompatibility = VERSION_11
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -65,14 +66,13 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
 
     //implementation ("com.github.SmartToolFactory:Compose-Extended-Gestures:4.0.0")
-    implementation ("com.github.SmartToolFactory:Compose-Zoom:0.5.0")
-    implementation ("com.github.nanihadesuka:LazyColumnScrollbar:2.2.0")
+    implementation (libs.compose.zoom)
+    implementation (libs.lazycolumnscrollbar)
     implementation(project(":pdfium"))
     // implementation ("com.tom-roush:pdfbox-android:2.0.26.0")
-    val room_version = "2.6.1"
    // implementation(files(("libs/pdfbox-app-3.0.3.jar")))
    // implementation ("org.apache.pdfbox:pdfbox-android:2.0.27")
-    implementation ("com.google.code.gson:gson:2.10.1")
+    implementation (libs.gson)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.coil.compose)
@@ -81,9 +81,10 @@ dependencies {
     // https://mvnrepository.com/artifact/com.github.Tgo1014/JP2ForAndroid
    // implementation("com.github.Tgo1014:JP2ForAndroid:1.0.4")
 
-    implementation("androidx.room:room-runtime:$room_version")
-    ksp("androidx.room:room-compiler:$room_version")
-    implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc10")
+    implementation (libs.androidx.material.icons.core)
+    implementation (libs.androidx.material.icons.extended)
+    implementation (libs.tasks.genai)
+    implementation(libs.richeditor.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -97,7 +98,6 @@ dependencies {
     implementation(libs.androidx.material3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)

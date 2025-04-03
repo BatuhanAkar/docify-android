@@ -12,6 +12,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.content.FileProvider
 import com.batuscode.docunote.CreatePDFActivity
 import com.batuscode.docunote.MainActivity
 import com.batuscode.docunote.PDFViewerActivity
@@ -135,6 +136,21 @@ class PDFConverter(private val context: Context) {
             return@withContext bitmap
         }
         return@withContext null
+    }
+    fun getFileUriFromPath(context: Context, filePath: String): Uri {
+        val file = File(filePath)
+
+        // Eğer file mevcutsa ve okunabilir yazılabilir ise
+        if (file.exists() && file.canRead()) {
+            // FileProvider ile URI'yi alıyoruz
+            return FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider", // Bu, AndroidManifest.xml içinde tanımladığınız authority olmalı
+                file
+            )
+        } else {
+            throw Exception("File not accessible")
+        }
     }
     fun getFilePathFromUri(context: Context, uri: Uri , fileName:String): String? {
         try {

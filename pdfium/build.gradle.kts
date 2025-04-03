@@ -1,3 +1,6 @@
+import org.gradle.api.JavaVersion.VERSION_11
+import org.gradle.api.JavaVersion.VERSION_17
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -25,8 +28,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = VERSION_11
+        targetCompatibility = VERSION_11
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -35,6 +38,10 @@ android {
         getByName("main").jniLibs.srcDirs("src/main/libs")
     }
     ndkVersion = "28.0.12433566 rc1"
+    buildToolsVersion = "35.0.1"
+    buildFeatures {
+        viewBinding = true
+    }
 }
 
 dependencies {

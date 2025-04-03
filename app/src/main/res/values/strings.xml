@@ -40,4 +40,8 @@
     <string name="title_activity_viewer">ViewerActivity</string>
     <string name="startRange">Start range</string>
     <string name="endRange">End range</string>
+    <string name="folders">Folders</string>
+    <string name="title_activity_summfy_ai">SummfyAI</string>
+    <string name="summarized_prefix_text">Summarized</string>
+    <string name="summarize_prompt">Summarize text 3–4 sentences</string>
 </resources>

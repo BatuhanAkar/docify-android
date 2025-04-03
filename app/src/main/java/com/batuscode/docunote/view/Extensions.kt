@@ -1,5 +1,6 @@
 package com.batuscode.docunote.view
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Environment
 import android.provider.DocumentsContract
@@ -34,6 +35,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
@@ -49,6 +51,7 @@ import androidx.compose.material3.ModalBottomSheetDefaults
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.ripple
@@ -80,6 +83,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -90,6 +94,7 @@ import com.batuscode.docunote.CreatePDFActivity
 import com.batuscode.docunote.MainActivity
 import com.batuscode.docunote.PDFViewerActivity
 import com.batuscode.docunote.R
+import com.batuscode.docunote.SummfyAI
 import com.batuscode.docunote.model.ExtensionButton
 import com.batuscode.docunote.model.Menu
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
@@ -123,6 +128,7 @@ fun Flow(modalbottomsheetstate: SheetState , appViewModel: AppViewModel){
 
 
     val createButtons = listOf(
+        ExtensionButton(id = 4 , name = "Summarize Document with AI",R.drawable.ai_document_extension_file_format_icon),
         ExtensionButton(id = 0 , name = stringResource(id = R.string.openpdf) , R.drawable.open_pdf_01) ,
         ExtensionButton(id = 1 , name = stringResource(id = R.string.createpdf) , R.drawable.create_pdf_01) ,
         ExtensionButton(id = 2 , name = stringResource(id = R.string.mergepdf) , R.drawable.merge_pdf_01 ) ,
@@ -265,114 +271,136 @@ fun ButtonFlow(button: ExtensionButton , modalbottomsheetstate: SheetState , app
     }
     var scope = rememberCoroutineScope()
     val context = LocalContext.current
-    ElevatedCard(
-        onClick = {
-            ripple(bounded = true)
-            scope.launch {
-                if (modalbottomsheetstate.isVisible) {
-                    modalbottomsheetstate.hide()
 
-                    when (button.id) {
-                        0 -> {
-                            // open pdf button
-                            Log.d("extensionfunc", "clicked to button 0 " + button.id)
-                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT ).apply {
-                                addCategory(Intent.CATEGORY_OPENABLE)
-                                type = "*/*"
+    Box (
+        modifier = Modifier
+            .background(Color.Transparent)
+            .padding(vertical = 8.dp)
+            .clickable(
+                enabled = true ,
+                role = Role.Button ,
+                onClickLabel = "recentlyDocument" ,
+                onClick = {
+
+                    ripple(bounded = true)
+                    scope.launch {
+                        if (modalbottomsheetstate.isVisible) {
+                            modalbottomsheetstate.hide()
+
+                            when (button.id) {
+                                0 -> {
+                                    // open pdf button
+                                    Log.d("extensionfunc", "clicked to button 0 " + button.id)
+                                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT ).apply {
+                                        addCategory(Intent.CATEGORY_OPENABLE)
+                                        type = "*/*"
+                                    }
+                                    intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+                                    // MainActivity.mainActivity.startActivityForResult(intent, 2)
+                                    MainActivity.openDocumentLauncher.launch(intent)
+                                }
+
+                                1 -> {
+                                    // create pdf button
+                                    Log.d("extensionfunc", "clicked to button 1 " + button.id)
+
+                                    val intent = Intent(context, CreatePDFActivity::class.java)
+                                    context.startActivity(intent)
+                                }
+
+                                2 -> {
+                                    // merge pdf button
+                                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                                        addCategory(Intent.CATEGORY_OPENABLE)
+                                        type = "*/*"
+                                        putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+
+                                    }
+                                    intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    MainActivity.mergeDocumentLauncher.launch(intent)
+                                }
+
+                                3 -> {
+                                    //split pdf button
+
+                                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                                        addCategory(Intent.CATEGORY_OPENABLE)
+                                        type = "*/*"
+                                        putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
+
+                                    }
+                                    intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    MainActivity.splitDocumentLauncher.launch(intent)
+
+                                }
+
+                                4 -> {
+
+                                    val intent = Intent(context, SummfyAI::class.java)
+                                    context.startActivity(intent)
+                                }
                             }
-                            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-                            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-
-                           // MainActivity.mainActivity.startActivityForResult(intent, 2)
-                            MainActivity.openDocumentLauncher.launch(intent)
                         }
-
-                        1 -> {
-                            // create pdf button
-                            Log.d("extensionfunc", "clicked to button 1 " + button.id)
-
-                            val intent = Intent(context, CreatePDFActivity::class.java)
-                            context.startActivity(intent)
-                        }
-
-                        2 -> {
-                            // merge pdf button
-                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                                addCategory(Intent.CATEGORY_OPENABLE)
-                                type = "*/*"
-                                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-
-                            }
-                            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-                            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                            MainActivity.mergeDocumentLauncher.launch(intent)
-                        }
-
-                        3 -> {
-                            //split pdf button
-
-                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                                addCategory(Intent.CATEGORY_OPENABLE)
-                                type = "*/*"
-                                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
-
-                            }
-                            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-                            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                            MainActivity.splitDocumentLauncher.launch(intent)
-
+                    }.invokeOnCompletion {
+                        if (!modalbottomsheetstate.isVisible){
+                            appViewModel.update_extensionsOpenState(false)
                         }
                     }
                 }
-            }.invokeOnCompletion {
-                if (!modalbottomsheetstate.isVisible){
-                    appViewModel.update_extensionsOpenState(false)
-                }
-            }
+            )
+    ){
 
-
-        },
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp , pressedElevation = 6.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.background
-        ),
-        modifier = Modifier
-            .padding(vertical = 8.dp)
-    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp , vertical = 16.dp)
+                .padding(horizontal = 8.dp , vertical = 8.dp)
         ) {
-            if (button.icon != 0){
-                Image(
-                    painter = painterResource(button.icon) ,
-                    contentDescription = "icon" ,
-                    alignment = Alignment.Center ,
-                    modifier = Modifier
-                        .size(64.dp)
-                        .zIndex(1f)
-                )
+
+            Surface (
+                shape = CircleShape ,
+                color = Color.LightGray.copy(0.5f) ,
+                modifier = Modifier
+                    .size(60.dp)
+            ){
+                Box (
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+
+                    if (button.icon != 0){
+                        Image(
+                            painter = painterResource(button.icon) ,
+                            contentDescription = "icon" ,
+                            alignment = Alignment.Center ,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .zIndex(1f)
+                        )
+                    }
+
+                }
             }
             Text(
+                color = MaterialTheme.colorScheme.onPrimary,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
                 text = button.name ,
-                style = TextStyle(
-                    fontFamily = bebasFontFamily ,
-                    fontWeight = FontWeight.Normal,
-                    textAlign = TextAlign.Center ,
-                    fontSize = 25.sp
-                ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp)
-
+                    .padding(horizontal = 16.dp)
             )
         }
     }
 
+
 }
 
+@SuppressLint("ViewModelConstructorInComposable")
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @Composable

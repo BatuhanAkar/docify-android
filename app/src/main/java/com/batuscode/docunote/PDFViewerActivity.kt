@@ -62,6 +62,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.CircularProgressIndicator
@@ -136,7 +137,7 @@ class PDFViewerActivity : ComponentActivity() {
     val mPreLoadPageWorker = Executors.newSingleThreadExecutor()
     val mRenderPageWorker = Executors.newSingleThreadExecutor()
     var renderRunnable: Runnable? = null
-
+    @Deprecated(message = "Use quadraticTo() for consistency with cubicTo()", replaceWith = ReplaceWith(expression = "quadraticTo(x1, y1, x2, y2)"), level = DeprecationLevel.WARNING)
     @SuppressLint("UnusedBoxWithConstraintsScope")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -384,11 +385,11 @@ class PDFViewerActivity : ComponentActivity() {
                                         pdfViewerActivityViewModel.update_editState(false)
 
                                     } else {
-                                        onBackPressed()
+                                        onBackPressedDispatcher.onBackPressed()
                                     }
                                 }) {
                                     Icon(
-                                        Icons.Default.ArrowBack,
+                                        Icons.AutoMirrored.Filled.ArrowBack,
                                         contentDescription = "Back",
 
                                     )
@@ -491,16 +492,14 @@ class PDFViewerActivity : ComponentActivity() {
 
                                 // Render the page when it comes into view
                                 LaunchedEffect(pageIndex) {
-                                    if (bitmapState.value == null ) {
-                                        if (dptr != null){
-                                            val bitmap = pdfBitmapConverter.renderPage(
-                                                context,
-                                                Uri.parse(uri),
-                                                pageIndex,
-                                                scaleFactor
-                                            )
-                                            bitmapState.value = bitmap
-                                        }
+                                    if (dptr != null){
+                                        val bitmap = pdfBitmapConverter.renderPage(
+                                            context,
+                                            Uri.parse(uri),
+                                            pageIndex,
+                                            scaleFactor
+                                        )
+                                        bitmapState.value = bitmap
                                     }
                                 }
 
@@ -726,6 +725,7 @@ class PDFViewerActivity : ComponentActivity() {
                                         ) {
                                             val path = Path().apply {
                                                 moveTo(0f, size.height / 2)
+
                                                 quadraticBezierTo(
                                                     size.width / 4,
                                                     size.height / 4,

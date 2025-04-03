@@ -4,6 +4,7 @@ import android.content.Intent
 import android.text.EmojiConsistency
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -15,14 +16,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -32,12 +36,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -94,13 +100,13 @@ fun RecentlyRead(appViewModel: AppViewModel){
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 40.dp , vertical = 30.dp)
     ) {
         Text(
             text = stringResource(R.string.recentlyread) ,
             fontSize = 30.sp,
             fontWeight = FontWeight.Black,
             modifier = Modifier
+                .padding(16.dp)
         )
 
         if (MainActivity.recentlyStat.value){
@@ -108,7 +114,6 @@ fun RecentlyRead(appViewModel: AppViewModel){
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 10.dp)
             ) {
                 items(files.value.reversed()){
                         item -> RecentlyReadItemView(item)
@@ -131,32 +136,48 @@ fun RecentlyRead(appViewModel: AppViewModel){
                     exfList1.forEachIndexed{
                         index , item ->
 
-                        ElevatedCard(
-                            onClick = {
-                                ripple(bounded = true)
-
-                            },
-                            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp , pressedElevation = 6.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color.White
-                            ),
+                        Box (
                             modifier = Modifier
+                                .background(Color.Transparent)
                                 .padding(vertical = 8.dp)
-                        ) {
+                                .clickable(
+                                    enabled = true ,
+                                    role = Role.Button ,
+                                    onClickLabel = "recentlyDocument" ,
+                                    onClick = {
+                                        ripple(bounded = true)
+                                    }
+                                )
+                        ){
+
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp , vertical = 16.dp)
+                                    .padding(horizontal = 8.dp , vertical = 8.dp)
                             ) {
-                                Image(
-                                    painter = painterResource(R.drawable.open_pdf_01) ,
-                                    contentDescription = "icon" ,
-                                    alignment = Alignment.Center ,
+
+                                Surface (
+                                    shape = CircleShape ,
+                                    color = Color.LightGray.copy(0.5f) ,
                                     modifier = Modifier
-                                        .size(32.dp)
-                                        .zIndex(1f)
-                                )
+                                        .size(60.dp)
+                                ){
+                                    Box (
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        Image(
+
+                                            painter = painterResource(R.drawable.open_pdf_01) ,
+                                            contentDescription = "icon" ,
+                                            alignment = Alignment.Center ,
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .zIndex(1f)
+                                        )
+                                    }
+                                }
                                 Text(
                                     color = MaterialTheme.colorScheme.onPrimary,
                                     overflow = TextOverflow.Ellipsis,
@@ -171,40 +192,53 @@ fun RecentlyRead(appViewModel: AppViewModel){
                     }
 
                     Spacer(modifier = Modifier.height(40.dp))
-                    Text(text = "${stringResource(R.string.explain_recently_read_part_text)} \uD83E\uDEE3",
+
+                    Box (
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp)
+                    ){
+                        Text(text = "${stringResource(R.string.explain_recently_read_part_text)} \uD83E\uDEE3",
                             fontSize = 20.sp,
-                        fontWeight = FontWeight.Black,
-                        textAlign = TextAlign.Left,
-                        )
-
-                    Spacer(modifier = Modifier.height(40.dp))
-
-                    FilledTonalButton(
-                        colors = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = colorResource(R.color.modified)
-                        ),
-                        onClick = {
-
-                        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT ).apply {
-                            addCategory(Intent.CATEGORY_OPENABLE)
-                            type = "*/*"
-                        }
-                        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        // MainActivity.mainActivity.startActivityForResult(intent, 2)
-                        MainActivity.openDocumentLauncher.launch(intent)
-                    }) {
-
-                        Image(
-                            painter = painterResource(R.drawable.open_pdf_01) ,
-                            contentDescription = "icon" ,
-                            alignment = Alignment.Center ,
+                            fontWeight = FontWeight.Black,
+                            textAlign = TextAlign.Center,
                             modifier = Modifier
-                                .size(32.dp)
-                                .zIndex(1f)
+                                .align(Alignment.TopCenter)
                         )
-                        Text(text = stringResource(R.string.opendocument) , color = Color.White)
+
+                        Spacer(modifier = Modifier.height(40.dp))
+
+                        FilledTonalButton(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter),
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = colorResource(R.color.modified)
+                            ),
+                            onClick = {
+
+                                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT ).apply {
+                                    addCategory(Intent.CATEGORY_OPENABLE)
+                                    type = "*/*"
+                                }
+                                intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                // MainActivity.mainActivity.startActivityForResult(intent, 2)
+                                MainActivity.openDocumentLauncher.launch(intent)
+                            }) {
+
+                            Image(
+                                painter = painterResource(R.drawable.open_pdf_01) ,
+                                contentDescription = "icon" ,
+                                alignment = Alignment.Center ,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .zIndex(1f)
+                            )
+                            Text(text = stringResource(R.string.opendocument) , color = Color.White)
+                        }
                     }
+
 
                 }
             }
@@ -215,38 +249,55 @@ fun RecentlyRead(appViewModel: AppViewModel){
 
 @Composable
 fun RecentlyReadItemView(file: File){
-    ElevatedCard(
-        onClick = {
-            ripple(bounded = true)
 
-
-            val intent = Intent(context , PDFViewerActivity::class.java).apply {
-                putExtra("fileUri" , file.uri)
-                putExtra("fileDisplayName" , file.name)
-            }
-            context.startActivity(intent)
-        },
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp , pressedElevation = 6.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
+    Box (
         modifier = Modifier
+            .background(Color.Transparent)
             .padding(vertical = 8.dp)
-    ) {
+            .clickable(
+                enabled = true ,
+                role = Role.Button ,
+                onClickLabel = "recentlyDocument" ,
+                onClick = {
+                    ripple(bounded = true)
+
+                    val intent = Intent(context , PDFViewerActivity::class.java).apply {
+                        putExtra("fileUri" , file.uri)
+                        putExtra("fileDisplayName" , file.name)
+                    }
+                    context.startActivity(intent)
+                }
+            )
+    ){
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp , vertical = 16.dp)
+                .padding(horizontal = 8.dp , vertical = 8.dp)
         ) {
-            Image(
-                painter = painterResource(R.drawable.open_pdf_01) ,
-                contentDescription = "icon" ,
-                alignment = Alignment.Center ,
+
+            Surface (
+                shape = CircleShape ,
+                color = Color.LightGray.copy(0.5f) , 
                 modifier = Modifier
-                    .size(32.dp)
-                    .zIndex(1f)
-            )
+                    .size(60.dp)
+            ){
+                Box (
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Image(
+
+                        painter = painterResource(R.drawable.open_pdf_01) ,
+                        contentDescription = "icon" ,
+                        alignment = Alignment.Center ,
+                        modifier = Modifier
+                            .size(32.dp)
+                            .zIndex(1f)
+                    )
+                }
+            }
             Text(
                 color = MaterialTheme.colorScheme.onPrimary,
                 overflow = TextOverflow.Ellipsis,
@@ -259,12 +310,16 @@ fun RecentlyReadItemView(file: File){
         }
     }
 
+
+
 }
 
 @Preview(showBackground = true)
 @Composable
 fun PreviewRecentlyRead(){
+    val file = File("", stringResource(R.string.recently_read_item1))
     DocuNoteTheme {
-        RecentlyRead(AppViewModel())
+        //RecentlyRead(AppViewModel())
+        RecentlyReadItemView(file)
     }
 }

@@ -316,5 +316,15 @@ public class icore {
         nativeLoadFont(font_path);
     }
 
+    public native Map<Integer,String> nativeParseTextOfPages(String filePath);
 
+    public Map<Integer,String> parseTextOfPages(String filePath){
+        return nativeParseTextOfPages(filePath);
+    }
+
+    public native String nativeCreateDocumentOfSummarize(byte[] joinedSummText , Context context , String fileName);
+
+    public String createSummarizedDocument(byte[] joinedSummText , Context context , String fileName){
+        return nativeCreateDocumentOfSummarize(joinedSummText , context , fileName);
+    }
 }

@@ -525,6 +525,281 @@ LOGI("Page count: %d", pageCount);
 return reinterpret_cast<jlong>(document);; // Return true if the page is successfully added
 }
 
+
+JNI_FUNC(jobject , icore , nativeParseTextOfPages)(JNIEnv* env , jobject thiz , jstring filePath){
+
+    const char* nativeFilePath = env -> GetStringUTFChars(filePath , NULL);
+
+    FPDF_DOCUMENT document = FPDF_LoadDocument(nativeFilePath , "");
+    if(!document){
+LOGE("Invalid document handle!");
+return nullptr ;
+    }
+
+// Log the page count
+int pageCount = FPDF_GetPageCount(document);
+LOGI("Page count: %d", pageCount);
+
+
+// HashMap<Integer, String> oluştur
+jclass hashMapClass = env->FindClass("java/util/HashMap");
+jmethodID hashMapConstructor = env->GetMethodID(hashMapClass, "<init>", "()V");
+jmethodID mapPutMethod = env->GetMethodID(hashMapClass, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+jobject map = env->NewObject(hashMapClass, hashMapConstructor);
+
+for(int pageIndex = 0; pageIndex < pageCount; pageIndex++){
+
+// Load the page
+FPDF_PAGE page = FPDF_LoadPage(document, pageIndex);
+if (!page) {
+LOGE("Failed to load page %d", pageIndex);
+return nullptr;
+}
+
+// Load the text page (required to extract text from the PDF page)
+FPDF_TEXTPAGE textPage = FPDFText_LoadPage(page);
+if (!textPage) {
+LOGE("Failed to load text for page %d", pageIndex);
+FPDF_ClosePage(page);
+return nullptr;
+}
+
+// Get the total number of characters in the page
+int textLength = FPDFText_CountChars(textPage);
+if (textLength <= 0) {
+LOGI("No text found on page %d", pageIndex);
+FPDFText_ClosePage(textPage);
+FPDF_ClosePage(page);
+continue;
+}
+LOGI("Text length on page %d: %d", pageIndex , textLength);
+
+// Allocate memory for the text buffer
+unsigned short* buffer = new unsigned short[textLength + 1]; // +1 for null terminator
+
+// Extract the text
+FPDFText_GetText(textPage, 0, textLength, buffer);
+
+// Null-terminate the buffer
+buffer[textLength] = '\0';
+
+
+// UTF-16 metni std::u16string'e dönüştür
+std::u16string utf16Text(reinterpret_cast<const char16_t*>(buffer), textLength);
+
+
+// Java tarafına string olarak dönüştür
+jstring javaString = env->NewString(reinterpret_cast<const jchar*>(utf16Text.c_str()), utf16Text.length());
+
+const char* cString = env->GetStringUTFChars(javaString, NULL);
+
+// Loglamak
+LOGI("Java String: %s", cString);
+// PageIndex'i Java Integer olarak oluştur
+jclass integerClass = env->FindClass("java/lang/Integer");
+jmethodID integerConstructor = env->GetMethodID(integerClass, "<init>", "(I)V");
+jobject pageIndexObject = env->NewObject(integerClass, integerConstructor, pageIndex);
+
+// HashMap'e (pageIndex, text) çiftini ekle
+env->CallObjectMethod(map, mapPutMethod, pageIndexObject, javaString);
+
+
+// Clean up
+delete[] buffer;
+FPDFText_ClosePage(textPage);
+FPDF_ClosePage(page);
+}
+
+FPDF_CloseDocument(document);
+env->ReleaseStringUTFChars(filePath, nativeFilePath);
+
+return map;
+}
+
+JNI_FUNC(jstring , icore , nativeCreateDocumentOfSummarize)(JNIEnv* env , jobject thiz , jbyteArray joinedSummText , jobject context , jstring fileName) {
+// Sabit değerler
+const float PAGE_WIDTH = 595.0f;          // A4 sayfa genişliği (nokta)
+const float PAGE_HEIGHT = 842.0f;         // A4 sayfa yüksekliği (nokta)
+const float TOP_MARGIN = 56.7f;           // Üst kenar boşluğu (nokta)
+const float BOTTOM_MARGIN = 56.7f;        // Alt kenar boşluğu (nokta)
+const float LEFT_MARGIN = 42.5f;          // Sol kenar boşluğu (nokta)
+const float RIGHT_MARGIN = 42.5f;         // Sağ kenar boşluğu (nokta)
+const float FONT_SIZE = 12.0f;            // Font boyutu (nokta)
+const float LINE_HEIGHT = 14.4f;          // Satır yüksekliği (nokta)
+const float MAX_LINE_LENGTH = PAGE_WIDTH - RIGHT_MARGIN ; // Maksimum satır uzunluğu (nokta)
+
+// Sayfa başına kaç satır olacak
+int linesPerPage = (PAGE_HEIGHT - TOP_MARGIN - BOTTOM_MARGIN) / LINE_HEIGHT;
+
+// Döküman handle'ını kontrol et
+FPDF_DOCUMENT document = FPDF_CreateNewDocument();
+if (!document) {
+LOGE("Invalid document handle!");
+return nullptr;
+}
+
+// Java byte array'ini C byte array'ine dönüştür
+jbyte* utf16Bytes = env->GetByteArrayElements(joinedSummText, nullptr);
+if (!utf16Bytes) {
+LOGE("Failed to get byte array elements!");
+return nullptr;
+}
+jsize length = env->GetArrayLength(joinedSummText);
+if (length % 2 != 0) {
+LOGE("Invalid UTF-16 byte array length!");
+env->ReleaseByteArrayElements(joinedSummText, utf16Bytes, JNI_ABORT);
+return nullptr;
+}
+// Metni satırlara ayır
+std::vector<std::vector<uint16_t>> lines;
+std::vector<uint16_t> currentLine;
+float charWidth = FONT_SIZE * 0.55f;
+float lineLength = 0.0f;
+
+for (jsize i = 0; i < length; i += 2) {
+uint16_t charCode = static_cast<uint16_t>(utf16Bytes[i] & 0xFF) | (static_cast<uint16_t>(utf16Bytes[i + 1] & 0xFF) << 8);
+
+if (charCode == 0x000A || (lineLength + charWidth > MAX_LINE_LENGTH)) {
+// Yeni satıra geç
+lines.push_back(currentLine);
+currentLine.clear();
+lineLength = 0.0f;
+
+if (charCode == 0x000A) {
+continue;
+}
+}
+
+// Karakteri mevcut satıra ekle
+currentLine.push_back(charCode);
+lineLength += charWidth;
+}
+
+// Son satırı ekle (eğer varsa)
+if (!currentLine.empty()) {
+lines.push_back(currentLine);
+}
+
+// Geçici dosya için yol
+jclass contextClass = env->GetObjectClass(context);
+jmethodID getCacheDirMethod = env->GetMethodID(contextClass, "getCacheDir", "()Ljava/io/File;");
+jobject cacheDir = env->CallObjectMethod(context, getCacheDirMethod);
+
+jclass fileClass = env->GetObjectClass(cacheDir);
+jmethodID getAbsolutePathMethod = env->GetMethodID(fileClass, "getAbsolutePath", "()Ljava/lang/String;");
+jstring cacheDirPath = (jstring) env->CallObjectMethod(cacheDir, getAbsolutePathMethod);
+
+const char* nativeFileName = env->GetStringUTFChars(fileName, NULL);
+
+const char* nativeCacheDir = env->GetStringUTFChars(cacheDirPath, 0);
+
+std::string tempFilePath = std::string(nativeCacheDir) + "/" + std::string(nativeFileName) + ".pdf";
+
+FILE* tempFile = fopen(tempFilePath.c_str(), "wb");
+if (!tempFile) {
+LOGE("Failed to create temp file in cache directory!");
+return nullptr;
+}
+int pageIndex = 0;
+
+// PDF sayfalarını oluştur
+FPDF_PAGE page = FPDFPage_New(document, pageIndex, PAGE_WIDTH, PAGE_HEIGHT);
+pageIndex++;
+
+if (!page) {
+LOGE("Failed to create a new page!");
+fclose(tempFile);
+return nullptr;
+}
+
+// Fontu yükle
+FPDF_FONT font = FPDFText_LoadFont(document, globalFontData.data(), globalFontData.size(), FPDF_FONT_TRUETYPE, true);
+if (!font) {
+LOGE("Failed to load font into PDF document");
+fclose(tempFile);
+return nullptr;
+}
+
+float currentX = LEFT_MARGIN;
+float currentY = PAGE_HEIGHT - TOP_MARGIN;
+
+int currentLineCount = 0;
+
+// Her satırı PDF'e ekle
+for (size_t i = 0; i < lines.size(); ++i) {
+const auto& line = lines[i];
+
+// Metin objesi oluştur
+FPDF_PAGEOBJECT textObject = FPDFPageObj_CreateTextObj(document, font, FONT_SIZE);
+if (!textObject) {
+LOGE("Failed to create text object for line %zu", i);
+continue;
+}
+
+// Satırı UTF-16LE byte dizisine dönüştür
+std::vector<uint8_t> utf16Line;
+for (uint16_t charCode : line) {
+utf16Line.push_back(static_cast<uint8_t>(charCode & 0xFF));
+utf16Line.push_back(static_cast<uint8_t>((charCode >> 8) & 0xFF));
+}
+
+// NULL sonlandırıcı ekle
+utf16Line.push_back(0x00);
+utf16Line.push_back(0x00);
+
+if (utf16Line.size() <= 2) {
+LOGE("Empty UTF-16 line data for line %zu", i);
+FPDFPageObj_Destroy(textObject);
+continue;
+}
+
+if (!FPDFText_SetText(textObject, reinterpret_cast<FPDF_WIDESTRING>(utf16Line.data()))) {
+LOGE("FPDFText_SetText failed for line %zu", i);
+FPDFPageObj_Destroy(textObject);
+continue;
+}
+
+FPDFPageObj_Transform(textObject, 1, 0, 0, 1, currentX, currentY);
+FPDFPage_InsertObject(page, textObject);
+
+currentY -= LINE_HEIGHT;
+currentLineCount++;
+
+if (currentLineCount >= linesPerPage) {
+// Sayfa dolmuşsa, yeni bir sayfa oluştur
+FPDFPage_GenerateContent(page);
+
+// Yeni sayfa oluştur
+page = FPDFPage_New(document, pageIndex, PAGE_WIDTH, PAGE_HEIGHT);
+currentY = PAGE_HEIGHT - TOP_MARGIN;
+currentLineCount = 0;
+pageIndex++;
+}
+}
+
+// Sayfa içeriğini güncelle
+FPDFPage_GenerateContent(page);
+
+
+// CustomFileWriter yapılandırın
+CustomFileWriter writer;
+writer.fileWrite.version = 1;
+writer.fileWrite.WriteBlock = WriteBlock;  // Var olan WriteBlock fonksiyonunuz
+writer.file = tempFile;
+
+// PDF'i geçici dosyaya kaydet
+FPDF_SaveWithVersion(document, reinterpret_cast<FPDF_FILEWRITE*>(&writer), FPDF_NO_INCREMENTAL, 15);
+
+// Temizleme işlemleri
+env->ReleaseByteArrayElements(joinedSummText, utf16Bytes, JNI_ABORT); // <-- EKLENDİ
+FPDF_ClosePage(page);
+FPDF_CloseDocument(document);
+fclose(tempFile);
+
+// Dosya yolunu döndür
+return env->NewStringUTF(tempFilePath.c_str());
+}
+
 JNI_FUNC(jboolean , icore , nativeDrawPath)(JNIEnv* env , jobject thiz ,
         jstring filePath , jobject PathMapObject , jint dpi){
 
@@ -622,14 +897,16 @@ LOGD("Key (Page Index) as Integer: %d", pageIndex);
 // PathData class and its fields
 jclass pathDataClass = env->FindClass("com/batuscode/pdfium/PathData");
 jfieldID pathField = env->GetFieldID(pathDataClass, "path", "Ljava/util/List;");
-//jfieldID colorField = env->GetFieldID(pathDataClass, "mcolor", "Landroidx/compose/ui/graphics/Color;");
+jfieldID colorField = env->GetFieldID(pathDataClass, "mcolor", "I");
 jfieldID thicknessField = env->GetFieldID(pathDataClass, "thickness", "F");
+/*
 
-jmethodID getMcolorValueMethod = env->GetMethodID(pathDataClass, "getMcolorValue", "()J");
+jmethodID getMcolorValueMethod = env->GetMethodID(pathDataClass, "getColorValue", "()J");
 if (getMcolorValueMethod == nullptr) {
 // Hata: Metot bulunamadı
 return false ;
 }
+*/
 
 // OffsetWrapper class and its methods
 jclass offsetWrapperClass = env->FindClass("com/batuscode/pdfium/OffsetWrapper");
@@ -652,12 +929,13 @@ jobject pathDataObj = env->CallObjectMethod(pathsListObj, listGetMethod, i);
 //jobject colorObj = env->GetObjectField(pathDataObj, colorField);
 jfloat thickness = env->GetFloatField(pathDataObj, thicknessField);
 
-jobject colorObj = env->CallObjectMethod(pathDataObj, getMcolorValueMethod);
+//jobject colorObj = env->CallObjectMethod(pathDataObj, getMcolorValueMethod);
 
-
+/*
 jclass colorClass = env->FindClass("androidx/compose/ui/graphics/Color");
 jmethodID toArgbMethod = env->GetMethodID(colorClass, "toArgb", "()I");
-int colorInt = env->CallIntMethod(colorObj, toArgbMethod);
+int colorInt = env->CallIntMethod(colorObj, toArgbMethod);*/
+int colorInt = env->GetIntField(pathDataObj, colorField);
 
 
 // Get the path (List<OffsetWrapper>) from PathData
