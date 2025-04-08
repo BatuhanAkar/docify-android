@@ -92,12 +92,11 @@ import androidx.compose.ui.zIndex
 import androidx.core.net.toUri
 import com.batuscode.docunote.CreatePDFActivity
 import com.batuscode.docunote.MainActivity
-import com.batuscode.docunote.PDFViewerActivity
 import com.batuscode.docunote.R
-import com.batuscode.docunote.SummfyAI
 import com.batuscode.docunote.model.ExtensionButton
 import com.batuscode.docunote.model.Menu
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
+import com.batuscode.docunote.utils.AssetPacksUtil
 import com.batuscode.docunote.viewmodel.AppViewModel
 import kotlinx.coroutines.launch
 
@@ -108,6 +107,7 @@ fun Extensions(appViewModel: AppViewModel){
     val menuListState = rememberLazyListState()
     ModalBottomSheet(
         onDismissRequest = {
+            AssetPacksUtil.fromExtensions.value = false
             appViewModel.update_extensionsOpenState(false)
         } ,
         sheetState = sheetState ,
@@ -339,9 +339,17 @@ fun ButtonFlow(button: ExtensionButton , modalbottomsheetstate: SheetState , app
                                 }
 
                                 4 -> {
-
-                                    val intent = Intent(context, SummfyAI::class.java)
-                                    context.startActivity(intent)
+                                    AssetPacksUtil.fromExtensions.value = true
+                                    AssetPacksUtil.isPacksInstalled()
+                                    /*if (ModelUtil.isModuleInstalled(context,"docifyai")){
+                                        Log.d("dynamicModules" , "docifyai module is not installed...")
+                                        ModelUtil.downloadModule(context)
+                                    } else {
+                                        Log.d("dynamicModules" , "docifyai module is installed...")
+                                        ModelUtil.startModuleLauncherActivity(context,"com.batuscode.docifyai.DocifyAI")
+                                    }*/
+                                    /*val intent = Intent(context, SummfyAI::class.java)
+                                    context.startActivity(intent)*/
                                 }
                             }
                         }

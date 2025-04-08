@@ -1,7 +1,11 @@
 pluginManagement {
 
     repositories {
-
+        mavenCentral()
+        maven {
+            url = uri("https://jitpack.io")
+        }
+        google()
         google {
             content {
                 includeGroupByRegex("com\\.android.*")
@@ -9,11 +13,8 @@ pluginManagement {
                 includeGroupByRegex("androidx.*")
             }
         }
-        mavenCentral()
         gradlePluginPortal()
-        maven {
-            url = uri("https://jitpack.io")
-        }
+
     }
 }
 dependencyResolutionManagement {
@@ -35,3 +36,4 @@ dependencyResolutionManagement {
 rootProject.name = "DocuNote"
 include(":app")
 include(":pdfium")
+include(":docifyai")

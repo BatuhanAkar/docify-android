@@ -32,7 +32,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -51,35 +50,37 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.sp
-import com.batuscode.docunote.ui.theme.DocuNoteTheme
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.batuscode.docunote.SummfyAI.Companion.chatList
-import com.batuscode.docunote.SummfyAI.Companion.converter
-import com.batuscode.docunote.SummfyAI.Companion.generatedFileUri
-import com.batuscode.docunote.SummfyAI.Companion.summDocLauncher
+import com.batuscode.docunote.DocifyAI.Companion.chatList
+import com.batuscode.docunote.DocifyAI.Companion.converter
+import com.batuscode.docunote.DocifyAI.Companion.generatedFileUri
+import com.batuscode.docunote.DocifyAI.Companion.summDocLauncher
+import com.batuscode.docunote.ui.theme.DocuNoteTheme
+import com.batuscode.docunote.MainActivity.Companion.llmInference
 import com.batuscode.docunote.model.AIChatListItem
+import com.batuscode.docunote.utils.AssetPacksUtil
 import com.batuscode.docunote.utils.PDFConverter
 import com.google.mediapipe.tasks.genai.llminference.ProgressListener
 import kotlinx.coroutines.CoroutineScope
@@ -90,26 +91,37 @@ import kotlinx.coroutines.withContext
 import java.io.OutputStream
 import kotlin.math.roundToInt
 
-class SummfyAI : ComponentActivity() {
+class DocifyAI : ComponentActivity() {
     companion object{
         lateinit var summDocLauncher: ActivityResultLauncher<Intent>
         var showselectdocumentbutton = mutableStateOf(false)
         lateinit var converter: PDFConverter
         lateinit var parsedTextOfPages: Map<Int, String>
-        lateinit var summedTextOfPages : MutableMap<Int, String>
         val chatList = mutableStateListOf<AIChatListItem>()
-        var generatedText = mutableStateOf("")
         var chatListItemIndex = mutableStateOf(0)
         lateinit var generatedFileUri: Uri
-
+        var initializedLLM = mutableStateOf(false)
     }
 
+    override fun onStop() {
+        super.onStop()
+        AssetPacksUtil.fromExtensions.value = false
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        AssetPacksUtil.fromExtensions.value = false
+    }
+    fun refreshList(){
+        if (chatList.isNotEmpty()){
+            chatList.clear()
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         converter = PDFConverter(this)
         val context = this
-
-
+        refreshList()
 
         summDocLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -145,14 +157,14 @@ class SummfyAI : ComponentActivity() {
                     var fileName : String = ""
                     cursor?.use {
                         if (it.moveToFirst()){
-                             prefix = context.getString(R.string.summarized_prefix_text)
-                             displayName = it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                            prefix = context.getString(com.batuscode.docunote.R.string.summarized_prefix_text)
+                            displayName = it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
 
 
 
-                             dotIndex = displayName.lastIndexOf('.')
-                             fileNameWithoutExtension = if (dotIndex != -1) displayName.substring(0, dotIndex) else displayName
-                             fileName = "(${prefix}) ${fileNameWithoutExtension}"
+                            dotIndex = displayName.lastIndexOf('.')
+                            fileNameWithoutExtension = if (dotIndex != -1) displayName.substring(0, dotIndex) else displayName
+                            fileName = "(${prefix}) ${fileNameWithoutExtension}"
                         }
                     }
 
@@ -176,10 +188,10 @@ class SummfyAI : ComponentActivity() {
                         }
                         chatListItemIndex.value += 1
 
-                        chatList.add( chatListItemIndex.value , AIChatListItem.SumItem(generating = mutableStateOf(false) , mutableStateOf("") , mutableStateOf("")))
+                        chatList.add(chatListItemIndex.value , AIChatListItem.SumItem(generating = mutableStateOf(false) , mutableStateOf("") , mutableStateOf("")))
 
                         val summedTextOfPages = parsedTextOfPages.map { (key, value) ->
-                            key to Summarize(value)  // Her bir key-value çifti için Summarize fonksiyonu çağrılır
+                            key to Summarize(smartTrim(value))  // Her bir key-value çifti için Summarize fonksiyonu çağrılır
                         }.toMap()  // Sonuçta bir Map oluşturulur
 
                         val joinedSummText = summedTextOfPages.values.joinToString(" ")
@@ -230,8 +242,11 @@ class SummfyAI : ComponentActivity() {
                 label = "offset"
             )
             var animVis = remember { mutableStateOf(false) }
-            val gradientColors = listOf(colorResource(R.color.modified),colorResource(R.color.rose500) /*...*/)
-            LaunchedEffect(Unit) {
+            val gradientColors = listOf(colorResource(R.color.modified),colorResource(
+                R.color.rose500) /*...*/)
+
+
+            LaunchedEffect(initializedLLM.value) {
 
 
                 delay(200)
@@ -241,33 +256,11 @@ class SummfyAI : ComponentActivity() {
                 delay(600)
                 showGeneratedText = showGeneratedText.not()
                 delay(200)
-                chatList.add(chatListItemIndex.value , AIChatListItem.TextItem(generating = mutableStateOf(true) , generatedText))
-
-
-                CoroutineScope(Dispatchers.Default).launch{
-                    val welcomeText = "Write exactly this text: 'Send the document, get the summary – how does that sound?'"
-                    val prompt = welcomeText
-                    MainActivity.llmInference.generateResponseAsync(prompt, object : ProgressListener<String>{
-                        override fun run(partialResult: String?, done: Boolean) {
-                            Log.d("summarized" , "value :: ${done}")
-                            generatedText.value = generatedText.value.plus(partialResult)
-
-                            if (chatList.isNotEmpty() && chatList[chatListItemIndex.value] is AIChatListItem.TextItem){
-                                if (!done){
-                                    (chatList[chatListItemIndex.value] as AIChatListItem.TextItem).generating.value = done
-                                }
-                                (chatList[chatListItemIndex.value] as AIChatListItem.TextItem).text.value = generatedText.value
-                            }
-                            if (done){
-                                showselectdocumentbutton.value = done
-                            }
-                        }
-
-                    })
-                }
-
+                SystemPrompts.welcoming()
 
             }
+
+
             DocuNoteTheme {
                 Scaffold(
                     modifier = Modifier.fillMaxSize().statusBarsPadding()
@@ -280,12 +273,13 @@ class SummfyAI : ComponentActivity() {
                             .fillMaxSize()
                     ) {
                         AnimatedVisibility(
-                            visible = animVis.value ,
-                            enter = fadeIn(animationSpec = tween(600) )
+                            visible = animVis.value,
+                            enter = fadeIn(animationSpec = tween(600))
                         ) {
                             Box(
                                 modifier = Modifier
-                            ){
+                                    .padding(16.dp)
+                            ) {
                                 Text(
                                     textAlign = TextAlign.Center,
                                     text = "Docify",
@@ -301,14 +295,14 @@ class SummfyAI : ComponentActivity() {
                         }
 
                         AnimatedVisibility(
-                            visible = showGeneratedText ,
+                            visible = showGeneratedText,
                             enter = fadeIn(animationSpec = tween(200))
                         ) {
                             ChatFlow(chatList)
                         }
 
                         AnimatedVisibility(
-                            visible = showselectdocumentbutton.value ,
+                            visible = showselectdocumentbutton.value,
                             enter = fadeIn(animationSpec = tween(200))
                         ) {
                             SelectDocumentButton()
@@ -320,7 +314,36 @@ class SummfyAI : ComponentActivity() {
     }
 }
 
+suspend fun explodeSourceText(text: String , maxChars: Int = 100): String{
+    val result = StringBuilder()
 
+    var startIndex = 0
+    while (startIndex < text.length) {
+        val endIndex = minOf(startIndex + maxChars, text.length)
+        val partText = text.substring(startIndex, endIndex)
+
+        // Parçayı özetle ve sonuca ekle
+        result.append(Summarize(smartTrim(partText)))
+
+        // Sonraki parçaya geç
+        startIndex = endIndex
+    }
+    return result.toString()
+}
+
+suspend fun smartTrim(text: String, maxChars: Int = 2000): String {
+    if (text.length <= maxChars) return text
+
+    val safeZone = text.substring(0, maxChars)
+    val punctuationMarks = listOf('.', '!', '?')  // Noktalama işaretlerini bir liste olarak tanımlıyoruz
+    val lastSentenceEnd = safeZone.lastIndexOfAny(punctuationMarks.toCharArray())  // toCharArray ile dönüşüm yapıyoruz
+
+    return if (lastSentenceEnd != -1) {
+        safeZone.substring(0, lastSentenceEnd + 1)  // Son cümleyi almak için substring kullanıyoruz
+    } else {
+        safeZone  // Noktalama işareti yoksa, en son kelimeyi keser
+    }
+}
 suspend fun generatePrompt(index:Int , info:String): Boolean{
     var mdone = mutableStateOf(false)
     var generatedText = mutableStateOf("")
@@ -328,7 +351,7 @@ suspend fun generatePrompt(index:Int , info:String): Boolean{
     chatList.add( index , AIChatListItem.TextItem(generating = mutableStateOf(true) , text = generatedText))
 
     val prompt1 = "Write exactly this text: $info"
-    MainActivity.llmInference.generateResponseAsync(prompt1, object : ProgressListener<String>{
+    llmInference.generateResponseAsync(prompt1, object : ProgressListener<String>{
         override fun run(partialResult: String?, done: Boolean) {
             Log.d("summarized" , "value :: ${done}")
             generatedText.value = generatedText.value.plus(partialResult)
@@ -359,46 +382,49 @@ fun sanitizeTextForPdf(text: String): String {
         .takeIf { it.isNotEmpty() } ?: " " // Boşsa single space koy
 }
 suspend fun Summarize(documentText: String): String {
-    var mdone = mutableStateOf(false)
-    var partialText = mutableStateOf("")
+    var mdone = false
+    val sb = StringBuilder()
     /*val systemPrompt = "Important: Use only ASCII characters and basic punctuation marks.\n" +
             "     No special characters at the beginning of the line.You are a multilingual assistant. You must respond in the language that the user has written to you.Summarize the text in 3-4 sentences."
 
     */
     val systemPrompt = """
-    STRICT RULES:
-    1. Summarize ONLY the key points in 3-4 sentences
-    2. Use EXACTLY the same language as input text (Turkish here)
-    3. NEVER repeat numerical values or lists
-    4. NEVER add any information not in original text
-    5. Output format: Plain text without formatting
-    6. If text contains prices/fees, mention them GENERICALLY
-    
+    [FOLLOW THESE RULES STRICTLY]
+
+    - Detect the input language automatically and generate the summary in the same language.
+    - Summarize the text in 3-4 sentences.
+    - DO NOT repeat numbers or lists from the original text.
+    - DO NOT add any information that is not in the input text.
+    - Keep the output as plain text: no formatting, no lists, no titles.
+    - If the text contains prices or fees, mention them in a generic way (e.g., "certain fees may apply").
+
     INPUT TEXT:
-    """.trimIndent()
-    val prompt = "$systemPrompt+$documentText"
+""".trimIndent()
+    val prompt = "$systemPrompt\n$documentText\n\n# Please provide the summary now:"
 
     // Coroutine başlatıyoruz, asenkron işlemi burada bekliyoruz
+
     CoroutineScope(Dispatchers.Default).launch{
-        MainActivity.llmInference.generateResponseAsync(prompt, object : ProgressListener<String> {
+        llmInference.generateResponseAsync(prompt, object : ProgressListener<String> {
             override fun run(partialResult: String?, done: Boolean) {
                 Log.d("summarized", "value :: ${done}")
-                partialText.value = partialText.value.plus(partialResult)
+                sb.append(partialResult)
                 if (done) {
-                    mdone.value = done
+                    mdone = done
                 }
 
             }
         })
+
     }
 
 
     // 'mdone' değeri true olana kadar bekliyoruz
-    while (!mdone.value) {
+    while (!mdone) {
         delay(100) // Küçük bir gecikme ile döngüde bekleyin
     }
 
-    return sanitizeTextForPdf(partialText.value).ifEmpty { "null" } // Eğer metin boşsa "null" döndür
+    return sanitizeTextForPdf(sb.toString()).ifEmpty { "null" } // Eğer metin boşsa "null" döndür
 }
 
 @Composable
@@ -507,7 +533,7 @@ fun SummedItem(summedItem: AIChatListItem.SumItem){
         ) {
             // Chat mesajı balonu
             Row(
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -542,7 +568,7 @@ fun SummedItem(summedItem: AIChatListItem.SumItem){
                     maxLines = 1,
                     text = summedItem.fileName.value ,
                     modifier = Modifier
-                        .width(100.dp)
+                        .weight(1f)
                         .padding(horizontal = 16.dp)
                 )
                 IconButton(
@@ -659,19 +685,12 @@ fun ChatBubble(
         }
     }
 }
-@Composable
-fun Greeting2(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+
+
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview2() {
+fun SGreetingPreview() {
     DocuNoteTheme {
-        //SelectDocumentButton()
-        //ChatFlow()
     }
 }

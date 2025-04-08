@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" >
-
-    <uses-feature
-        android:glEsVersion="0x00020000"
-        android:required="true" />
-
-    <supports-gl-texture android:name="GL_OES_compressed_ETC1_RGB8_texture" />
-    <supports-gl-texture android:name="GL_OES_compressed_paletted_texture" />
-
-
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
@@ -19,6 +10,7 @@
         tools:ignore="ScopedStorage" />
 
     <application
+        android:hardwareAccelerated="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -28,12 +20,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DocuNote"
         tools:targetApi="35" >
-
-        <activity
-            android:name=".SummfyAI"
-            android:exported="false"
-            android:label="@string/title_activity_summfy_ai"
-            android:theme="@style/Theme.DocuNote" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -45,6 +31,10 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <activity android:name=".DocifyAI"
+            android:exported="false"
+            android:label="@string/title_activity_docify_ai"
+            android:theme="@style/Theme.DocuNote"/>
         <activity
             android:name=".ViewerActivity"
             android:exported="false"
@@ -81,6 +71,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <uses-native-library android:name="libOpenCL.so" android:required="false"/>
+        <uses-native-library android:name="libOpenCL-car.so" android:required="false"/>
+        <uses-native-library android:name="libOpenCL-pixel.so" android:required="false"/>
     </application>
 
 </manifest>

@@ -37,11 +37,23 @@
     <string name="recently_read_item2">Lecture notes</string>
     <string name="thickness">Thickness :</string>
     <string name="opacity">Opacity :</string>
-    <string name="title_activity_viewer">ViewerActivity</string>
+    <string name="title_activity_viewer" translatable="false">ViewerActivity</string>
     <string name="startRange">Start range</string>
     <string name="endRange">End range</string>
     <string name="folders">Folders</string>
-    <string name="title_activity_summfy_ai">SummfyAI</string>
-    <string name="summarized_prefix_text">Summarized</string>
-    <string name="summarize_prompt">Summarize text 3–4 sentences</string>
+    <string name="title_activity_summfy_ai" translatable="false">SummfyAI</string>
+    <string name="summarized_prefix_text" translatable="false">Summarized</string>
+    <string name="summarize_prompt" translatable="false">Summarize text 3–4 sentences</string>
+    <string name="title_gemma3_1b_int4" translatable="false">Docify AI</string>
+    <string name="title_docifyai" translatable="false">Docify AI</string>
+    <string name="docifyai" translatable="false">docifyai</string>
+    <string name="title_activity_docify_ai" translatable="false">DocifyAI</string>
+    <string name="dynamicfeaturedownloadrequest_title" translatable="false">A download is required to use the AI feature.</string>
+    <string name="dynamicfeaturedownloadrequest_explain" translatable="false">This feature is being downloaded as part of the application. Give your consent to download now or download later.</string>
+    <string name="download" translatable="false">Download now</string>
+    <string name="late_download" translatable="false">Later</string>
+    <string name="explain_download_ballon" translatable="false">Downloading...</string>
+    <string name="explain_pending_text" translatable="false">Pending...</string>
+    <string name="explain_transferring_text" translatable="false">Installing...</string>
+    <string name="explain_downloading_keepon">Download is already in progress.</string>
 </resources>
