@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 
 object SystemPrompts {
     suspend fun initInference(newModelPath: String , context: Context): LlmInference{
-        return withContext(Dispatchers.Main){
+        return withContext(Dispatchers.IO){
             val options = LlmInference.LlmInferenceOptions.builder()
                 .setModelPath(newModelPath) // Use the path we just got
                 .setPreferredBackend(LlmInference.Backend.CPU)

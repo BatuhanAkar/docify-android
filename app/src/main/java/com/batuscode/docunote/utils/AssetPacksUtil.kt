@@ -55,7 +55,7 @@ object AssetPacksUtil {
                 }
 
                 val path = getAbsoluteAssetPath(assetPackName , "ai/gemma3_1b_it_int4.task")
-                CoroutineScope(Dispatchers.Main).launch{
+                CoroutineScope(Dispatchers.IO).launch{
                     MainActivity.llmInference = SystemPrompts.initInference(path!!, context)
                 }
             }

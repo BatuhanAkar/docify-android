@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.batuscode.docunote.R
+import com.batuscode.docunote.ui.theme.DocuNoteTheme
 
 @Composable
 fun DynamicFeatureRequestDialog(
@@ -43,11 +45,11 @@ fun DynamicFeatureRequestDialog(
     Dialog(onDismissRequest = { onDismiss() }) {
         Surface(
             modifier = Modifier
-                .padding(24.dp)
+                .padding(16.dp)
                 .fillMaxWidth()
                 .wrapContentHeight() ,
             shape = RoundedCornerShape(24.dp),
-            color = Color.White.copy(alpha = 0.9f),
+            color = Color.White,
             tonalElevation = 4.dp
         ) {
             Column(
@@ -72,7 +74,8 @@ fun DynamicFeatureRequestDialog(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     OutlinedButton(
                         onClick = onDismiss
@@ -86,11 +89,20 @@ fun DynamicFeatureRequestDialog(
                         onClick = onConfirm
                     ) {
                         Text(
-                            text = stringResource(R.string.download)
+                            text = stringResource(R.string.download) ,
+                            textAlign = TextAlign.Center ,
+                            maxLines = 1
                         )
                     }
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DialogPreview(){
+    DocuNoteTheme {
     }
 }
