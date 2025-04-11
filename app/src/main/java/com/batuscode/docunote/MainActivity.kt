@@ -69,6 +69,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.batuscode.docunote.utils.AssetPacksUtil
 import com.batuscode.docunote.utils.PDFConverter
+import com.batuscode.docunote.utils.WordDocUtil
 import com.batuscode.docunote.view.DFDownloadProgressView
 import com.batuscode.docunote.view.DynamicFeatureRequestDialog
 import com.batuscode.pdfium.icore
@@ -88,6 +89,7 @@ class MainActivity : ComponentActivity() {
         lateinit var context: Context
         lateinit var openDocumentLauncher: ActivityResultLauncher<Intent>
         lateinit var openwordDocumentLauncher: ActivityResultLauncher<Intent>
+        lateinit var openpptDocumentLauncher: ActivityResultLauncher<Intent>
         lateinit var toFolderDocumentLauncher: ActivityResultLauncher<Intent>
         lateinit var mergeDocumentLauncher: ActivityResultLauncher<Intent>
         lateinit var splitDocumentLauncher: ActivityResultLauncher<Intent>
@@ -434,6 +436,68 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // open ppt
+
+        openpptDocumentLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+                /*  val uri: Uri? = data?.data
+                  // Seçilen dosya URI'ını burada kullanabilirsin
+                  if (uri != null) {
+                      // Örneğin, URI'yi bir dosyaya yazdırabilir veya okuyabilirsin
+                      Log.d("FileSelector", "Seçilen dosya: $uri")
+
+
+                  }*/
+
+                data?.let { it ->
+                    val uri = it.data
+                    val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+// Check for the freshest data.
+                    contentResolver.takePersistableUriPermission(uri!!, takeFlags)
+
+                    Log.d("newuri" , uri.toString())
+
+                    val cursor = contentResolver.query(
+                        uri!! ,
+                        arrayOf(OpenableColumns.DISPLAY_NAME) ,
+                        null ,
+                        null ,
+                        null
+                    )
+
+                    cursor?.use {
+                        if (it.moveToFirst()){
+                            val displayName = it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                            val dotIndex = displayName.lastIndexOf('.')
+                            val fileNameWithoutExtension = if (dotIndex != -1) displayName.substring(0, dotIndex) else displayName
+
+                            Log.d("newuri" , displayName)
+                            lifecycleScope.launch(Dispatchers.Main){
+
+                                if (!recentlyStat.value){
+                                    recentlyStat.value = recentlyStat.value.not()
+                                    fileManager.saveRecentlyStat(context,true)
+                                }
+
+                                /* val intent = Intent(context , PDFViewerActivity::class.java).apply {
+                                     putExtra("fileUri" , uri.toString())
+                                     putExtra("fileDisplayName" , fileNameWithoutExtension)
+                                 }
+
+                                 mainActivity.startActivity(intent)*/
+                            }
+                        }
+                    }
+
+
+                }
+            }
+        }
+
         // open word
         openwordDocumentLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -480,6 +544,7 @@ class MainActivity : ComponentActivity() {
                                     fileManager.saveRecentlyStat(context,true)
                                 }
 
+                                WordDocUtil.loadDocument(WordDocUtil.getWordDocFromUri(context,uri!!,fileNameWithoutExtension))
                                /* val intent = Intent(context , PDFViewerActivity::class.java).apply {
                                     putExtra("fileUri" , uri.toString())
                                     putExtra("fileDisplayName" , fileNameWithoutExtension)

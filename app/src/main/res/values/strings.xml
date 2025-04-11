@@ -57,4 +57,5 @@
     <string name="explain_transferring_text" translatable="false">Installing...</string>
     <string name="explain_downloading_keepon" translatable="false">Download is already in progress.</string>
     <string name="open_word_doc">Open Word</string>
+    <string name="open_ppt_doc">Open PowerPoint</string>
 </resources>
