@@ -33,4 +33,5 @@
     <string name="recently_read_item2">Forelæsningsnotater</string>
     <string name="thickness">Tykkelse :</string>
     <string name="opacity">Uigennemsigtighed :</string>
+    <string name="folders">Mapper</string>
 </resources>

@@ -33,4 +33,5 @@
     <string name="recently_read_item2">Luentomuistiinpanot</string>
     <string name="thickness">Paksuus :</string>
     <string name="opacity">Läpinäkymättömyys :</string>
+    <string name="folders">Kansiot</string>
 </resources>

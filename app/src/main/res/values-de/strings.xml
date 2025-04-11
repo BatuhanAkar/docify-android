@@ -33,4 +33,5 @@
     <string name="recently_read_item2">Vorlesungsnotizen</string>
     <string name="thickness">Dicke :</string>
     <string name="opacity">Undurchsichtigkeit :</string>
+    <string name="folders">Ordner</string>
 </resources>

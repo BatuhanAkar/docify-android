@@ -23,7 +23,7 @@ android {
         minSdk = 26
         //noinspection EditedTargetSdkVersion
         targetSdk = 35
-        versionCode = 10
+        versionCode = 12
         versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -83,6 +83,8 @@ dependencies {
 
     implementation (libs.compose.zoom)
     implementation (libs.lazycolumnscrollbar)
+    // https://mvnrepository.com/artifact/org.docx4j/docx4j
+    implementation("org.docx4j:docx4j:6.1.2")
     implementation(project(":pdfium"))
     implementation (libs.gson)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

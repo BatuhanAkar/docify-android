@@ -87,6 +87,7 @@ class MainActivity : ComponentActivity() {
         lateinit var mainActivity: ComponentActivity
         lateinit var context: Context
         lateinit var openDocumentLauncher: ActivityResultLauncher<Intent>
+        lateinit var openwordDocumentLauncher: ActivityResultLauncher<Intent>
         lateinit var toFolderDocumentLauncher: ActivityResultLauncher<Intent>
         lateinit var mergeDocumentLauncher: ActivityResultLauncher<Intent>
         lateinit var splitDocumentLauncher: ActivityResultLauncher<Intent>
@@ -107,6 +108,7 @@ class MainActivity : ComponentActivity() {
         lateinit var llmInference: LlmInference
         var expdwstatus = mutableStateOf("")
         val snackbarHostState = SnackbarHostState()
+        var waitinit = mutableStateOf(false)
     }
 
 
@@ -115,6 +117,8 @@ class MainActivity : ComponentActivity() {
         onDismissRequest: () -> Unit,
         onConfirm: (String,String) -> Unit
     ){
+
+
         var textFieldValue by remember { mutableStateOf("") }
         var startRangeValue by remember { mutableStateOf("") }
         var endRangeValue by remember { mutableStateOf("") }
@@ -425,6 +429,67 @@ class MainActivity : ComponentActivity() {
                         Log.d("newuri" , uri.toString())
 
                     }
+
+                }
+            }
+        }
+
+        // open word
+        openwordDocumentLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+                /*  val uri: Uri? = data?.data
+                  // Seçilen dosya URI'ını burada kullanabilirsin
+                  if (uri != null) {
+                      // Örneğin, URI'yi bir dosyaya yazdırabilir veya okuyabilirsin
+                      Log.d("FileSelector", "Seçilen dosya: $uri")
+
+
+                  }*/
+
+                data?.let { it ->
+                    val uri = it.data
+                    val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+// Check for the freshest data.
+                    contentResolver.takePersistableUriPermission(uri!!, takeFlags)
+
+                    Log.d("newuri" , uri.toString())
+
+                    val cursor = contentResolver.query(
+                        uri!! ,
+                        arrayOf(OpenableColumns.DISPLAY_NAME) ,
+                        null ,
+                        null ,
+                        null
+                    )
+
+                    cursor?.use {
+                        if (it.moveToFirst()){
+                            val displayName = it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                            val dotIndex = displayName.lastIndexOf('.')
+                            val fileNameWithoutExtension = if (dotIndex != -1) displayName.substring(0, dotIndex) else displayName
+
+                            Log.d("newuri" , displayName)
+                            lifecycleScope.launch(Dispatchers.Main){
+
+                                if (!recentlyStat.value){
+                                    recentlyStat.value = recentlyStat.value.not()
+                                    fileManager.saveRecentlyStat(context,true)
+                                }
+
+                               /* val intent = Intent(context , PDFViewerActivity::class.java).apply {
+                                    putExtra("fileUri" , uri.toString())
+                                    putExtra("fileDisplayName" , fileNameWithoutExtension)
+                                }
+
+                                mainActivity.startActivity(intent)*/
+                            }
+                        }
+                    }
+
 
                 }
             }

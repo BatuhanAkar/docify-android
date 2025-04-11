@@ -33,4 +33,5 @@
     <string name="recently_read_item2">講義ノート</string>
     <string name="thickness">厚さ :</string>
     <string name="opacity">不透明度 :</string>
+    <string name="folders">フォルダ</string>
 </resources>

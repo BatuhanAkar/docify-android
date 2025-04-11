@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import com.batuscode.docunote.DocifyAI
 import com.batuscode.docunote.MainActivity
 import com.batuscode.docunote.MainActivity.Companion.context
+import com.batuscode.docunote.MainActivity.Companion.llmInference
 import com.batuscode.docunote.SystemPrompts
 import com.google.android.play.core.assetpacks.AssetPackLocation
 import com.google.android.play.core.assetpacks.AssetPackManager
@@ -50,13 +51,15 @@ object AssetPacksUtil {
             AssetPackStatus.COMPLETED -> {
                 // Asset pack is ready to use. Start the game.
 
-                if (MainActivity.showDownloadProg.value){
-                    MainActivity.showDownloadProg.value = false
-                }
 
                 val path = getAbsoluteAssetPath(assetPackName , "ai/gemma3_1b_it_int4.task")
                 CoroutineScope(Dispatchers.IO).launch{
                     MainActivity.llmInference = SystemPrompts.initInference(path!!, context)
+
+                    if (MainActivity.showDownloadProg.value){
+                        MainActivity.waitinit.value = true
+                        MainActivity.showDownloadProg.value = false
+                    }
                 }
             }
             AssetPackStatus.FAILED -> {
@@ -104,14 +107,17 @@ object AssetPacksUtil {
                               }
                           }
                           AssetPackStatus.COMPLETED -> {
+
                               val path = getAbsoluteAssetPath(assetPackName , "ai/gemma3_1b_it_int4.task")
                               Log.d("AssetPack" , "path :: ${path}")
                               CoroutineScope(Dispatchers.IO).launch{
                                   MainActivity.llmInference = SystemPrompts.initInference(path!!, context)
+                                  MainActivity.waitinit.value = true
                                   if (fromExtensions.value){
                                       val intent = Intent(context, DocifyAI::class.java)
                                       context.startActivity(intent)
                                   }
+
                               }
                           }
                           else -> {

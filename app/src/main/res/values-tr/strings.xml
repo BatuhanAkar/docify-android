@@ -33,4 +33,5 @@
     <string name="opacity">Opaklık :</string>
     <string name="startRange">Başlangıç aralığı</string>
     <string name="endRange">Bitiş aralığı</string>
+    <string name="folders">Klasörler</string>
 </resources>

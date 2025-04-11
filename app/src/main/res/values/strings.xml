@@ -55,5 +55,6 @@
     <string name="explain_download_ballon" translatable="false">Downloading...</string>
     <string name="explain_pending_text" translatable="false">Pending...</string>
     <string name="explain_transferring_text" translatable="false">Installing...</string>
-    <string name="explain_downloading_keepon">Download is already in progress.</string>
+    <string name="explain_downloading_keepon" translatable="false">Download is already in progress.</string>
+    <string name="open_word_doc">Open Word</string>
 </resources>

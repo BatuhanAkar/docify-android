@@ -33,4 +33,5 @@
     <string name="recently_read_item2">Catatan kuliah</string>
     <string name="thickness">Ketebalan :</string>
     <string name="opacity">Opasitas :</string>
+    <string name="folders">Folder</string>
 </resources>

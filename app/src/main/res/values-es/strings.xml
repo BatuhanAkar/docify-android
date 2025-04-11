@@ -33,4 +33,5 @@
     <string name="thickness">Grosor :</string>
     <string name="opacity">Opacidad :</string>
     <string name="save">Guardar</string>
+    <string name="folders">Carpetas</string>
 </resources>
