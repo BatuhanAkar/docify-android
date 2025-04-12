@@ -96,7 +96,6 @@ fun Folders(appViewModel: AppViewModel){
             fontSize = 30.sp,
             fontWeight = FontWeight.Black,
             text = stringResource(R.string.folders),
-            color = Color.Black,
             modifier = Modifier
                 .wrapContentSize()
                 .padding(16.dp)
@@ -138,7 +137,6 @@ fun Folders(appViewModel: AppViewModel){
                     Column {
 
                         Text(text = "${stringResource(R.string.explain_folder_part_text)}\uD83E\uDEE1" ,
-                            color = Color.Black,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Black,
                             textAlign = TextAlign.Left,
@@ -243,7 +241,6 @@ fun ListItem(folder: Folder) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 fontWeight = FontWeight.Black,
-                color = Color.Black,
                 modifier = Modifier
                     .padding(vertical = 15.dp)
             )

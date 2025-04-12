@@ -368,7 +368,6 @@ class PDFViewerActivity : ComponentActivity() {
 
                 Scaffold(
 
-                    containerColor = MaterialTheme.colorScheme.background,
                     topBar = {
                         TopAppBar(
                             title = {
@@ -471,7 +470,6 @@ class PDFViewerActivity : ComponentActivity() {
                             userScrollEnabled = canScroll.value,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.primary)
                                 .clipToBounds() // clip modifikatörünü doğru sırada kullanın
                                 .enhancedZoom(
                                     clip = true,
@@ -828,6 +826,7 @@ class PDFViewerActivity : ComponentActivity() {
                                 shape = RectangleShape,
                                 // color = colorResource(id = R.color.e),
                                 modifier = Modifier
+                                    .background(Color.LightGray)
                                     .fillMaxWidth()
                                     .height(32.dp)
                                     .align(Alignment.BottomCenter)

@@ -303,7 +303,6 @@ fun RecentlyReadItemView(file: File){
                 }
             }
             Text(
-                color = MaterialTheme.colorScheme.onPrimary,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
                 text = file.name ,

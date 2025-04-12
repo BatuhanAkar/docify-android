@@ -398,7 +398,6 @@ fun ButtonFlow(button: ExtensionButton , modalbottomsheetstate: SheetState , app
                 }
             }
             Text(
-                color = MaterialTheme.colorScheme.onPrimary,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
                 text = button.name ,

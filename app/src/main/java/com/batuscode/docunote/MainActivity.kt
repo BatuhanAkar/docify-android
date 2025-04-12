@@ -677,7 +677,7 @@ class MainActivity : ComponentActivity() {
                         ,
                     floatingActionButton = {
                         FloatingActionButton(
-                            containerColor = MaterialTheme.colorScheme.background,
+                            containerColor = Color.LightGray,
                             onClick = {
                                 appViewModel.update_extensionsOpenState(_extensionsOpen.value.not())
                             } ,
