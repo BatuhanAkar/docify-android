@@ -129,8 +129,6 @@ fun Flow(modalbottomsheetstate: SheetState , appViewModel: AppViewModel){
 
     val createButtons = listOf(
         ExtensionButton(id = 4 , name = "Summarize Document with AI",R.drawable.ai_document_extension_file_format_icon),
-        ExtensionButton(id= 5 , name = stringResource(id = R.string.open_word_doc) , 0) ,
-        ExtensionButton(id= 6 , name = stringResource(id = R.string.open_ppt_doc) , 0) ,
         ExtensionButton(id = 0 , name = stringResource(id = R.string.openpdf) , R.drawable.open_pdf_01) ,
         ExtensionButton(id = 1 , name = stringResource(id = R.string.createpdf) , R.drawable.create_pdf_01) ,
         ExtensionButton(id = 2 , name = stringResource(id = R.string.mergepdf) , R.drawable.merge_pdf_01 ) ,
@@ -317,7 +315,7 @@ fun ButtonFlow(button: ExtensionButton , modalbottomsheetstate: SheetState , app
                                     // merge pdf button
                                     val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                                         addCategory(Intent.CATEGORY_OPENABLE)
-                                        type = "*/*"
+                                        type = "application/pdf"
                                         putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
 
                                     }
@@ -331,7 +329,7 @@ fun ButtonFlow(button: ExtensionButton , modalbottomsheetstate: SheetState , app
 
                                     val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                                         addCategory(Intent.CATEGORY_OPENABLE)
-                                        type = "*/*"
+                                        type = "application/pdf"
                                         putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
 
                                     }
@@ -356,29 +354,7 @@ fun ButtonFlow(button: ExtensionButton , modalbottomsheetstate: SheetState , app
                                     context.startActivity(intent)*/
                                 }
 
-                                5 -> {
-                                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT ).apply {
-                                        addCategory(Intent.CATEGORY_OPENABLE)
-                                        type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                                    }
-                                    intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-                                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
-                                    // MainActivity.mainActivity.startActivityForResult(intent, 2)
-                                    MainActivity.openwordDocumentLauncher.launch(intent)
-                                }
-
-                                6 -> {
-                                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT ).apply {
-                                        addCategory(Intent.CATEGORY_OPENABLE)
-                                        type = "application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                                    }
-                                    intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-                                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-
-                                    // MainActivity.mainActivity.startActivityForResult(intent, 2)
-                                    MainActivity.openpptDocumentLauncher.launch(intent)
-                                }
                             }
                         }
                     }.invokeOnCompletion {

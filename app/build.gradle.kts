@@ -46,6 +46,10 @@ android {
         debug {
             isDebuggable = true  // ← BU MUTLAKA TRUE OLMALI
             isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
         release {
             isMinifyEnabled = false
@@ -66,6 +70,21 @@ android {
         viewBinding = true
         compose = true
     }
+    packaging {
+        resources {
+            excludes += listOf(
+                "META-INF/DEPENDENCIES",
+                "META-INF/AL2.0",
+                "META-INF/LGPL2.1" ,
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.md" ,
+                "META-INF/NOTICE.md" ,
+                "META-INF/mimetypes.default" ,
+                "META-INF/mailcap.default" ,
+
+            )
+        }
+    }
     buildToolsVersion = "35.0.1"
     ndkVersion = "28.0.12433566 rc1"
 
@@ -83,8 +102,6 @@ dependencies {
 
     implementation (libs.compose.zoom)
     implementation (libs.lazycolumnscrollbar)
-    // https://mvnrepository.com/artifact/org.docx4j/docx4j
-    implementation("org.docx4j:docx4j:6.1.2")
     implementation(project(":pdfium"))
     implementation (libs.gson)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
