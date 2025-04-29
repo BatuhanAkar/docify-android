@@ -11,6 +11,7 @@ import android.os.Environment
 import android.provider.OpenableColumns
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
@@ -21,23 +22,29 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.TweenSpec
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.displayCutoutPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerBasedShape
@@ -60,6 +67,7 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -76,6 +84,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -90,29 +99,25 @@ import com.batuscode.docunote.view.Folders
 import com.batuscode.docunote.viewmodel.AppViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import com.batuscode.docunote.utils.FileManager
 import com.batuscode.docunote.view.RecentlyRead
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
-import com.batuscode.docunote.MainActivity.Companion.snackbarHostState
-import com.batuscode.docunote.utils.AssetPacksUtil
+import coil.compose.AsyncImage
+import com.batuscode.docunote.utils.Auth
 import com.batuscode.docunote.utils.DrawerSide
 import com.batuscode.docunote.utils.PDFConverter
 import com.batuscode.docunote.utils.WordDocUtil
-import com.batuscode.docunote.view.CustomSideDrawerContent
-import com.batuscode.docunote.view.CustomSideDrawerOverlay
-import com.batuscode.docunote.view.DFDownloadProgressView
-import com.batuscode.docunote.view.DynamicFeatureRequestDialog
 import com.batuscode.pdfium.icore
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
-import kotlinx.coroutines.delay
-import java.io.File
-import java.io.FileOutputStream
-import kotlin.math.abs
+import kotlinx.coroutines.CoroutineScope
 import kotlin.math.roundToInt
 
 
@@ -829,7 +834,7 @@ class MainActivity : ComponentActivity() {
                             }, appViewModel = appViewModel)
                         }
 
-                        if (!isDrawerOpen.value) {
+                        if (isDrawerOpen.value) {
                             CustomSideDrawerOverlay(
                                 isDrawerOpen = isDrawerOpen.value,
                                 onDismiss = {
@@ -863,8 +868,11 @@ class MainActivity : ComponentActivity() {
 @Preview(showBackground = true)
 @Composable
 fun MainContentPreview() {
+    var isDrawerOpen = remember { mutableStateOf(false) }
     DocuNoteTheme(darkTheme = true) {
         Scaffold(
+            modifier = Modifier
+                .fillMaxSize() ,
             bottomBar = {
                 BottomAppBar(
                     actions = {
@@ -877,6 +885,12 @@ fun MainContentPreview() {
                             Box(
                                 modifier = Modifier
                                     .padding(8.dp)
+                                    .clickable(
+                                        enabled = true ,
+                                        onClick = {
+                                            isDrawerOpen.value = isDrawerOpen.value.not()
+                                        }
+                                    )
                             ) {
 
                                 Image(
@@ -892,23 +906,26 @@ fun MainContentPreview() {
                                     .padding(8.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-
-
                                 ) {
-// scan ...
+
+                                // extensions ...
                                 Box(
                                     modifier = Modifier
                                         .clickable {
-
+                                          //  appViewModel.update_extensionsOpenState(true)
                                         }
                                 ) {
 
-                                    Image(
-                                        painter = painterResource(R.drawable.expand_content),
+                                  /*  Image(
+                                        painter = if (!_extensionsOpen.value) painterResource(
+                                            R.drawable.collapse_content
+                                        ) else painterResource(R.drawable.expand_content),
                                         contentDescription = null,
                                         contentScale = ContentScale.Crop
-                                    )
+                                    )*/
                                 }
+
+                                // scan ...
                                 Box(
                                     modifier = Modifier
                                         .clickable {
@@ -926,7 +943,18 @@ fun MainContentPreview() {
                                 Box(
                                     modifier = Modifier
                                         .clickable {
+                                            ripple(bounded = true, radius = 48.dp)
 
+                                            val intent =
+                                                Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                                                    addCategory(Intent.CATEGORY_OPENABLE)
+                                                    type = "application/pdf"
+                                                }
+                                            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                                            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+                                            // MainActivity.mainActivity.startActivityForResult(intent, 2)
+                                            MainActivity.openDocumentLauncher.launch(intent)
                                         }
                                 ) {
 
@@ -961,11 +989,270 @@ fun MainContentPreview() {
                 )
             }
         ) { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-            ) {
+
+            MainContent(modifier = Modifier.padding(innerPadding))
+            if (isDrawerOpen.value){
+                CustomSideDrawerOverlay(
+                    isDrawerOpen = isDrawerOpen.value,
+                    onDismiss = {
+                        isDrawerOpen.value = isDrawerOpen.value.not()
+                    },
+                    drawerContent = {
+                        CustomSideDrawerContent()
+                    },
+                    // No need to pass content here since it's handled separately
+                    drawerWidth = 300.dp,  // Customize the drawer width
+                    showMask = true,  // Optional: if you want to show the mask when drawer is open
+                    drawerSide = DrawerSide.RIGHT,  // Drawer from left, or RIGHT
+                    animationDuration = 300  // Animation duration for opening/closing the drawer
+                )
             }
+        }
+    }
+
+}
+
+@Composable
+fun MainContent(modifier: Modifier){
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+    ) {
+
+    }
+}
+
+
+@Composable
+fun CustomSideDrawerOverlay(
+    isDrawerOpen: Boolean,
+    onDismiss: () -> Unit,
+    drawerContent: @Composable ColumnScope.() -> Unit,
+    modifier: Modifier = Modifier,
+    drawerWidth: Dp = 300.dp,
+    animationDuration: Int = 300,
+    maskColor: Color = Color.Black.copy(alpha = 0.5f),
+    showMask: Boolean = false,
+    drawerSide: DrawerSide = DrawerSide.RIGHT,
+    cornerRadius: Dp = 32.dp,
+    dragThresholdFraction: Float = 0.5f,
+    enableSwipe: Boolean = true
+) {
+    // Coroutine scope for managing animations
+    val scope = rememberCoroutineScope()
+
+    val density = LocalDensity.current
+
+    // Width of the drawer in pixels
+    val drawerWidthPx = with(density) { drawerWidth.toPx() }
+
+    // Offset for the drawer animation
+    val offsetX = remember { Animatable(if (isDrawerOpen) 0f else drawerWidthPx * (if (drawerSide == DrawerSide.LEFT) -1 else 1)) }
+
+    // Launch animation when the drawer state changes
+    LaunchedEffect(isDrawerOpen) {
+        val targetOffsetX = if (isDrawerOpen) 0f else drawerWidthPx * (if (drawerSide == DrawerSide.LEFT) -1 else 1)
+        offsetX.animateTo(
+            targetValue = targetOffsetX,
+            animationSpec = tween(durationMillis = animationDuration)
+        )
+    }
+
+    if (isDrawerOpen) {
+        BackHandler {
+            onDismiss()
+        }
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .zIndex(1f)
+    ) {
+
+        // Mask overlay when the drawer is open
+        if (isDrawerOpen && showMask) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(maskColor)
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = { onDismiss() })
+                    }
+            )
+        }
+
+        // Drawer content
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(drawerWidth)
+                .offset { IntOffset(x = 2 * offsetX.value.roundToInt(), y = 0) }
+                .align(if (drawerSide == DrawerSide.LEFT) Alignment.CenterStart else Alignment.CenterEnd)
+                .systemBarsPadding()
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = if (cornerRadius > 0.dp) {
+                        if (drawerSide == DrawerSide.LEFT) {
+                            RoundedCornerShape(topEnd = cornerRadius, bottomEnd = cornerRadius)
+                        } else {
+                            RoundedCornerShape(topStart = cornerRadius, bottomStart = cornerRadius)
+                        }
+                    } else {
+                        RectangleShape
+                    }
+                )
+                .pointerInput(Unit) {
+                    if (enableSwipe) {
+                        detectDragGestures(
+                            onDragEnd = {
+                                scope.launch {
+                                    val shouldClose = when (drawerSide) {
+                                        DrawerSide.LEFT -> offsetX.value < -drawerWidthPx * dragThresholdFraction
+                                        DrawerSide.RIGHT -> offsetX.value > drawerWidthPx * dragThresholdFraction
+                                    }
+
+                                    val finalTarget = if (shouldClose) {
+                                        drawerWidthPx * (if (drawerSide == DrawerSide.LEFT) -1 else 1)
+                                    } else {
+                                        0f
+                                    }
+
+                                    offsetX.animateTo(
+                                        targetValue = finalTarget,
+                                        animationSpec = tween(durationMillis = animationDuration)
+                                    )
+
+                                    if (shouldClose) {
+                                        onDismiss()
+                                    }
+                                }
+                            }
+                        ) { change, dragAmount ->
+                            change.consume()
+
+                            scope.launch {
+                                val newOffset = offsetX.value + dragAmount.x
+
+                                val clampedOffset = when (drawerSide) {
+                                    DrawerSide.LEFT -> newOffset.coerceIn(-drawerWidthPx, 0f)
+                                    DrawerSide.RIGHT -> newOffset.coerceIn(0f, drawerWidthPx)
+                                }
+
+                                offsetX.snapTo(clampedOffset)
+                            }
+                        }
+                    }
+                }
+        ) {
+            // Content inside the drawer
+            drawerContent()
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+@Composable
+fun CustomSideDrawerContent(
+    drawerWidth: Dp = 300.dp ,
+    cornerRadius: Dp = 32.dp,
+){
+    val context = LocalContext.current
+    Column(
+        modifier = Modifier
+            .fillMaxHeight()
+            .width(drawerWidth)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(topEnd = cornerRadius, bottomEnd = cornerRadius)
+
+            ) ,
+        verticalArrangement = Arrangement.Bottom,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        Spacer(modifier = Modifier.height(64.dp))
+        Box(
+
+        ) {
+            AsyncImage(
+                model = Auth.auth.currentUser?.photoUrl ,
+                contentDescription = "stringResource(R.string.profile_photo)" ,
+                contentScale = ContentScale.Crop ,
+                modifier = Modifier
+                    .size(172.dp)
+                    .clip(CircleShape)
+            )
+
+
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = Auth.auth.currentUser?.displayName!! ,
+            style = MaterialTheme.typography.titleLarge
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Column {
+
+
+            OutlinedButton(
+                onClick = {
+                    val intent = Intent()
+                    intent.setAction(Intent.ACTION_SEND)
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    intent.setType("*/*")
+                    intent.putExtra(Intent.EXTRA_TEXT,"merhaba")
+                    context.startActivity(Intent.createChooser(intent,"share"))
+                } ,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.share_with_others)
+                )
+            }
+
+            Text(
+                text = "stringResource(R.string.earn_token)" ,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp) ,
+                style = MaterialTheme.typography.labelSmall ,
+            )
+
+
+            OutlinedButton(
+                onClick = {
+                    // InAppReview.requestReview(context)
+                } ,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp)
+            ) {
+                Text(
+                    text = "stringResource(R.string.rate_review)"
+                )
+            }
+        }
+
+
+        Spacer(modifier = Modifier.weight(1f))
+        OutlinedButton(
+            onClick = {
+                CoroutineScope(Dispatchers.IO).launch {
+                    Auth.signOut(context)
+                }
+            } ,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 16.dp)
+        ) {
+            Text(
+                text = "stringResource(R.string.sign_out)" ,
+            )
         }
     }
 }
