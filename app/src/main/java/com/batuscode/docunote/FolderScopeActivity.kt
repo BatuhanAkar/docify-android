@@ -97,11 +97,8 @@ class FolderScopeActivity : ComponentActivity() {
             }
 
 
+            enableEdgeToEdge()
             DocuNoteTheme {
-
-                enableEdgeToEdge(
-                    statusBarStyle = SystemBarStyle.auto(colorResource(R.color.modified).toArgb() , colorResource(R.color.modified).toArgb())
-                )
                 Scaffold(
                     topBar = {
                         TopAppBar(

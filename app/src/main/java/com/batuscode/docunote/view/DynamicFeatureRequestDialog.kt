@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -49,7 +50,7 @@ fun DynamicFeatureRequestDialog(
                 .fillMaxWidth()
                 .wrapContentHeight() ,
             shape = RoundedCornerShape(24.dp),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.background,
             tonalElevation = 4.dp
         ) {
             Column(
@@ -63,11 +64,13 @@ fun DynamicFeatureRequestDialog(
                     text = stringResource(R.string.dynamicfeaturedownloadrequest_title),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center ,
+                    color = MaterialTheme.colorScheme.onSecondary,
                 )
 
                 Text(
                     text = stringResource(R.string.dynamicfeaturedownloadrequest_explain),
+                    color = MaterialTheme.colorScheme.onSecondary,
                     fontSize = 16.sp,
                     textAlign = TextAlign.Center
                 )
@@ -81,7 +84,8 @@ fun DynamicFeatureRequestDialog(
                         onClick = onDismiss
                     ) {
                         Text(
-                            text = stringResource(R.string.late_download)
+                            text = stringResource(R.string.late_download) ,
+                            color = MaterialTheme.colorScheme.onSecondary,
                         )
                     }
 
@@ -90,6 +94,7 @@ fun DynamicFeatureRequestDialog(
                     ) {
                         Text(
                             text = stringResource(R.string.download) ,
+                            color = MaterialTheme.colorScheme.onSecondary,
                             textAlign = TextAlign.Center ,
                             maxLines = 1
                         )

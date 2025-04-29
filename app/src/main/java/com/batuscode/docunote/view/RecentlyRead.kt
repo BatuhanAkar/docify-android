@@ -183,7 +183,7 @@ fun RecentlyRead(appViewModel: AppViewModel){
                                     }
                                 }
                                 Text(
-                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    color = MaterialTheme.colorScheme.onSecondary,
                                     overflow = TextOverflow.Ellipsis,
                                     maxLines = 1,
                                     text = item.name ,

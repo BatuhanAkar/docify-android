@@ -26,6 +26,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +46,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
@@ -73,12 +77,14 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.batuscode.docunote.DocifyAI.Companion.DAsnackbarHostState
 import com.batuscode.docunote.DocifyAI.Companion.chatList
 import com.batuscode.docunote.DocifyAI.Companion.converter
 import com.batuscode.docunote.DocifyAI.Companion.generatedFileUri
 import com.batuscode.docunote.DocifyAI.Companion.summDocLauncher
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import com.batuscode.docunote.MainActivity.Companion.llmInference
+import com.batuscode.docunote.MainActivity.Companion.snackbarHostState
 import com.batuscode.docunote.model.AIChatListItem
 import com.batuscode.docunote.utils.AssetPacksUtil
 import com.batuscode.docunote.utils.PDFConverter
@@ -101,6 +107,8 @@ class DocifyAI : ComponentActivity() {
         var chatListItemIndex = mutableStateOf(0)
         lateinit var generatedFileUri: Uri
         var initializedLLM = mutableStateOf(false)
+        val DAsnackbarHostState = SnackbarHostState()
+
     }
 
     override fun onStop() {
@@ -203,18 +211,24 @@ class DocifyAI : ComponentActivity() {
                         Log.d("pdfium", "UTF-16 Bytes: ${utf16WithNull.joinToString(", ") { it.toString() }}")
                         val rr = MainActivity.mainicore.createSummarizedDocument(utf16WithNull, context, fileName)
 
-                        withContext(Dispatchers.Main){
 
-                            if (rr.isNotEmpty()){
-                                if (chatList.isNotEmpty() && chatList[chatListItemIndex.value] is AIChatListItem.SumItem){
-                                    // when summarization finish set generating false...
-                                    (chatList[chatListItemIndex.value] as AIChatListItem.SumItem).fileName.value = fileName
-                                    (chatList[chatListItemIndex.value] as AIChatListItem.SumItem).filePath.value = rr
-                                    (chatList[chatListItemIndex.value] as AIChatListItem.SumItem).generating.value = true
+                        rr.thenAccept { it ->
+                            CoroutineScope(Dispatchers.IO).launch {
+                                if (it.isNotEmpty()){
+                                    generatedFileUri = converter.getFileUriFromPath(context,it)
+                                    if (chatList.isNotEmpty() && chatList[chatListItemIndex.value] is AIChatListItem.SumItem){
+                                        // when summarization finish set generating false...
+                                        (chatList[chatListItemIndex.value] as AIChatListItem.SumItem).fileName.value = fileName
+                                        (chatList[chatListItemIndex.value] as AIChatListItem.SumItem).filePath.value = it
+                                        (chatList[chatListItemIndex.value] as AIChatListItem.SumItem).generating.value = true
+                                        showselectdocumentbutton.value = showselectdocumentbutton.value.not()
+                                    }
+                                    Log.d("pdfium" , "createSummarizedDocument filePath :: ${rr}")
                                 }
-                                showselectdocumentbutton.value = showselectdocumentbutton.value.not()
                             }
-                            Log.d("pdfium" , "createSummarizedDocument filePath :: ${rr}")
+
+
+
                         }
                     }
                 }
@@ -263,7 +277,10 @@ class DocifyAI : ComponentActivity() {
 
             DocuNoteTheme {
                 Scaffold(
-                    modifier = Modifier.fillMaxSize().statusBarsPadding()
+                    modifier = Modifier.fillMaxSize() ,
+                    snackbarHost = {
+                        SnackbarHost(hostState = DAsnackbarHostState)
+                    }
                 ) { innerPadding ->
                     Column(
                         verticalArrangement = Arrangement.Top,
@@ -431,8 +448,8 @@ suspend fun Summarize(documentText: String): String {
 fun SelectDocumentButton(){
     Surface(
         shape = RoundedCornerShape(20) ,
-        color = Color.White ,
-        shadowElevation = 20.dp ,
+        color = if (isSystemInDarkTheme()) Color.White else MaterialTheme.colorScheme.background ,
+        shadowElevation = 20.dp,
         modifier = Modifier
             .padding(horizontal = 40.dp),
         onClick = {
@@ -440,7 +457,7 @@ fun SelectDocumentButton(){
 
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT ).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
-                type = "*/*"
+                type = "application/pdf"
             }
             intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -449,6 +466,7 @@ fun SelectDocumentButton(){
     ) {
         Text(
             text = "Select document..." ,
+            color = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSecondary,
             modifier = Modifier
                 .padding(20.dp)
         )
@@ -504,7 +522,7 @@ fun SummedItem(summedItem: AIChatListItem.SumItem){
                             scaleY = scale
                         )
                         .background(
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSecondary ,
                             shape = CircleShape
                         )
                 )
@@ -521,7 +539,6 @@ fun SummedItem(summedItem: AIChatListItem.SumItem){
                     onClickLabel = "" ,
                     onClick = {
                         ripple(bounded = true)
-                        generatedFileUri = converter.getFileUriFromPath(context,summedItem.filePath.value)
                         Log.d("summarized" , "filePath in uri value :: ${generatedFileUri}")
                         val intent = Intent(MainActivity.Companion.context, PDFViewerActivity::class.java).apply {
                             putExtra("fileUri" , generatedFileUri.toString())
@@ -563,7 +580,7 @@ fun SummedItem(summedItem: AIChatListItem.SumItem){
                     }
                 }
                 Text(
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = MaterialTheme.colorScheme.onSecondary ,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
                     text = summedItem.fileName.value ,
@@ -601,6 +618,13 @@ fun SummedItem(summedItem: AIChatListItem.SumItem){
                                         stream.write(buffer, 0, length)
                                     }
                                     stream.flush() // Verileri diske yazıyoruz
+
+                                    CoroutineScope(Dispatchers.Main).launch {
+                                        DAsnackbarHostState.showSnackbar(
+                                            message = MainActivity.Companion.context.getString(R.string.saved_summed_doc_explain),
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
                                 }
 
                                 Log.d("summarized", "Dosya başarıyla kaydedildi!")
@@ -613,6 +637,7 @@ fun SummedItem(summedItem: AIChatListItem.SumItem){
                     Icon(
                         painter = painterResource(R.drawable.baseline_save_alt_24) ,
                         contentDescription = null ,
+
                     )
                 }
             }
@@ -665,7 +690,7 @@ fun ChatBubble(
                                 scaleY = scale
                             )
                             .background(
-                                color = Color.Black,
+                                color = MaterialTheme.colorScheme.onSecondary,
                                 shape = CircleShape
                             )
                     )

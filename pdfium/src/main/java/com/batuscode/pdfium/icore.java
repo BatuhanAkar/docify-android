@@ -18,6 +18,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class icore {
 
@@ -324,7 +325,9 @@ public class icore {
 
     public native String nativeCreateDocumentOfSummarize(byte[] joinedSummText , Context context , String fileName);
 
-    public String createSummarizedDocument(byte[] joinedSummText , Context context , String fileName){
-        return nativeCreateDocumentOfSummarize(joinedSummText , context , fileName);
+    public CompletableFuture<String> createSummarizedDocument(byte[] joinedSummText , Context context , String fileName){
+        return CompletableFuture.supplyAsync(() -> {
+            return nativeCreateDocumentOfSummarize(joinedSummText , context , fileName);
+        });
     }
 }

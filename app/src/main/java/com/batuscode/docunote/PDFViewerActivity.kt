@@ -356,15 +356,9 @@ class PDFViewerActivity : ComponentActivity() {
                 val proportion = scrollState.value.toFloat() / scrollState.maxValue.toFloat()
                 sliderPosition.value = proportion
             }
-
+            enableEdgeToEdge()
             DocuNoteTheme() {
 
-                enableEdgeToEdge(
-                    statusBarStyle = SystemBarStyle.auto(
-                        colorResource(R.color.modified).toArgb(),
-                        colorResource(R.color.modified).toArgb()
-                    )
-                )
 
                 Scaffold(
 

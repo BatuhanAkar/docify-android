@@ -137,13 +137,14 @@ class PDFConverter(private val context: Context) {
         }
         return@withContext null
     }
-    fun getFileUriFromPath(context: Context, filePath: String): Uri {
+    suspend fun getFileUriFromPath(context: Context, filePath: String): Uri = withContext(
+        Dispatchers.IO) {
         val file = File(filePath)
 
         // Eğer file mevcutsa ve okunabilir yazılabilir ise
         if (file.exists() && file.canRead()) {
             // FileProvider ile URI'yi alıyoruz
-            return FileProvider.getUriForFile(
+            return@withContext FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.fileprovider", // Bu, AndroidManifest.xml içinde tanımladığınız authority olmalı
                 file
