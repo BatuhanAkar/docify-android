@@ -28,9 +28,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
@@ -58,6 +60,7 @@ import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -88,6 +91,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.core.net.toUri
 import com.batuscode.docunote.CreatePDFActivity
@@ -102,158 +106,43 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Extensions(appViewModel: AppViewModel){
-    val sheetState = rememberModalBottomSheetState()
-    val menuListState = rememberLazyListState()
-    ModalBottomSheet(
-        onDismissRequest = {
-            AssetPacksUtil.fromExtensions.value = false
-            appViewModel.update_extensionsOpenState(false)
-        } ,
-        sheetState = sheetState ,
-        containerColor = MaterialTheme.colorScheme.background,
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-
-        Flow(modalbottomsheetstate = sheetState , appViewModel = appViewModel)
-
-    }
-
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun Flow(modalbottomsheetstate: SheetState , appViewModel: AppViewModel){
-
-
+fun Extensions( onDissmis : () -> Unit , appViewModel: AppViewModel){
     val createButtons = listOf(
         ExtensionButton(id = 4 , name = "Summarize Document with AI",R.drawable.ai_document_extension_file_format_icon),
         ExtensionButton(id = 0 , name = stringResource(id = R.string.openpdf) , R.drawable.open_pdf_01) ,
         ExtensionButton(id = 1 , name = stringResource(id = R.string.createpdf) , R.drawable.create_pdf_01) ,
         ExtensionButton(id = 2 , name = stringResource(id = R.string.mergepdf) , R.drawable.merge_pdf_01 ) ,
         ExtensionButton(id = 3 , name = stringResource(id = R.string.splitpdf) , R.drawable.split_pdf_01) ,
-
-
     )
-
-  /*  val convertButtons = listOf(
-        ExtensionButton(id= 4 , name = stringResource(id = R.string.pdftoword) , R.drawable.pdf_to_word_01) ,
-        ExtensionButton(id = 5 , name = stringResource(id = R.string.wordtopdf) , R.drawable.word_to_pdf_01) ,
-        ExtensionButton(id = 6 , name = stringResource(id = R.string.pdftoexcel) , R.drawable.pdf_to_excel_01),
-        ExtensionButton(id = 7 , name = stringResource(id = R.string.exceltopdf) , R.drawable.excel_to_pdf_01),
-        ExtensionButton(id = 8 , name = stringResource(id = R.string.pdftojpeg) , R.drawable.pdf_to_jpeg_01),
-        ExtensionButton(id = 9 , name = stringResource(id = R.string.pdftopng) , R.drawable.pdf_to_png_01),
-    )*/
-
-    val menu = listOf(
-        Menu(id = 0 , title = stringResource(R.string.create) , buttons = createButtons) ,
-
-       // Menu(id = 1 , title = stringResource(R.string.convert) , buttons = convertButtons) ,
-
-    )
-
-
-    LazyColumn (
-        contentPadding = PaddingValues(horizontal = 16.dp , vertical = 16.dp),
-        modifier = Modifier
-            .fillMaxSize()
-            .zIndex(5f)
-            .background(color = MaterialTheme.colorScheme.background),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        items(createButtons){
-                item -> ButtonFlow(button = item , modalbottomsheetstate = modalbottomsheetstate , appViewModel = appViewModel)
-        }
-    }
-
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun GridItem(menu: Menu , modalbottomsheetstate: SheetState , appViewModel: AppViewModel) {
-    val bebasFontFamily = FontFamily(Font(R.font.bebasneue_regular))
-    val baseHegiht = 360.dp
-    Box(
+    val sheetState = rememberModalBottomSheetState()
+    val menuListState = rememberLazyListState()
+    Dialog( onDismissRequest = onDissmis ) {
+        Surface(
             modifier = Modifier
-                .fillMaxSize()
-                .height(if (menu.id == 0) baseHegiht else baseHegiht*2)
-                .zIndex(1f)
-                .background(color = MaterialTheme.colorScheme.background)
-                ,
-        contentAlignment = Alignment.TopCenter ,
-    ) {
-        Column (
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally ,
-
-            modifier = Modifier
-                .fillMaxSize()
+                .padding(16.dp)
+                .fillMaxWidth()
+                .wrapContentHeight() ,
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.background,
+            tonalElevation = 4.dp
         ) {
-          /*  Row (
-                verticalAlignment = Alignment.CenterVertically ,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .zIndex(1f)
+
+
+            LazyVerticalGrid (
+                columns = GridCells.Fixed(3)
             ) {
-                if (menu.id == 0){
-                    Image(
-                        painter = painterResource(R.drawable.new_doc2_01) ,
-                        contentDescription = "icon" ,
-                        alignment = Alignment.Center ,
-                        modifier = Modifier
-                    )
-                } else if (menu.id == 1){
-                    Image(
-                        painter = painterResource(R.drawable.convert_doc_01) ,
-                        contentDescription = "icon" ,
-                        alignment = Alignment.Center ,
-                        modifier = Modifier
-                            .wrapContentSize()
-                    )
-                }
-                Text(
-                    text = menu.title ,
-                    textAlign = TextAlign.Left ,
-                    style = TextStyle(
-                        fontFamily = bebasFontFamily ,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 30.sp ,
-                    ),
-                    modifier = Modifier
-                        .padding(start = 8.dp)
-                        .fillMaxWidth()
-                        .zIndex(2f)
-                )
-            }
-
-            HorizontalDivider(
-                color = Color.Black,
-                thickness = 2.dp,
-                modifier = Modifier
-                .width(170.dp)
-                    .align(Alignment.Start)
-                    .padding(bottom = 8.dp , start = 8.dp)
-            )*/
-
-            LazyColumn (
-
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentPadding = PaddingValues(2.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                items(menu.buttons) { item ->
-                    ButtonFlow(button = item , modalbottomsheetstate = modalbottomsheetstate , appViewModel = appViewModel)
+                items(createButtons){
+                        item -> ButtonView(button = item , appViewModel = appViewModel)
                 }
             }
+
         }
     }
+
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ButtonFlow(button: ExtensionButton , modalbottomsheetstate: SheetState , appViewModel: AppViewModel){
+fun ButtonView(button: ExtensionButton , appViewModel: AppViewModel){
 
     val bebasFontFamily = FontFamily(Font(R.font.bebas_neue))
     val infiniteTransition = rememberInfiniteTransition()
@@ -272,6 +161,7 @@ fun ButtonFlow(button: ExtensionButton , modalbottomsheetstate: SheetState , app
     }
     var scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val _extensionsOpen = appViewModel._extensionsOpen.collectAsState()
 
     Box (
         modifier = Modifier
@@ -285,8 +175,8 @@ fun ButtonFlow(button: ExtensionButton , modalbottomsheetstate: SheetState , app
 
                     ripple(bounded = true)
                     scope.launch {
-                        if (modalbottomsheetstate.isVisible) {
-                            modalbottomsheetstate.hide()
+                        if (_extensionsOpen.value) {
+                            appViewModel.update_extensionsOpenState(false)
 
                             when (button.id) {
                                 0 -> {
@@ -358,19 +248,17 @@ fun ButtonFlow(button: ExtensionButton , modalbottomsheetstate: SheetState , app
                             }
                         }
                     }.invokeOnCompletion {
-                        if (!modalbottomsheetstate.isVisible){
-                            appViewModel.update_extensionsOpenState(false)
-                        }
+                        appViewModel.update_extensionsOpenState(false)
                     }
                 }
             )
     ){
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp , vertical = 8.dp)
+                .wrapContentSize()
+                .padding(horizontal = 8.dp , vertical = 8.dp) ,
+            contentAlignment = Alignment.Center
         ) {
 
             Surface (
@@ -381,7 +269,7 @@ fun ButtonFlow(button: ExtensionButton , modalbottomsheetstate: SheetState , app
             ){
                 Box (
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.wrapContentSize()
                 ) {
 
                     if (button.icon != 0){
@@ -397,14 +285,14 @@ fun ButtonFlow(button: ExtensionButton , modalbottomsheetstate: SheetState , app
 
                 }
             }
-            Text(
+           /* Text(
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
                 text = button.name ,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-            )
+            )*/
         }
     }
 
@@ -417,9 +305,5 @@ fun ButtonFlow(button: ExtensionButton , modalbottomsheetstate: SheetState , app
 @Composable
 fun PreviewExtensions(){
     DocuNoteTheme {
-        val sheetState = rememberModalBottomSheetState()
-        Flow(
-            modalbottomsheetstate = sheetState , AppViewModel()
-        )
     }
 }

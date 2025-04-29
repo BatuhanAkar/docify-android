@@ -58,7 +58,6 @@ import com.batuscode.docunote.MainActivity
 @SuppressLint("ResourceAsColor")
 @Composable
 fun Folders(appViewModel: AppViewModel){
-    val dummyList = List(20) { "Item #${it + 1}" }
    /* val folderlist = appViewModel.folders
 
     val folder = Folder( 0 ,"Downloads" , R.drawable.folder_icon_4_01)

@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.OpenableColumns
@@ -17,20 +18,47 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.TweenSpec
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CornerBasedShape
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BrokenImage
+import androidx.compose.material.icons.filled.ImageSearch
+import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material.ripple
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FlexibleBottomAppBar
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -44,6 +72,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,14 +91,20 @@ import com.batuscode.docunote.viewmodel.AppViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import com.batuscode.docunote.utils.FileManager
 import com.batuscode.docunote.view.RecentlyRead
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.zIndex
+import com.batuscode.docunote.MainActivity.Companion.snackbarHostState
 import com.batuscode.docunote.utils.AssetPacksUtil
+import com.batuscode.docunote.utils.DrawerSide
 import com.batuscode.docunote.utils.PDFConverter
 import com.batuscode.docunote.utils.WordDocUtil
+import com.batuscode.docunote.view.CustomSideDrawerContent
+import com.batuscode.docunote.view.CustomSideDrawerOverlay
 import com.batuscode.docunote.view.DFDownloadProgressView
 import com.batuscode.docunote.view.DynamicFeatureRequestDialog
 import com.batuscode.pdfium.icore
@@ -77,13 +112,16 @@ import com.google.mediapipe.tasks.genai.llminference.LlmInference
 import kotlinx.coroutines.delay
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
 
 class MainActivity : ComponentActivity() {
     companion object {
         init {
-            System.loadLibrary("jpdfium");
+            // System.loadLibrary("jpdfium");
         }
+
         lateinit var _appViewModel: AppViewModel
         lateinit var mainActivity: ComponentActivity
         lateinit var context: Context
@@ -101,7 +139,7 @@ class MainActivity : ComponentActivity() {
         var pdfmergeOP = mutableStateOf(false)
         lateinit var mainicore: icore
         lateinit var fileManager: FileManager
-        var uriMap : MutableMap<Int, Uri> = mutableMapOf()
+        var uriMap: MutableMap<Int, Uri> = mutableMapOf()
         var recentlyStat = mutableStateOf(false)
         var folderStat = mutableStateOf(false)
         var showDFRDialog = mutableStateOf(false)
@@ -117,8 +155,8 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun splitDialog(
         onDismissRequest: () -> Unit,
-        onConfirm: (String,String) -> Unit
-    ){
+        onConfirm: (String, String) -> Unit
+    ) {
 
 
         var textFieldValue by remember { mutableStateOf("") }
@@ -176,8 +214,8 @@ class MainActivity : ComponentActivity() {
                         Button(
                             onClick = {
 
-                                onConfirm(textFieldValue,"${startRangeValue}-${endRangeValue}")
-                                      },
+                                onConfirm(textFieldValue, "${startRangeValue}-${endRangeValue}")
+                            },
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(text = stringResource(R.string.ok))
@@ -187,6 +225,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
     @Composable
     fun mCustomDialog(
         onDismissRequest: () -> Unit,
@@ -239,7 +278,8 @@ class MainActivity : ComponentActivity() {
 
 
     val requestPermissionLauncher =
-        registerForActivityResult(RequestPermission()
+        registerForActivityResult(
+            RequestPermission()
         ) { isGranted: Boolean ->
             if (isGranted) {
                 // Permission is granted. Continue the action or workflow in your
@@ -253,13 +293,14 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @SuppressLint("Range")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         context = this
 
-        val appViewModel : AppViewModel by viewModels()
+        val appViewModel: AppViewModel by viewModels()
         _appViewModel = appViewModel
         mainActivity = this
         mainicore = icore(this)
@@ -271,8 +312,7 @@ class MainActivity : ComponentActivity() {
 
         dynamicFeatureLauncher = registerForActivityResult(
             ActivityResultContracts.StartIntentSenderForResult()
-        ){
-            result ->
+        ) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 // Kullanıcı onayladı, indirme devam eder
             } else {
@@ -283,7 +323,7 @@ class MainActivity : ComponentActivity() {
         multiplyselectTofolderDocumentLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            if (result.resultCode == RESULT_OK){
+            if (result.resultCode == RESULT_OK) {
                 val data: Intent? = result.data
 
                 data?.let { it ->
@@ -292,10 +332,9 @@ class MainActivity : ComponentActivity() {
                     // Log.d("newuri" , it.toString())
 
 
-
-                    if (it.clipData != null){
+                    if (it.clipData != null) {
                         val count = it.clipData?.itemCount ?: 0
-                        for (i in 0 until count){
+                        for (i in 0 until count) {
                             val uri = it.clipData?.getItemAt(i)?.uri
                             uri?.let {
                                 _appViewModel.add_urlist(it)
@@ -305,21 +344,20 @@ class MainActivity : ComponentActivity() {
 // Check for the freshest data.
                                 contentResolver.takePersistableUriPermission(it, takeFlags)
                             }
-                            Log.d("newuri" , uri.toString())
+                            Log.d("newuri", uri.toString())
                         }
 
-                        if (!folderStat.value){
+                        if (!folderStat.value) {
                             folderStat.value = folderStat.value.not()
-                            fileManager.saveFoldersStat(context,true)
+                            fileManager.saveFoldersStat(context, true)
                         }
                         newFolder.value = true
 
 
-
-                    }else {
+                    } else {
                         // Tekli dosya seçimi
                         val uri = it.data
-                        Log.d("newuri" , uri.toString())
+                        Log.d("newuri", uri.toString())
 
                     }
 
@@ -331,28 +369,27 @@ class MainActivity : ComponentActivity() {
 
         mergeDocumentLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
-        ){
-            result ->
-            if (result.resultCode == RESULT_OK){
+        ) { result ->
+            if (result.resultCode == RESULT_OK) {
                 val data: Intent? = result.data
                 data?.let { it ->
-                    if (it.clipData != null){
-                        if (uriMap.isNotEmpty()){
+                    if (it.clipData != null) {
+                        if (uriMap.isNotEmpty()) {
                             uriMap.clear()
                         }
                         val count = it.clipData?.itemCount ?: 0
-                        for (i in 0 until count){
+                        for (i in 0 until count) {
                             val uri = it.clipData?.getItemAt(i)?.uri
                             uri?.let {
-                                uriMap.put(i,uri)
-                               // _appViewModel.add_urlist(it)
+                                uriMap.put(i, uri)
+                                // _appViewModel.add_urlist(it)
 
                                 val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
                                         Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 // Check for the freshest data.
                                 contentResolver.takePersistableUriPermission(it, takeFlags)
                             }
-                            Log.d("newuri" , uri.toString())
+                            Log.d("newuri", uri.toString())
 
                         }
                         pdfmergeOP.value = pdfmergeOP.value.not()
@@ -367,9 +404,9 @@ class MainActivity : ComponentActivity() {
 
         splitDocumentLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
-        ){ result ->
-            if (result.resultCode == RESULT_OK){
-                var uriMap : MutableMap<Int, Uri> = mutableMapOf()
+        ) { result ->
+            if (result.resultCode == RESULT_OK) {
+                var uriMap: MutableMap<Int, Uri> = mutableMapOf()
                 val data: Intent? = result.data
                 data?.let { it ->
                     val uri = it.data
@@ -381,7 +418,7 @@ class MainActivity : ComponentActivity() {
                         memUri.value = uri
                         pdfsplitOP.value = pdfsplitOP.value.not()
                     }
-                    Log.d("newuri" , uri.toString())
+                    Log.d("newuri", uri.toString())
                 }
             }
         }
@@ -391,16 +428,16 @@ class MainActivity : ComponentActivity() {
         toFolderDocumentLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            if (result.resultCode == RESULT_OK){
+            if (result.resultCode == RESULT_OK) {
                 val data: Intent? = result.data
                 data?.let { it ->
                     // Dosya URI'sini işlemek
 
                     // Log.d("newuri" , it.toString())
 
-                    if (it.clipData != null){
+                    if (it.clipData != null) {
                         val count = it.clipData?.itemCount ?: 0
-                        for (i in 0 until count){
+                        for (i in 0 until count) {
                             val uri = it.clipData?.getItemAt(i)?.uri
                             uri?.let {
                                 _appViewModel.add_urlist(it)
@@ -410,7 +447,7 @@ class MainActivity : ComponentActivity() {
 // Check for the freshest data.
                                 contentResolver.takePersistableUriPermission(it, takeFlags)
                             }
-                            Log.d("newuri" , uri.toString())
+                            Log.d("newuri", uri.toString())
                         }
 
                         newFolder.value = true
@@ -418,17 +455,17 @@ class MainActivity : ComponentActivity() {
                         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
                             addCategory(Intent.CATEGORY_OPENABLE)
                             type = "application/pdf"
-                          //  putExtra(Intent.EXTRA_TITLE, R.string.documentname)
+                            //  putExtra(Intent.EXTRA_TITLE, R.string.documentname)
 
                             // Optionally, specify a URI for the directory that should be opened in
                             // the system file picker before your app creates the document.
                         }
                         mainActivity.startActivityForResult(intent, 0)
 
-                    }else {
+                    } else {
                         // Tekli dosya seçimi
                         val uri = it.data
-                        Log.d("newuri" , uri.toString())
+                        Log.d("newuri", uri.toString())
 
                     }
 
@@ -459,28 +496,33 @@ class MainActivity : ComponentActivity() {
 // Check for the freshest data.
                     contentResolver.takePersistableUriPermission(uri!!, takeFlags)
 
-                    Log.d("newuri" , uri.toString())
+                    Log.d("newuri", uri.toString())
 
                     val cursor = contentResolver.query(
-                        uri!! ,
-                        arrayOf(OpenableColumns.DISPLAY_NAME) ,
-                        null ,
-                        null ,
+                        uri!!,
+                        arrayOf(OpenableColumns.DISPLAY_NAME),
+                        null,
+                        null,
                         null
                     )
 
                     cursor?.use {
-                        if (it.moveToFirst()){
-                            val displayName = it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                        if (it.moveToFirst()) {
+                            val displayName =
+                                it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
                             val dotIndex = displayName.lastIndexOf('.')
-                            val fileNameWithoutExtension = if (dotIndex != -1) displayName.substring(0, dotIndex) else displayName
+                            val fileNameWithoutExtension =
+                                if (dotIndex != -1) displayName.substring(
+                                    0,
+                                    dotIndex
+                                ) else displayName
 
-                            Log.d("newuri" , displayName)
-                            lifecycleScope.launch(Dispatchers.Main){
+                            Log.d("newuri", displayName)
+                            lifecycleScope.launch(Dispatchers.Main) {
 
-                                if (!recentlyStat.value){
+                                if (!recentlyStat.value) {
                                     recentlyStat.value = recentlyStat.value.not()
-                                    fileManager.saveRecentlyStat(context,true)
+                                    fileManager.saveRecentlyStat(context, true)
                                 }
 
                                 /* val intent = Intent(context , PDFViewerActivity::class.java).apply {
@@ -520,37 +562,48 @@ class MainActivity : ComponentActivity() {
 // Check for the freshest data.
                     contentResolver.takePersistableUriPermission(uri!!, takeFlags)
 
-                    Log.d("newuri" , uri.toString())
+                    Log.d("newuri", uri.toString())
 
                     val cursor = contentResolver.query(
-                        uri!! ,
-                        arrayOf(OpenableColumns.DISPLAY_NAME) ,
-                        null ,
-                        null ,
+                        uri!!,
+                        arrayOf(OpenableColumns.DISPLAY_NAME),
+                        null,
+                        null,
                         null
                     )
 
                     cursor?.use {
-                        if (it.moveToFirst()){
-                            val displayName = it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                        if (it.moveToFirst()) {
+                            val displayName =
+                                it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
                             val dotIndex = displayName.lastIndexOf('.')
-                            val fileNameWithoutExtension = if (dotIndex != -1) displayName.substring(0, dotIndex) else displayName
+                            val fileNameWithoutExtension =
+                                if (dotIndex != -1) displayName.substring(
+                                    0,
+                                    dotIndex
+                                ) else displayName
 
-                            Log.d("newuri" , displayName)
-                            lifecycleScope.launch(Dispatchers.Main){
+                            Log.d("newuri", displayName)
+                            lifecycleScope.launch(Dispatchers.Main) {
 
-                                if (!recentlyStat.value){
+                                if (!recentlyStat.value) {
                                     recentlyStat.value = recentlyStat.value.not()
-                                    fileManager.saveRecentlyStat(context,true)
+                                    fileManager.saveRecentlyStat(context, true)
                                 }
 
-                                WordDocUtil.loadDocument(WordDocUtil.getWordDocFromUri(context,uri!!,fileNameWithoutExtension))
-                               /* val intent = Intent(context , PDFViewerActivity::class.java).apply {
-                                    putExtra("fileUri" , uri.toString())
-                                    putExtra("fileDisplayName" , fileNameWithoutExtension)
-                                }
+                                WordDocUtil.loadDocument(
+                                    WordDocUtil.getWordDocFromUri(
+                                        context,
+                                        uri!!,
+                                        fileNameWithoutExtension
+                                    )
+                                )
+                                /* val intent = Intent(context , PDFViewerActivity::class.java).apply {
+                                     putExtra("fileUri" , uri.toString())
+                                     putExtra("fileDisplayName" , fileNameWithoutExtension)
+                                 }
 
-                                mainActivity.startActivity(intent)*/
+                                 mainActivity.startActivity(intent)*/
                             }
                         }
                     }
@@ -567,14 +620,14 @@ class MainActivity : ComponentActivity() {
         ) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 val data: Intent? = result.data
-              /*  val uri: Uri? = data?.data
-                // Seçilen dosya URI'ını burada kullanabilirsin
-                if (uri != null) {
-                    // Örneğin, URI'yi bir dosyaya yazdırabilir veya okuyabilirsin
-                    Log.d("FileSelector", "Seçilen dosya: $uri")
+                /*  val uri: Uri? = data?.data
+                  // Seçilen dosya URI'ını burada kullanabilirsin
+                  if (uri != null) {
+                      // Örneğin, URI'yi bir dosyaya yazdırabilir veya okuyabilirsin
+                      Log.d("FileSelector", "Seçilen dosya: $uri")
 
 
-                }*/
+                  }*/
 
                 data?.let { it ->
                     val uri = it.data
@@ -583,33 +636,38 @@ class MainActivity : ComponentActivity() {
 // Check for the freshest data.
                     contentResolver.takePersistableUriPermission(uri!!, takeFlags)
 
-                    Log.d("newuri" , uri.toString())
+                    Log.d("newuri", uri.toString())
 
                     val cursor = contentResolver.query(
-                        uri!! ,
-                        arrayOf(OpenableColumns.DISPLAY_NAME) ,
-                        null ,
-                        null ,
+                        uri!!,
+                        arrayOf(OpenableColumns.DISPLAY_NAME),
+                        null,
+                        null,
                         null
                     )
 
                     cursor?.use {
-                        if (it.moveToFirst()){
-                            val displayName = it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                        if (it.moveToFirst()) {
+                            val displayName =
+                                it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
                             val dotIndex = displayName.lastIndexOf('.')
-                            val fileNameWithoutExtension = if (dotIndex != -1) displayName.substring(0, dotIndex) else displayName
+                            val fileNameWithoutExtension =
+                                if (dotIndex != -1) displayName.substring(
+                                    0,
+                                    dotIndex
+                                ) else displayName
 
-                            Log.d("newuri" , displayName)
-                            lifecycleScope.launch(Dispatchers.Main){
+                            Log.d("newuri", displayName)
+                            lifecycleScope.launch(Dispatchers.Main) {
 
-                                if (!recentlyStat.value){
+                                if (!recentlyStat.value) {
                                     recentlyStat.value = recentlyStat.value.not()
-                                    fileManager.saveRecentlyStat(context,true)
+                                    fileManager.saveRecentlyStat(context, true)
                                 }
 
-                                val intent = Intent(context , PDFViewerActivity::class.java).apply {
-                                    putExtra("fileUri" , uri.toString())
-                                    putExtra("fileDisplayName" , fileNameWithoutExtension)
+                                val intent = Intent(context, PDFViewerActivity::class.java).apply {
+                                    putExtra("fileUri", uri.toString())
+                                    putExtra("fileDisplayName", fileNameWithoutExtension)
                                 }
 
                                 mainActivity.startActivity(intent)
@@ -625,260 +683,169 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-
-            val scaleFactor = LocalContext.current.resources.displayMetrics.densityDpi / 72f
-
-
-
             var filemanager = remember {
                 FileManager(context = context)
             }
 
-          /*  var folders = remember {
-                mutableStateOf<List<Folder>>(emptyList())
-            }*/
-
             LaunchedEffect(Unit) {
-               // folders.value = filemanager.getFoldersForDirectory()
+                // folders.value = filemanager.getFoldersForDirectory()
 
                 appViewModel.pushFolders(filemanager.getFoldersForDirectory())
 
                 appViewModel.pushRecentlyList(filemanager.getDocumentList(context))
-
-                delay(200)
-
-                lifecycleScope.launch(Dispatchers.IO){
-                    /*if (ModelUtil.isModuleInstalled(context,"docifyai")){
-                        Log.d("dynamicModules" , "docifyai module is not installed...")
-                        showDFRDialog.value = showDFRDialog.value.not()
-                    } else {
-                        Log.d("dynamicModules" , "docifyai module is installed...")
-                        ModelUtil.startModuleLauncherActivity(context,"com.batuscode.docifyai.DocifyAI")
-                        showDFRDialog.value = false
-                    }*/
-
-                    AssetPacksUtil.isPacksInstalled()
-
-
-                }
-
-
-
             }
 
             val _extensionsOpen = appViewModel._extensionsOpen.collectAsState()
-            DocuNoteTheme() {
 
-
+            var isDrawerOpen = remember { mutableStateOf(false) }
+            DocuNoteTheme(darkTheme = true) {
                 Scaffold(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        ,
-                    floatingActionButton = {
-                        FloatingActionButton(
-                            containerColor = Color.LightGray,
-                            onClick = {
-                                appViewModel.update_extensionsOpenState(_extensionsOpen.value.not())
-                            } ,
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.outline_extension_24) ,
-                                contentDescription = "extensions")
-                        }
-                    } ,
-                    snackbarHost = {
-                        SnackbarHost(hostState = snackbarHostState)
-                    }
+                    bottomBar = {
+                        BottomAppBar(
+                            actions = {
 
-
-                ) { innerPadding ->
-
-
-
-                    if (showDFRDialog.value){
-                        DynamicFeatureRequestDialog(
-                            onConfirm = {
-                                lifecycleScope.launch{
-                                    //ModelUtil.downloadModule(context)
-                                    AssetPacksUtil.downloadAssetPack(AssetPacksUtil.apm , "docifyai")
-                                    showDFRDialog.value = showDFRDialog.value.not()
-                                    MainActivity.showDownloadProg.value = true
-                                }
-                            } ,
-                            onDismiss = {
-                                showDFRDialog.value = showDFRDialog.value.not()
-                            }
-                        )
-                    }
-                    if (pdfmergeOP.value){
-                        mCustomDialog(
-                            onDismissRequest = { pdfmergeOP.value = pdfmergeOP.value.not() },
-                            onConfirm = { fileName ->
-                                uriMap.let {
-                                    converter.mergePDFs(uriMap,context,fileName)
-                                }
-                                pdfmergeOP.value = pdfmergeOP.value.not()
-                            }
-                        )
-                    }
-                    if (pdfsplitOP.value){
-                        splitDialog(
-                            onDismissRequest = { pdfsplitOP.value = pdfsplitOP.value.not() },
-                            onConfirm = { fileName,range ->
-                                memUri.value.let {
-
-                                    converter.splitPDF(it!!,context,fileName,range)
-                                }
-                                pdfsplitOP.value = pdfsplitOP.value.not()
-                            }
-                        )
-
-                    }
-                    if (newFolder.value){
-                        mCustomDialog(
-                            onDismissRequest = { newFolder.value = newFolder.value.not() },
-                            onConfirm = {
-
-                                val dir = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS) ,it)
-
-                                dir.mkdirs()
-
-                                appViewModel.uris.forEach {
-                                    uri ->
-
-                                    val cursor = contentResolver.query(
-                                        uri!! ,
-                                        arrayOf(OpenableColumns.DISPLAY_NAME) ,
-                                        null ,
-                                        null ,
-                                        null
-                                    )
-
-                                    cursor?.use {
-                                        if (it.moveToFirst()){
-                                            val displayName = it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                                            val dotIndex = displayName.lastIndexOf('.')
-                                            val fileNameWithoutExtension = if (dotIndex != -1) displayName.substring(0, dotIndex) else displayName
-
-                                            val destinationFile = File(dir, fileNameWithoutExtension)
-
-                                            val inputstream = context.contentResolver.openInputStream(uri)
-
-                                            inputstream?.use { input ->
-
-                                                FileOutputStream(destinationFile).use { out ->
-                                                    val buffer = ByteArray(1024)
-                                                    var length: Int
-                                                    while (input.read(buffer).also { length = it } > 0) {
-                                                        out.write(buffer, 0, length)
-                                                    }
-                                                }
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(8.dp)
+                                            .clickable {
+                                                isDrawerOpen.value = true
+                                                Log.d("mainss", "clicked side sheet")
                                             }
-                                        }
+                                    ) {
+
+                                        Image(
+                                            painter = painterResource(R.drawable.android_dark_rd_na),
+                                            contentDescription = null
+                                        )
                                     }
 
 
+                                    Row(
+                                        modifier = Modifier
+                                            .align(Alignment.CenterEnd)
+                                            .padding(8.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
 
 
+                                        ) {
+
+                                        // extensions ...
+                                        Box(
+                                            modifier = Modifier
+                                                .clickable {
+                                                    appViewModel.update_extensionsOpenState(true)
+                                                }
+                                        ) {
+
+                                            Image(
+                                                painter = if (!_extensionsOpen.value) painterResource(
+                                                    R.drawable.collapse_content
+                                                ) else painterResource(R.drawable.expand_content),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+
+                                        // scan ...
+                                        Box(
+                                            modifier = Modifier
+                                                .clickable {
+
+                                                }
+                                        ) {
+
+                                            Image(
+                                                painter = painterResource(R.drawable.document_scanner),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                        // read ...
+                                        Box(
+                                            modifier = Modifier
+                                                .clickable {
+                                                    ripple(bounded = true, radius = 48.dp)
+
+                                                    val intent =
+                                                        Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                                                            addCategory(Intent.CATEGORY_OPENABLE)
+                                                            type = "application/pdf"
+                                                        }
+                                                    intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                                                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+                                                    // MainActivity.mainActivity.startActivityForResult(intent, 2)
+                                                    MainActivity.openDocumentLauncher.launch(intent)
+                                                }
+                                        ) {
+
+                                            Image(
+                                                painter = painterResource(R.drawable.read_icon),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+
+
+                                    }
                                 }
 
+                            },
+                            floatingActionButton = {
+                                FloatingActionButton(
+                                    onClick = {
 
-                                val folder = Folder(1 , name = it , R.drawable.folder_icon_4_01)
-                                MainActivity._appViewModel.addFolder(folder)
-
-                                newFolder.value = newFolder.value.not() // Dialogu kapat
+                                    },
+                                    elevation = FloatingActionButtonDefaults.loweredElevation(
+                                        defaultElevation = 20.dp
+                                    ),
+                                    containerColor = Color.LightGray
+                                ) {
+                                    Image(
+                                        painter = painterResource(R.drawable.ic_launcher_foreground),
+                                        contentDescription = null,
+                                    )
+                                }
                             }
                         )
                     }
-                    if (_extensionsOpen.value){
-                        Extensions(appViewModel = appViewModel)
-                    }
-
-
-                    Box(
+                ) { innerPadding ->
+                    Column(
                         modifier = Modifier
-                            .fillMaxSize()
+                            .padding(innerPadding)
                     ) {
-                        Column (
-                            modifier = Modifier
-                                .padding(innerPadding)
-                                .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.background)
-                            /*.drawBehind {
-                                val width = size.width
-                                val height = 320.dp.toPx()
+                        Folders(appViewModel)
+                        RecentlyRead(appViewModel)
 
-                                // Köşe radyuslarını tanımlıyoruz
-                                val normalRadius = 80.dp.toPx()
-                                val largeRadius = 80.dp.toPx()
-
-                                // Çizim için Path oluşturuyoruz
-                                val path = Path().apply {
-                                    // Sol üst köşeden başlıyoruz
-                                    moveTo(0f, 0f)
-
-                                    // Sağ üst köşeye gidiyoruz
-                                    lineTo(width, 0f)
-
-                                    // Sağ alt köşeye gidiyoruz, burada dışa doğru büyük bir radyus uyguluyoruz
-                                    lineTo(width, height - largeRadius)
-                                    arcTo(
-                                        rect = Rect(
-                                            width - largeRadius, // Dışa doğru radyus
-                                            height - largeRadius + 80.dp.toPx(),
-                                            width,
-                                            height + 80.dp.toPx()
-                                        ),
-                                        startAngleDegrees = 0f,
-                                        sweepAngleDegrees = -90f,
-                                        forceMoveTo = false
-                                    )
-
-                                    // Sol alt köşeye gidiyoruz, burada normal bir radyus
-                                    lineTo(normalRadius, height)
-                                    arcTo(
-                                        rect = Rect(
-                                            0f,
-                                            height - normalRadius,
-                                            normalRadius,
-                                            height
-                                        ),
-                                        startAngleDegrees = 90f,
-                                        sweepAngleDegrees = 90f,
-                                        forceMoveTo = false
-                                    )
-
-                                    // Sol üst köşeye dönüyoruz
-                                    lineTo(0f, 0f)
-
-                                    close() // Path'i kapatıyoruz
-                                }
-
-                                // Path'i bir renkle çiziyoruz
-                                drawPath(path, color = color)
-                            }*/
-                            ,
-
-                            ) {
-                            Folders(appViewModel)
-                            RecentlyRead(appViewModel)
+                        if (_extensionsOpen.value) {
+                            Extensions(onDissmis = {
+                                appViewModel.update_extensionsOpenState(false)
+                            }, appViewModel = appViewModel)
                         }
 
-                        if (showDownloadProg.value){
-                            DFDownloadProgressView(
+                        if (!isDrawerOpen.value) {
+                            CustomSideDrawerOverlay(
+                                isDrawerOpen = isDrawerOpen.value,
                                 onDismiss = {
-                                    showDownloadProg.value = showDownloadProg.value.not()
+                                    isDrawerOpen.value = isDrawerOpen.value.not()
                                 },
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(bottom = 50.dp),
-                                progress = progress
+                                drawerContent = {
+                                    CustomSideDrawerContent()
+                                },
+                                // No need to pass content here since it's handled separately
+                                drawerWidth = 300.dp,  // Customize the drawer width
+                                showMask = true,  // Optional: if you want to show the mask when drawer is open
+                                drawerSide = DrawerSide.RIGHT,  // Drawer from left, or RIGHT
+                                animationDuration = 300  // Animation duration for opening/closing the drawer
                             )
                         }
-
                     }
-
                 }
             }
         }
@@ -886,103 +853,119 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d("mainActivty" , "onDestroy")
+        Log.d("mainActivty", "onDestroy")
         mainicore.nativeDestroyLibrary()
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun Flow(innerPadding: PaddingValues, appViewModel: AppViewModel) {
-
-    val colors = arrayOf(
-        0.50f to Color(0xFF1E1E1E),
-        1f to colorResource(R.color.teal_700) ,
-    )
-
-    val color = colorResource(R.color.modified)
-
-    val folderCardBrush = Brush.linearGradient(colorStops = colors)
-
-
-    Column (
-        modifier = Modifier
-            .padding(innerPadding)
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            /*.drawBehind {
-                val width = size.width
-                val height = 320.dp.toPx()
-
-                // Köşe radyuslarını tanımlıyoruz
-                val normalRadius = 80.dp.toPx()
-                val largeRadius = 80.dp.toPx()
-
-                // Çizim için Path oluşturuyoruz
-                val path = Path().apply {
-                    // Sol üst köşeden başlıyoruz
-                    moveTo(0f, 0f)
-
-                    // Sağ üst köşeye gidiyoruz
-                    lineTo(width, 0f)
-
-                    // Sağ alt köşeye gidiyoruz, burada dışa doğru büyük bir radyus uyguluyoruz
-                    lineTo(width, height - largeRadius)
-                    arcTo(
-                        rect = Rect(
-                            width - largeRadius, // Dışa doğru radyus
-                            height - largeRadius + 80.dp.toPx(),
-                            width,
-                            height + 80.dp.toPx()
-                        ),
-                        startAngleDegrees = 0f,
-                        sweepAngleDegrees = -90f,
-                        forceMoveTo = false
-                    )
-
-                    // Sol alt köşeye gidiyoruz, burada normal bir radyus
-                    lineTo(normalRadius, height)
-                    arcTo(
-                        rect = Rect(
-                            0f,
-                            height - normalRadius,
-                            normalRadius,
-                            height
-                        ),
-                        startAngleDegrees = 90f,
-                        sweepAngleDegrees = 90f,
-                        forceMoveTo = false
-                    )
-
-                    // Sol üst köşeye dönüyoruz
-                    lineTo(0f, 0f)
-
-                    close() // Path'i kapatıyoruz
-                }
-
-                // Path'i bir renkle çiziyoruz
-                drawPath(path, color = color)
-            }*/
-        ,
-
-    ) {
-       // Folders(appViewModel)
-       // RecentlyRead(appViewModel)
-
-
-    }
-}
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
-    DocuNoteTheme {
-        Flow(PaddingValues() , AppViewModel())
+fun MainContentPreview() {
+    DocuNoteTheme(darkTheme = true) {
+        Scaffold(
+            bottomBar = {
+                BottomAppBar(
+                    actions = {
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .padding(8.dp)
+                            ) {
+
+                                Image(
+                                    painter = painterResource(R.drawable.android_dark_rd_na),
+                                    contentDescription = null
+                                )
+                            }
+
+
+                            Row(
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .padding(8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+
+
+                                ) {
+// scan ...
+                                Box(
+                                    modifier = Modifier
+                                        .clickable {
+
+                                        }
+                                ) {
+
+                                    Image(
+                                        painter = painterResource(R.drawable.expand_content),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .clickable {
+
+                                        }
+                                ) {
+
+                                    Image(
+                                        painter = painterResource(R.drawable.document_scanner),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                                // read ...
+                                Box(
+                                    modifier = Modifier
+                                        .clickable {
+
+                                        }
+                                ) {
+
+                                    Image(
+                                        painter = painterResource(R.drawable.read_icon),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+
+
+                            }
+                        }
+
+                    },
+                    floatingActionButton = {
+                        FloatingActionButton(
+                            onClick = {
+
+                            },
+                            elevation = FloatingActionButtonDefaults.loweredElevation(
+                                defaultElevation = 20.dp
+                            ),
+                            containerColor = Color.LightGray
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.ic_launcher_foreground),
+                                contentDescription = null,
+                            )
+                        }
+                    }
+                )
+            }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+            ) {
+            }
+        }
     }
-}
-
-
-class Permissions(val context: Context) {
-
 }

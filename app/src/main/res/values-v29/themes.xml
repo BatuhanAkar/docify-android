@@ -2,7 +2,5 @@
 <resources>
 
     <style name="Theme.DocuNote" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:enforceStatusBarContrast">true</item>
-        <item name="android:statusBarColor">@color/modified</item>
     </style>
 </resources>

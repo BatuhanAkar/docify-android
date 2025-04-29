@@ -17,6 +17,7 @@
     <string name="pdftopng">PDF to PNG</string>
     <string name="recentlyread">Recently Read</string>
     <string name="title_activity_create_pdfactivity" translatable="false">CreatePDFActivity</string>
+    <string name="title_activity_main" translatable="false">MainActivity</string>
     <string name="newfile">New Document</string>
     <string name="ok">Ok</string>
     <string name="cancel">Cancel</string>
@@ -59,4 +60,8 @@
     <string name="open_word_doc">Open Word</string>
     <string name="open_ppt_doc">Open PowerPoint</string>
     <string name="saved_summed_doc_explain" translatable="false">Document saved...</string>
+    <string name="title_activity_signup">SignupActivity</string>
+    <string name="gicon">Google icon</string>
+    <string name="continuewithgoogle">Continue with Google</string>
+    <string name="share_with_others">Share with others</string>
 </resources>
