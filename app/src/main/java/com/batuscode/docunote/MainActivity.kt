@@ -44,6 +44,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -85,6 +86,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -705,6 +707,8 @@ class MainActivity : ComponentActivity() {
             var isDrawerOpen = remember { mutableStateOf(false) }
             DocuNoteTheme(darkTheme = true) {
                 Scaffold(
+                    modifier = Modifier
+                        .systemBarsPadding(),
                     bottomBar = {
                         BottomAppBar(
                             actions = {
@@ -714,20 +718,8 @@ class MainActivity : ComponentActivity() {
                                         .fillMaxWidth(),
                                     contentAlignment = Alignment.CenterStart
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .padding(8.dp)
-                                            .clickable {
-                                                isDrawerOpen.value = true
-                                                Log.d("mainss", "clicked side sheet")
-                                            }
-                                    ) {
 
-                                        Image(
-                                            painter = painterResource(R.drawable.android_dark_rd_na),
-                                            contentDescription = null
-                                        )
-                                    }
+
 
 
                                     Row(
@@ -821,36 +813,27 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 ) { innerPadding ->
-                    Column(
-                        modifier = Modifier
-                            .padding(innerPadding)
-                    ) {
-                        Folders(appViewModel)
-                        RecentlyRead(appViewModel)
 
-                        if (_extensionsOpen.value) {
-                            Extensions(onDissmis = {
-                                appViewModel.update_extensionsOpenState(false)
-                            }, appViewModel = appViewModel)
-                        }
+                    MainContent(modifier = Modifier.padding(innerPadding))
 
-                        if (isDrawerOpen.value) {
-                            CustomSideDrawerOverlay(
-                                isDrawerOpen = isDrawerOpen.value,
-                                onDismiss = {
-                                    isDrawerOpen.value = isDrawerOpen.value.not()
-                                },
-                                drawerContent = {
-                                    CustomSideDrawerContent()
-                                },
-                                // No need to pass content here since it's handled separately
-                                drawerWidth = 300.dp,  // Customize the drawer width
-                                showMask = true,  // Optional: if you want to show the mask when drawer is open
-                                drawerSide = DrawerSide.RIGHT,  // Drawer from left, or RIGHT
-                                animationDuration = 300  // Animation duration for opening/closing the drawer
-                            )
-                        }
+                    if (_extensionsOpen.value) {
+                        Extensions(onDissmis = {
+                            appViewModel.update_extensionsOpenState(false)
+                        }, appViewModel = appViewModel)
                     }
+
+                }
+                if (isDrawerOpen.value){
+                    CustomSideDrawerOverlay(
+                        isDrawerOpen = isDrawerOpen.value ,
+                        onDismiss = { isDrawerOpen.value = isDrawerOpen.value.not() } ,
+                        drawerContent = { CustomSideDrawerContent() } ,
+                        // No need to pass content here since it's handled separately
+                        drawerWidth = 300.dp,  // Customize the drawer width
+                        showMask = true,  // Optional: if you want to show the mask when drawer is open
+                        drawerSide = DrawerSide.LEFT ,
+                        animationDuration = 300 ,  // Animation duration for opening/closing the drawer
+                    )
                 }
             }
         }
@@ -864,158 +847,11 @@ class MainActivity : ComponentActivity() {
 }
 
 
-@SuppressLint("ViewModelConstructorInComposable")
-@Preview(showBackground = true)
-@Composable
-fun MainContentPreview() {
-    var isDrawerOpen = remember { mutableStateOf(false) }
-    DocuNoteTheme(darkTheme = true) {
-        Scaffold(
-            modifier = Modifier
-                .fillMaxSize() ,
-            bottomBar = {
-                BottomAppBar(
-                    actions = {
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .clickable(
-                                        enabled = true ,
-                                        onClick = {
-                                            isDrawerOpen.value = isDrawerOpen.value.not()
-                                        }
-                                    )
-                            ) {
-
-                                Image(
-                                    painter = painterResource(R.drawable.android_dark_rd_na),
-                                    contentDescription = null
-                                )
-                            }
-
-
-                            Row(
-                                modifier = Modifier
-                                    .align(Alignment.CenterEnd)
-                                    .padding(8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                ) {
-
-                                // extensions ...
-                                Box(
-                                    modifier = Modifier
-                                        .clickable {
-                                          //  appViewModel.update_extensionsOpenState(true)
-                                        }
-                                ) {
-
-                                  /*  Image(
-                                        painter = if (!_extensionsOpen.value) painterResource(
-                                            R.drawable.collapse_content
-                                        ) else painterResource(R.drawable.expand_content),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop
-                                    )*/
-                                }
-
-                                // scan ...
-                                Box(
-                                    modifier = Modifier
-                                        .clickable {
-
-                                        }
-                                ) {
-
-                                    Image(
-                                        painter = painterResource(R.drawable.document_scanner),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop
-                                    )
-                                }
-                                // read ...
-                                Box(
-                                    modifier = Modifier
-                                        .clickable {
-                                            ripple(bounded = true, radius = 48.dp)
-
-                                            val intent =
-                                                Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                                                    addCategory(Intent.CATEGORY_OPENABLE)
-                                                    type = "application/pdf"
-                                                }
-                                            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-                                            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-
-                                            // MainActivity.mainActivity.startActivityForResult(intent, 2)
-                                            MainActivity.openDocumentLauncher.launch(intent)
-                                        }
-                                ) {
-
-                                    Image(
-                                        painter = painterResource(R.drawable.read_icon),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop
-                                    )
-                                }
-
-
-                            }
-                        }
-
-                    },
-                    floatingActionButton = {
-                        FloatingActionButton(
-                            onClick = {
-
-                            },
-                            elevation = FloatingActionButtonDefaults.loweredElevation(
-                                defaultElevation = 20.dp
-                            ),
-                            containerColor = Color.LightGray
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.ic_launcher_foreground),
-                                contentDescription = null,
-                            )
-                        }
-                    }
-                )
-            }
-        ) { innerPadding ->
-
-            MainContent(modifier = Modifier.padding(innerPadding))
-            if (isDrawerOpen.value){
-                CustomSideDrawerOverlay(
-                    isDrawerOpen = isDrawerOpen.value,
-                    onDismiss = {
-                        isDrawerOpen.value = isDrawerOpen.value.not()
-                    },
-                    drawerContent = {
-                        CustomSideDrawerContent()
-                    },
-                    // No need to pass content here since it's handled separately
-                    drawerWidth = 300.dp,  // Customize the drawer width
-                    showMask = true,  // Optional: if you want to show the mask when drawer is open
-                    drawerSide = DrawerSide.RIGHT,  // Drawer from left, or RIGHT
-                    animationDuration = 300  // Animation duration for opening/closing the drawer
-                )
-            }
-        }
-    }
-
-}
 
 @Composable
 fun MainContent(modifier: Modifier){
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
     ) {
 
@@ -1070,7 +906,8 @@ fun CustomSideDrawerOverlay(
             .zIndex(1f)
     ) {
 
-        // Mask overlay when the drawer is open
+
+    // Mask overlay when the drawer is open
         if (isDrawerOpen && showMask) {
             Box(
                 modifier = Modifier
@@ -1215,13 +1052,7 @@ fun CustomSideDrawerContent(
                 )
             }
 
-            Text(
-                text = "stringResource(R.string.earn_token)" ,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp) ,
-                style = MaterialTheme.typography.labelSmall ,
-            )
+
 
 
             OutlinedButton(
@@ -1233,7 +1064,7 @@ fun CustomSideDrawerContent(
                     .padding(horizontal = 16.dp, vertical = 16.dp)
             ) {
                 Text(
-                    text = "stringResource(R.string.rate_review)"
+                    text = stringResource(R.string.rate_review)
                 )
             }
         }
@@ -1251,8 +1082,179 @@ fun CustomSideDrawerContent(
                 .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
             Text(
-                text = "stringResource(R.string.sign_out)" ,
+                text = stringResource(R.string.sign_out) ,
             )
         }
     }
+}
+
+
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+@SuppressLint("ViewModelConstructorInComposable")
+@Preview(showBackground = true , showSystemUi = true)
+@Composable
+fun MainContentPreview() {
+    var isDrawerOpen = remember { mutableStateOf(false) }
+    DocuNoteTheme(darkTheme = true) {
+        Scaffold(
+            modifier = Modifier
+                .fillMaxSize() ,
+            bottomBar = {
+                BottomAppBar(
+                    modifier = Modifier
+                        .background(Color.Transparent) ,
+                    actions = {
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically ,
+
+                            ) {
+
+                                Box(
+                                    modifier = Modifier
+                                        .padding(8.dp)
+                                        .clickable {
+                                            isDrawerOpen.value = isDrawerOpen.value.not()
+                                            Log.d("mainss", "clicked side sheet")
+                                        }
+                                ) {
+
+                                    Image(
+                                        painter = painterResource(R.drawable.android_dark_rd_na),
+                                        contentDescription = null
+                                    )
+                                }
+
+                                // premium badge ...
+                                Box(
+                                    modifier = Modifier
+                                        .padding(8.dp)
+                                        .clickable {
+                                        }
+                                ) {
+
+                                    Image(
+                                        painter = painterResource(R.drawable.workspace_premium),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+
+
+                            Row(
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .padding(8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+
+                                // extensions ...
+                                Box(
+                                    modifier = Modifier
+                                        .clickable {
+                                            //  appViewModel.update_extensionsOpenState(true)
+                                        }
+                                ) {
+
+                                    /*  Image(
+                                          painter = if (!_extensionsOpen.value) painterResource(
+                                              R.drawable.collapse_content
+                                          ) else painterResource(R.drawable.expand_content),
+                                          contentDescription = null,
+                                          contentScale = ContentScale.Crop
+                                      )*/
+                                }
+
+                                // scan ...
+                                Box(
+                                    modifier = Modifier
+                                        .clickable {
+
+                                        }
+                                ) {
+
+                                    Image(
+                                        painter = painterResource(R.drawable.document_scanner),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                                // read ...
+                                Box(
+                                    modifier = Modifier
+                                        .clickable {
+                                            ripple(bounded = true, radius = 48.dp)
+
+                                            val intent =
+                                                Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                                                    addCategory(Intent.CATEGORY_OPENABLE)
+                                                    type = "application/pdf"
+                                                }
+                                            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                                            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+                                            // MainActivity.mainActivity.startActivityForResult(intent, 2)
+                                            MainActivity.openDocumentLauncher.launch(intent)
+                                        }
+                                ) {
+
+                                    Image(
+                                        painter = painterResource(R.drawable.read_icon),
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+
+
+                            }
+                        }
+
+                    },
+                    floatingActionButton = {
+                        FloatingActionButton(
+                            onClick = {
+
+                            },
+                            elevation = FloatingActionButtonDefaults.loweredElevation(
+                                defaultElevation = 20.dp
+                            ),
+                            containerColor = Color.LightGray
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.ic_launcher_foreground),
+                                contentDescription = null,
+                            )
+                        }
+                    }
+                )
+            }
+        ) { innerPadding ->
+
+            MainContent(modifier = Modifier.padding(innerPadding))
+
+
+
+
+        }
+        if (isDrawerOpen.value){
+            CustomSideDrawerOverlay(
+                isDrawerOpen = isDrawerOpen.value ,
+                onDismiss = { isDrawerOpen.value = isDrawerOpen.value.not() } ,
+                drawerContent = { CustomSideDrawerContent() } ,
+                // No need to pass content here since it's handled separately
+                drawerWidth = 300.dp,  // Customize the drawer width
+                showMask = true,  // Optional: if you want to show the mask when drawer is open
+                drawerSide = DrawerSide.LEFT ,
+                animationDuration = 300 ,  // Animation duration for opening/closing the drawer
+            )
+        }
+    }
+
 }

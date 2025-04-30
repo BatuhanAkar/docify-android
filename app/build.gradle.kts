@@ -129,6 +129,9 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+    val billing_version = "7.0.0"
+
+    implementation("com.android.billingclient:billing-ktx:$billing_version")
     testImplementation(libs.junit)
 
     androidTestImplementation(libs.androidx.junit)

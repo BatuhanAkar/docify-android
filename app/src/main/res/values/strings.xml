@@ -64,4 +64,7 @@
     <string name="gicon">Google icon</string>
     <string name="continuewithgoogle">Continue with Google</string>
     <string name="share_with_others">Share with others</string>
+    <string name="rate_review">Rate and leave review</string>
+    <string name="sign_out">Sign out</string>
+    <string name="title_activity_store">StoreActivity</string>
 </resources>
