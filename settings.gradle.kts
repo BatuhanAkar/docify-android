@@ -36,4 +36,3 @@ dependencyResolutionManagement {
 rootProject.name = "DocuNote"
 include(":app")
 include(":pdfium")
-include(":docifyai")

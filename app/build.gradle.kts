@@ -88,7 +88,6 @@ android {
     buildToolsVersion = "35.0.1"
     ndkVersion = "28.0.12433566 rc1"
 
-    assetPacks += listOf(":docifyai")
 
 }
 
