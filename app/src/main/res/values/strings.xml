@@ -67,4 +67,15 @@
     <string name="rate_review">Rate and leave review</string>
     <string name="sign_out">Sign out</string>
     <string name="title_activity_store">StoreActivity</string>
+    <string name="title_activity_ai">AiActivity</string>
+    <string name="message_placeholder">Message</string>
+    <string name="profile_photo">Profile_photo</string>
+    <string name="default_noticifaction_channel_id">def_noti_channel</string>
+    <string name="title_activity_welcome">WelcomeActivity</string>
+    <string name="explore_tour">Explore</string>
+    <string name="imdone">I\\\'m done</string>
+    <string name="notificationpermissionquestiontext">%1$s wants to send you notifications.</string>
+    <string name="in_app_notifications">It includes in-app notifications.</string>
+
+    <string name="nothanks">No thanks</string>
 </resources>

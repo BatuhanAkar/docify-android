@@ -6,6 +6,8 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.Credential
 import androidx.credentials.CredentialManager
@@ -14,8 +16,12 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.ClearCredentialException
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.NoCredentialException
+import androidx.lifecycle.viewModelScope
+import com.batuscode.docunote.AiActivity
 import com.batuscode.docunote.R
 import com.batuscode.docunote.SignupActivity
+import com.batuscode.docunote.model.InAppMSG
+import com.batuscode.docunote.model.User
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.FirebaseAuth
@@ -25,11 +31,35 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Co
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import okhttp3.internal.wait
 
 object Auth {
     const val TAG = "AuthObject"
     lateinit var auth: FirebaseAuth
+
+    private val _user = mutableStateOf(User())
+    val user : State<User> = _user
+
+    suspend fun checkClaims() = withContext(Dispatchers.IO){
+        val result = Auth.auth.currentUser?.getIdToken(true)?.await()
+        val validate = FunctionsUtil.vnp(result?.token!!)
+        Log.d(TAG , "validate value is ::: $validate")
+        updateClaim(validate)
+        Log.d(TAG , "user validate value is ::: ${Auth.user.value.pro}")
+
+    }
+    suspend fun updateClaim(newValue : Boolean) = withContext(Dispatchers.IO){
+        _user.value = _user.value.copy(pro = newValue)
+    }
+
+    private val _inappMessage = mutableStateOf(InAppMSG())
+    val inappmessage : State<InAppMSG> = _inappMessage
+
+    fun update_inappmessage(newValue : InAppMSG){
+        _inappMessage.value = newValue
+    }
 
     suspend fun handleSignIn(credential: Credential) : String = withContext(Dispatchers.Default){
         if (credential is CustomCredential && credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL){
@@ -100,9 +130,10 @@ object Auth {
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful){
                         Log.d(TAG, "signInWithCredential:success")
-                       // val intent = Intent(context , AiActivity::class.java)
-                       // context.startActivity(intent)
-                       // (context as? Activity)?.finish()
+
+                        val intent = Intent(context , AiActivity::class.java)
+                        context.startActivity(intent)
+                        (context as? Activity)?.finish()
                     } else {
                         // If sign in fails, display a message to the user
                         Log.w(TAG, "signInWithCredential:failure", task.exception)
@@ -131,4 +162,5 @@ object Auth {
         }
 
     }
+
 }

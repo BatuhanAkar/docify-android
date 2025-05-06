@@ -3,6 +3,7 @@ package com.batuscode.docunote
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -17,13 +18,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -31,32 +35,57 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelProvider
+import com.batuscode.docunote.SignupActivity.Companion.validating
+import com.batuscode.docunote.model.User
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
+import com.batuscode.docunote.utils.AiUtil
 import com.batuscode.docunote.utils.Auth
+import com.batuscode.docunote.utils.FunctionsUtil
+import com.batuscode.docunote.viewmodel.SignupActivityViewModel
 import com.google.firebase.FirebaseApp
+import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
+import com.google.firebase.appcheck.ktx.appCheck
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.functions.ktx.functions
 import com.google.firebase.ktx.Firebase
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
+@AndroidEntryPoint
 class SignupActivity : ComponentActivity() {
 
 
     companion object {
         lateinit var context: Context
+        lateinit var signupActivityViewModel : SignupActivityViewModel
+        var validating = mutableStateOf(false)
     }
     override fun onStart() {
         super.onStart()
 
         val currentUser = Auth.auth
-        if (currentUser.currentUser != null){
-            val intent = Intent(context , MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+        CoroutineScope(Dispatchers.IO).launch {
+            if (currentUser.currentUser != null){
+                validating.value = validating.value.not()
+                Auth.checkClaims()
+                withContext(Dispatchers.Main){
+                    Log.d("mactvty" , currentUser.currentUser?.email.toString())
+                    val intent = Intent(context , AiActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                    }
+                    context.startActivity(intent)
+                    finish()
+                }
+
+
             }
-            context.startActivity(intent)
-            finish()
         }
+
 
     }
 
@@ -64,8 +93,17 @@ class SignupActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         context = this
+        signupActivityViewModel = ViewModelProvider(this).get(SignupActivityViewModel::class.java)
         FirebaseApp.initializeApp(this)
+        Firebase.appCheck.installAppCheckProviderFactory(
+            DebugAppCheckProviderFactory.getInstance(),
+        )
         Auth.auth = Firebase.auth
+        FunctionsUtil.functions = Firebase.functions
+
+        CoroutineScope(Dispatchers.IO).launch {
+            AiUtil.initGenerativeModel()
+        }
 
         enableEdgeToEdge()
         setContent {
@@ -109,31 +147,35 @@ fun SignUpScreen(modifier: Modifier = Modifier){
             )
         }
         Spacer(modifier = Modifier.weight(1f))
-        OutlinedButton (
-            onClick = {
-                CoroutineScope(Dispatchers.Default).launch {
-                    Auth.firebaseAuthWithGoogle(context = context)
-                }
-            } ,
-            modifier = Modifier
-                .absolutePadding(bottom = 16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.secondary
-            )
-        ) {
-            Row (
-                verticalAlignment = Alignment.CenterVertically ,
-                horizontalArrangement = Arrangement.SpaceBetween
+        if (validating.value){
+            CircularProgressIndicator()
+        } else {
+            OutlinedButton (
+                onClick = {
+                    CoroutineScope(Dispatchers.Default).launch {
+                        Auth.firebaseAuthWithGoogle(context = context)
+                    }
+                } ,
+                modifier = Modifier
+                    .absolutePadding(bottom = 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary
+                )
             ) {
+                Row (
+                    verticalAlignment = Alignment.CenterVertically ,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
 
-                Image(
-                    painter = painterResource(R.drawable.android_dark_rd_na) ,
-                    contentDescription = stringResource(R.string.gicon)
-                )
-                Text(
-                    text = stringResource(R.string.continuewithgoogle) ,
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                    Image(
+                        painter = painterResource(R.drawable.android_dark_rd_na) ,
+                        contentDescription = stringResource(R.string.gicon)
+                    )
+                    Text(
+                        text = stringResource(R.string.continuewithgoogle) ,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
         }
     }

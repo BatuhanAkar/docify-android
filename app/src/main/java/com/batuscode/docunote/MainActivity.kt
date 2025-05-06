@@ -704,11 +704,10 @@ class MainActivity : ComponentActivity() {
 
             val _extensionsOpen = appViewModel._extensionsOpen.collectAsState()
 
-            var isDrawerOpen = remember { mutableStateOf(false) }
             DocuNoteTheme(darkTheme = true) {
                 Scaffold(
                     modifier = Modifier
-                        .systemBarsPadding(),
+                        .fillMaxSize(),
                     bottomBar = {
                         BottomAppBar(
                             actions = {
@@ -720,11 +719,8 @@ class MainActivity : ComponentActivity() {
                                 ) {
 
 
-
-
                                     Row(
                                         modifier = Modifier
-                                            .align(Alignment.CenterEnd)
                                             .padding(8.dp),
                                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                                         verticalAlignment = Alignment.CenterVertically,
@@ -732,22 +728,6 @@ class MainActivity : ComponentActivity() {
 
                                         ) {
 
-                                        // extensions ...
-                                        Box(
-                                            modifier = Modifier
-                                                .clickable {
-                                                    appViewModel.update_extensionsOpenState(true)
-                                                }
-                                        ) {
-
-                                            Image(
-                                                painter = if (!_extensionsOpen.value) painterResource(
-                                                    R.drawable.collapse_content
-                                                ) else painterResource(R.drawable.expand_content),
-                                                contentDescription = null,
-                                                contentScale = ContentScale.Crop
-                                            )
-                                        }
 
                                         // scan ...
                                         Box(
@@ -760,7 +740,9 @@ class MainActivity : ComponentActivity() {
                                             Image(
                                                 painter = painterResource(R.drawable.document_scanner),
                                                 contentDescription = null,
-                                                contentScale = ContentScale.Crop
+                                                contentScale = ContentScale.Crop ,
+                                                modifier = Modifier
+                                                    .size(32.dp)
                                             )
                                         }
                                         // read ...
@@ -785,7 +767,29 @@ class MainActivity : ComponentActivity() {
                                             Image(
                                                 painter = painterResource(R.drawable.read_icon),
                                                 contentDescription = null,
-                                                contentScale = ContentScale.Crop
+                                                contentScale = ContentScale.Crop ,
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                            )
+                                        }
+
+
+                                        // extensions ...
+                                        Box(
+                                            modifier = Modifier
+                                                .clickable {
+                                                    appViewModel.update_extensionsOpenState(true)
+                                                }
+                                        ) {
+
+                                            Image(
+                                                painter = if (!_extensionsOpen.value) painterResource(
+                                                    R.drawable.collapse_content
+                                                ) else painterResource(R.drawable.expand_content),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop ,
+                                                modifier = Modifier
+                                                    .size(32.dp)
                                             )
                                         }
 
@@ -797,7 +801,7 @@ class MainActivity : ComponentActivity() {
                             floatingActionButton = {
                                 FloatingActionButton(
                                     onClick = {
-
+                                        finish()
                                     },
                                     elevation = FloatingActionButtonDefaults.loweredElevation(
                                         defaultElevation = 20.dp
@@ -814,7 +818,11 @@ class MainActivity : ComponentActivity() {
                     }
                 ) { innerPadding ->
 
-                    MainContent(modifier = Modifier.padding(innerPadding))
+                    MainContent(
+                        modifier = Modifier
+                            .padding(innerPadding) ,
+                        appViewModel
+                    )
 
                     if (_extensionsOpen.value) {
                         Extensions(onDissmis = {
@@ -823,18 +831,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                 }
-                if (isDrawerOpen.value){
-                    CustomSideDrawerOverlay(
-                        isDrawerOpen = isDrawerOpen.value ,
-                        onDismiss = { isDrawerOpen.value = isDrawerOpen.value.not() } ,
-                        drawerContent = { CustomSideDrawerContent() } ,
-                        // No need to pass content here since it's handled separately
-                        drawerWidth = 300.dp,  // Customize the drawer width
-                        showMask = true,  // Optional: if you want to show the mask when drawer is open
-                        drawerSide = DrawerSide.LEFT ,
-                        animationDuration = 300 ,  // Animation duration for opening/closing the drawer
-                    )
-                }
+
             }
         }
     }
@@ -849,244 +846,17 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun MainContent(modifier: Modifier){
+fun MainContent(modifier: Modifier , appViewModel: AppViewModel){
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-
-    }
-}
-
-
-@Composable
-fun CustomSideDrawerOverlay(
-    isDrawerOpen: Boolean,
-    onDismiss: () -> Unit,
-    drawerContent: @Composable ColumnScope.() -> Unit,
-    modifier: Modifier = Modifier,
-    drawerWidth: Dp = 300.dp,
-    animationDuration: Int = 300,
-    maskColor: Color = Color.Black.copy(alpha = 0.5f),
-    showMask: Boolean = false,
-    drawerSide: DrawerSide = DrawerSide.RIGHT,
-    cornerRadius: Dp = 32.dp,
-    dragThresholdFraction: Float = 0.5f,
-    enableSwipe: Boolean = true
-) {
-    // Coroutine scope for managing animations
-    val scope = rememberCoroutineScope()
-
-    val density = LocalDensity.current
-
-    // Width of the drawer in pixels
-    val drawerWidthPx = with(density) { drawerWidth.toPx() }
-
-    // Offset for the drawer animation
-    val offsetX = remember { Animatable(if (isDrawerOpen) 0f else drawerWidthPx * (if (drawerSide == DrawerSide.LEFT) -1 else 1)) }
-
-    // Launch animation when the drawer state changes
-    LaunchedEffect(isDrawerOpen) {
-        val targetOffsetX = if (isDrawerOpen) 0f else drawerWidthPx * (if (drawerSide == DrawerSide.LEFT) -1 else 1)
-        offsetX.animateTo(
-            targetValue = targetOffsetX,
-            animationSpec = tween(durationMillis = animationDuration)
-        )
-    }
-
-    if (isDrawerOpen) {
-        BackHandler {
-            onDismiss()
-        }
-    }
-
-    Box(
         modifier = modifier
             .fillMaxSize()
-            .zIndex(1f)
     ) {
-
-
-    // Mask overlay when the drawer is open
-        if (isDrawerOpen && showMask) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(maskColor)
-                    .pointerInput(Unit) {
-                        detectTapGestures(onTap = { onDismiss() })
-                    }
-            )
-        }
-
-        // Drawer content
-        Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(drawerWidth)
-                .offset { IntOffset(x = 2 * offsetX.value.roundToInt(), y = 0) }
-                .align(if (drawerSide == DrawerSide.LEFT) Alignment.CenterStart else Alignment.CenterEnd)
-                .systemBarsPadding()
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = if (cornerRadius > 0.dp) {
-                        if (drawerSide == DrawerSide.LEFT) {
-                            RoundedCornerShape(topEnd = cornerRadius, bottomEnd = cornerRadius)
-                        } else {
-                            RoundedCornerShape(topStart = cornerRadius, bottomStart = cornerRadius)
-                        }
-                    } else {
-                        RectangleShape
-                    }
-                )
-                .pointerInput(Unit) {
-                    if (enableSwipe) {
-                        detectDragGestures(
-                            onDragEnd = {
-                                scope.launch {
-                                    val shouldClose = when (drawerSide) {
-                                        DrawerSide.LEFT -> offsetX.value < -drawerWidthPx * dragThresholdFraction
-                                        DrawerSide.RIGHT -> offsetX.value > drawerWidthPx * dragThresholdFraction
-                                    }
-
-                                    val finalTarget = if (shouldClose) {
-                                        drawerWidthPx * (if (drawerSide == DrawerSide.LEFT) -1 else 1)
-                                    } else {
-                                        0f
-                                    }
-
-                                    offsetX.animateTo(
-                                        targetValue = finalTarget,
-                                        animationSpec = tween(durationMillis = animationDuration)
-                                    )
-
-                                    if (shouldClose) {
-                                        onDismiss()
-                                    }
-                                }
-                            }
-                        ) { change, dragAmount ->
-                            change.consume()
-
-                            scope.launch {
-                                val newOffset = offsetX.value + dragAmount.x
-
-                                val clampedOffset = when (drawerSide) {
-                                    DrawerSide.LEFT -> newOffset.coerceIn(-drawerWidthPx, 0f)
-                                    DrawerSide.RIGHT -> newOffset.coerceIn(0f, drawerWidthPx)
-                                }
-
-                                offsetX.snapTo(clampedOffset)
-                            }
-                        }
-                    }
-                }
-        ) {
-            // Content inside the drawer
-            drawerContent()
-        }
+        Folders(appViewModel)
+        RecentlyRead(appViewModel)
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-@Composable
-fun CustomSideDrawerContent(
-    drawerWidth: Dp = 300.dp ,
-    cornerRadius: Dp = 32.dp,
-){
-    val context = LocalContext.current
-    Column(
-        modifier = Modifier
-            .fillMaxHeight()
-            .width(drawerWidth)
-            .background(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(topEnd = cornerRadius, bottomEnd = cornerRadius)
 
-            ) ,
-        verticalArrangement = Arrangement.Bottom,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        Spacer(modifier = Modifier.height(64.dp))
-        Box(
-
-        ) {
-            AsyncImage(
-                model = Auth.auth.currentUser?.photoUrl ,
-                contentDescription = "stringResource(R.string.profile_photo)" ,
-                contentScale = ContentScale.Crop ,
-                modifier = Modifier
-                    .size(172.dp)
-                    .clip(CircleShape)
-            )
-
-
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = Auth.auth.currentUser?.displayName!! ,
-            style = MaterialTheme.typography.titleLarge
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Column {
-
-
-            OutlinedButton(
-                onClick = {
-                    val intent = Intent()
-                    intent.setAction(Intent.ACTION_SEND)
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    intent.setType("*/*")
-                    intent.putExtra(Intent.EXTRA_TEXT,"merhaba")
-                    context.startActivity(Intent.createChooser(intent,"share"))
-                } ,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.share_with_others)
-                )
-            }
-
-
-
-
-            OutlinedButton(
-                onClick = {
-                    // InAppReview.requestReview(context)
-                } ,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.rate_review)
-                )
-            }
-        }
-
-
-        Spacer(modifier = Modifier.weight(1f))
-        OutlinedButton(
-            onClick = {
-                CoroutineScope(Dispatchers.IO).launch {
-                    Auth.signOut(context)
-                }
-            } ,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 16.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.sign_out) ,
-            )
-        }
-    }
-}
 
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
@@ -1237,24 +1007,13 @@ fun MainContentPreview() {
             }
         ) { innerPadding ->
 
-            MainContent(modifier = Modifier.padding(innerPadding))
+          //  MainContent(modifier = Modifier.padding(innerPadding))
 
 
 
 
         }
-        if (isDrawerOpen.value){
-            CustomSideDrawerOverlay(
-                isDrawerOpen = isDrawerOpen.value ,
-                onDismiss = { isDrawerOpen.value = isDrawerOpen.value.not() } ,
-                drawerContent = { CustomSideDrawerContent() } ,
-                // No need to pass content here since it's handled separately
-                drawerWidth = 300.dp,  // Customize the drawer width
-                showMask = true,  // Optional: if you want to show the mask when drawer is open
-                drawerSide = DrawerSide.LEFT ,
-                animationDuration = 300 ,  // Animation duration for opening/closing the drawer
-            )
-        }
+
     }
 
 }

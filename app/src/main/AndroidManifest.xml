@@ -11,6 +11,7 @@
         tools:ignore="ScopedStorage" />
 
     <application
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -21,6 +22,38 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DocuNote"
         tools:targetApi="35">
+        <activity
+            android:name=".WelcomeActivity"
+            android:exported="false"
+            android:label="@string/title_activity_welcome"
+            android:theme="@style/Theme.DocuNote" />
+
+        <service
+            android:name=".service.PurchaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <meta-data
+            android:name="firebase_messaging_auto_init_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="firebase_analytics_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/default_notification_icon" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="@string/default_noticifaction_channel_id" />
+
+        <activity
+            android:name=".AiActivity"
+            android:exported="false"
+            android:label="@string/title_activity_ai"
+            android:theme="@style/Theme.DocuNote" />
         <activity
             android:name=".StoreActivity"
             android:exported="false"
@@ -80,9 +113,9 @@
             android:theme="@style/Theme.DocuNote" />
         <activity
             android:name=".MainActivity"
-            android:exported="true"
+            android:exported="false"
             android:label="@string/title_activity_main"
-            android:theme="@style/Theme.DocuNote"></activity>
+            android:theme="@style/Theme.DocuNote" />
 
         <uses-native-library
             android:name="libOpenCL.so"

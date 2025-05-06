@@ -10,6 +10,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
     id("com.google.gms.google-services")
+    id("com.google.dagger.hilt.android")
+
 
 }
 
@@ -128,9 +130,22 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+    implementation("com.google.firebase:firebase-vertexai")
+    //implementation("com.google.firebase:firebase-appcheck-playintegrity")
+    implementation("com.google.firebase:firebase-appcheck-debug")
+    implementation ("com.google.android.play:integrity:1.4.0")
+    implementation(libs.firebase.messaging)
+    implementation(libs.firebase.functions)
     val billing_version = "7.0.0"
 
     implementation("com.android.billingclient:billing-ktx:$billing_version")
+
+    implementation("androidx.datastore:datastore-preferences:1.1.4")
+
+    implementation("com.google.dagger:hilt-android:2.56.2")
+    ksp("com.google.dagger:hilt-android-compiler:2.56.2")
+    ksp("androidx.hilt:hilt-compiler:1.0.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
     testImplementation(libs.junit)
 
     androidTestImplementation(libs.androidx.junit)

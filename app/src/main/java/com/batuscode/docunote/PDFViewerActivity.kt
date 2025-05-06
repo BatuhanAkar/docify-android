@@ -118,13 +118,10 @@ import java.util.concurrent.Executors
 
 class PDFViewerActivity : ComponentActivity() {
     companion object {
-        lateinit var mrendererPages: List<Bitmap>
         lateinit var mpageStates: MutableMap<Int , MutableState<DrawingState>>
 
         lateinit var elayers: MutableList<GraphicsLayer>
         lateinit var activity: PDFViewerActivity
-        lateinit var gLView: MyGLSurfaceView
-        var wdocptr = mutableStateOf<Long>(0)
         var pdfDocument = mutableStateOf<PdfDocument?>(null)
         lateinit var muri: Uri
     }
@@ -134,8 +131,6 @@ class PDFViewerActivity : ComponentActivity() {
 
     }
 
-    val mPreLoadPageWorker = Executors.newSingleThreadExecutor()
-    val mRenderPageWorker = Executors.newSingleThreadExecutor()
     var renderRunnable: Runnable? = null
     @Deprecated(message = "Use quadraticTo() for consistency with cubicTo()", replaceWith = ReplaceWith(expression = "quadraticTo(x1, y1, x2, y2)"), level = DeprecationLevel.WARNING)
     @SuppressLint("UnusedBoxWithConstraintsScope")
@@ -200,27 +195,6 @@ class PDFViewerActivity : ComponentActivity() {
                 mutableStateOf(false)
             }
 
-            //  gLView = MyGLSurfaceView(this, pdfBitmapConverter, Uri.parse(uri))
-
-            /*LaunchedEffect(fileUri) {
-                fileUri?.let { uri ->
-                   // renderedPages = pdfBitmapConverter.dfr(uri)
-
-                }
-
-                lifecycleScope.launch(Dispatchers.IO) {
-                    Log.d("bg" , "started...")
-                    renderedPages = pdfBitmapConverter.dff(uri = Uri.parse(uri)) // PDF sayfalarını render et
-                    withContext(Dispatchers.Main) {
-
-                        Log.d("bg" , "finished...")
-                        ok.value = true
-                      //  gLView.onPdfRenderCompleted(renderedBitmapList) // OpenGL'i güncelle
-                    }
-                }
-            }*/
-
-
             val pageCount = remember { mutableStateOf(0) }
             val scaleFactor = 0.5f
 
@@ -233,7 +207,6 @@ class PDFViewerActivity : ComponentActivity() {
                             pdfDocument.value = dptr
 
                             Log.d("PDFViewerActivity" , "init docPtr :: " + dptr.mNativeDocPtr)
-                           // wdocptr.value = idoc.mNativeDocPtr
                             pageCount.value = MainActivity.mainicore.getPageCount(pdfDocument.value)
                         }
                 }
@@ -309,21 +282,12 @@ class PDFViewerActivity : ComponentActivity() {
                 mutableStateOf(false)
             }
 
-            var pan = remember {
-                mutableStateOf(false)
-            }
+
 
             var canScroll = remember {
                 mutableStateOf(true)
             }
-            var mthickness = remember {
-                mutableStateOf(5f)
-            }
             var thickness by remember { mutableStateOf(10f) }
-
-            var barheight = remember {
-                mutableStateOf(screenHeightPx * scale.value)
-            }
 
             if (draw.value) {
                 Log.d("drawww", "ok")
@@ -585,103 +549,7 @@ class PDFViewerActivity : ComponentActivity() {
                                     }
                                 }
                             }
-                            /* itemsIndexed(renderedPages){ pageIndex , page ->
-
-
-
-
-                                 val state = remember { mutableStateOf(DrawingState()) }
-
-
-                                 state.value.selectedColor = selectedcolor.value
-
-                                 state.value.thickness = thicknessTextfield.value.toFloat()
-
-                                 if (undo.value) {
-
-                                     state.value = state.value.copy(
-                                         paths = state.value.paths.dropLast(1)
-                                     )
-                                     undo.value = undo.value.not()
-                                 }
-
-
-                                 state.value.isErasing = earse.value
-
-
-                                 pageStates.add(state)
-
-
-                                 val graphicsLayer = rememberGraphicsLayer()
-
-                                 AsyncImage(model = page , contentDescription = "")
-                                 /* Box(
-                                      modifier = Modifier
-                                          .padding(bottom = 16.dp)
-                                          .drawWithContent {
-
-
-                                              if (PDFViewerActivity.Companion.elayers.size <= index) {
-                                                  PDFViewerActivity.Companion.elayers.add(
-                                                      graphicsLayer
-                                                  )
-                                                  graphicsLayer.record {
-                                                      this@drawWithContent.drawContent()
-                                                  }
-                                              }
-                                              drawLayer(PDFViewerActivity.Companion.elayers[index])
-
-
-                                          }
-
-
-                                  ) {
-
-                                      if (ok.value){
-
-                                          /*  AndroidView(
-
-                                                factory = { context ->
-                                                    MyGLSurfaceView(context,pdfBitmapConverter, Uri.parse(uri) , renderedPages)
-                                                },
-                                                modifier = Modifier
-                                                    .aspectRatio(PDRectangle.A4.width / PDRectangle.A4.height)// Bu kısmı istediğiniz gibi ayarlayın
-                                            )*/
-
-                                          DrawingScreen(
-                                              draw,
-                                              scale,
-                                              offset,
-                                              // transformablestate ,
-                                              page,
-                                              pageStates[index],
-                                              modifier = Modifier
-                                              //  .transformable(state = transformablestate)
-                                              //  .aspectRatio(PDRectangle.A4.width / PDRectangle.A4.height)
-
-
-                                          )
-                                      }
-                                      /*  DrawingScreen(
-                                            draw,
-                                            scale,
-                                            offset,
-                                            // transformablestate ,
-                                            page,
-                                            pageStates[index],
-                                            modifier = Modifier
-                                                //  .transformable(state = transformablestate)
-                                              //  .aspectRatio(PDRectangle.A4.width / PDRectangle.A4.height)
-
-
-                                        )*/
-                                  }*/
-                             }*/
                         }
-
-
-
-
 
                         if (paletteVisible) {
                             Surface(
@@ -694,7 +562,6 @@ class PDFViewerActivity : ComponentActivity() {
                                     .height(300.dp)
                                     .align(Alignment.BottomCenter)
                                     .navigationBarsPadding()
-                                //.offset(0.dp, -60.dp)
                             ) {
 
 
