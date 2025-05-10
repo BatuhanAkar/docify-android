@@ -45,8 +45,8 @@ import com.batuscode.docunote.utils.Auth
 import com.batuscode.docunote.utils.FunctionsUtil
 import com.batuscode.docunote.viewmodel.SignupActivityViewModel
 import com.google.firebase.FirebaseApp
-import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.ktx.appCheck
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.functions.ktx.functions
@@ -55,8 +55,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class SignupActivity : ComponentActivity() {
@@ -97,7 +95,7 @@ class SignupActivity : ComponentActivity() {
         signupActivityViewModel = ViewModelProvider(this).get(SignupActivityViewModel::class.java)
         FirebaseApp.initializeApp(this)
         Firebase.appCheck.installAppCheckProviderFactory(
-            DebugAppCheckProviderFactory.getInstance(),
+            PlayIntegrityAppCheckProviderFactory.getInstance()
         )
         Auth.auth = Firebase.auth
         Auth.db = Firebase.firestore
