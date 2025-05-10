@@ -1,5 +1,6 @@
 package com.batuscode.pdfium;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -69,7 +70,7 @@ public class icore {
     public icore(Context ctx) {
         mCurrentDpi = ctx.getResources().getDisplayMetrics().densityDpi;
         Log.d(TAG, "Starting PdfiumAndroid " + BuildConfig.VERSION_NAME);
-        InputStream inputStream = ctx.getResources().openRawResource(R.font.notosans_regular);
+        @SuppressLint("ResourceType") InputStream inputStream = ctx.getResources().openRawResource(R.font.notosans_regular);
 
         // Fontu byte[] formatında okuyalım
         byte[] fontData;
@@ -289,11 +290,14 @@ public class icore {
         nativeDrawPath(filePath, pageIndex, pathData , color , mCurrentDpi);
     }*/
 
-    public native boolean nativeDrawPath(String filePath , Map<Integer, List<PathData>> filePathMap , int mCurrentDpi);
-    public boolean drawPath(String filePath , Map<Integer, List<PathData>> filePathMap ){
-        //Log.d("drawPathToPage" , "icore ::: " + "filePath :: " + filePath + " pageIndex :: " + pageIndex);
 
-        return nativeDrawPath(filePath, filePathMap , mCurrentDpi);
+
+    public native boolean nativeDrawPath(String filePath , Map<Integer, List<PathData>> filePathMap , int mCurrentDpi);
+    public CompletableFuture<Boolean> drawPath(String filePath , Map<Integer, List<PathData>> filePathMap ){
+        //Log.d("drawPathToPage" , "icore ::: " + "filePath :: " + filePath + " pageIndex :: " + pageIndex);
+        return CompletableFuture.supplyAsync(() -> {
+            return nativeDrawPath(filePath, filePathMap , mCurrentDpi);
+        });
     }
 
     public boolean saveDocumentAsStream(long docPtr , OutputStream outputStream , Context context){
@@ -301,14 +305,18 @@ public class icore {
     };
 
     public native boolean nativeMergeDocument(Map<Integer, String> filePathMap , OutputStream outputStream , Context context);
-    public boolean mergeDocument(Map<Integer,String> filePathMap , OutputStream outputStream , Context context){
-        return nativeMergeDocument(filePathMap , outputStream , context);
+    public CompletableFuture<Boolean> mergeDocument(Map<Integer,String> filePathMap , OutputStream outputStream , Context context){
+        return CompletableFuture.supplyAsync(() -> {
+            return nativeMergeDocument(filePathMap , outputStream , context);
+        });
     }
 
     public native boolean nativeSplitDocument(String filePath , OutputStream outputStream , Context context , String range);
 
-    public boolean splitDocument(String filePath , OutputStream outputStream , Context context , String range){
-        return nativeSplitDocument(filePath, outputStream, context , range);
+    public CompletableFuture<Boolean> splitDocument(String filePath , OutputStream outputStream , Context context , String range){
+        return CompletableFuture.supplyAsync(() -> {
+            return nativeSplitDocument(filePath, outputStream, context , range);
+        });
     }
 
     public native void nativeLoadFont(byte[] font_path);
@@ -328,6 +336,14 @@ public class icore {
     public CompletableFuture<String> createSummarizedDocument(byte[] joinedSummText , Context context , String fileName){
         return CompletableFuture.supplyAsync(() -> {
             return nativeCreateDocumentOfSummarize(joinedSummText , context , fileName);
+        });
+    }
+
+    private native String nativeCreatePDFFromJPEG(byte[] bytes , int[] offset , int[] lenght , Context context , String fileName);
+
+    public CompletableFuture<String> CreatePDFFromJPEG(byte[] bytes , int[] offset , int[] lenght , Context context , String fileName){
+        return CompletableFuture.supplyAsync(() -> {
+            return nativeCreatePDFFromJPEG(bytes, offset, lenght, context, fileName);
         });
     }
 }

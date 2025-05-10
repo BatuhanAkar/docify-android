@@ -78,4 +78,7 @@
     <string name="in_app_notifications">It includes in-app notifications.</string>
 
     <string name="nothanks">No thanks</string>
+    <string name="title_activity_scan">ScanActivity</string>
+    <string name="title_activity_image_organizer">ImageOrganizerActivity</string>
+    <string name="pdffilename">PDF name?</string>
 </resources>

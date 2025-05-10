@@ -2,24 +2,25 @@ package com.batuscode.docunote.viewmodel
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.batuscode.docunote.AiActivity.Companion.aiActivityViewModel
 import com.batuscode.docunote.WelcomeActivity
 import com.batuscode.docunote.data.PrefRepository
 import com.batuscode.docunote.model.AIChatListItem
-import com.batuscode.docunote.model.User
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -33,6 +34,64 @@ class AiActivityViewModel@Inject constructor(
 ) : ViewModel() {
     private val TAG = "AiActivtyViewModel"
 
+    private val _summarizeWelcome = MutableStateFlow(false)
+    val summarizeWelcome : StateFlow<Boolean> = _summarizeWelcome.asStateFlow()
+
+    fun update_SummarizeWelcome(newValue: Boolean){
+        _summarizeWelcome.value = newValue
+    }
+
+    private val _knowledgeWelcome = MutableStateFlow(false)
+    val knowledge : StateFlow<Boolean> = _knowledgeWelcome.asStateFlow()
+
+    fun update_KnowledgeWelcome(newValue: Boolean){
+        _knowledgeWelcome.value = newValue
+    }
+
+    private val _isSelectedKnowledgePDFfile = MutableStateFlow<Boolean>(false)
+    val isSelectedKnowledgePDFfile : StateFlow<Boolean> = _isSelectedKnowledgePDFfile.asStateFlow()
+
+    fun update_isSelectedKnowledgePDFfile(newValue : Boolean){
+        _isSelectedKnowledgePDFfile.value = newValue
+    }
+
+    private val _knowledgePdfFileUri = MutableStateFlow<Uri?>(null)
+    val knowledgePdfFileUri : StateFlow<Uri?> = _knowledgePdfFileUri.asStateFlow()
+
+    fun update_knowledgePdfFileUri(uri: Uri){
+        _knowledgePdfFileUri.value = uri
+        update_isSelectedKnowledgePDFfile(true)
+    }
+
+    private val _openKnowledgePDFfilePickerActivity = MutableSharedFlow<Unit>()
+    val openKnowledgePDFfilePickerActivity = _openKnowledgePDFfilePickerActivity.asSharedFlow()
+
+    fun handleSelectKnowledgePdfFile(){
+        viewModelScope.launch {
+            _openKnowledgePDFfilePickerActivity.emit(Unit)
+        }
+    }
+
+    var knowledgeListItemIndex = mutableStateOf(0)
+    private val _knowledgeList = MutableStateFlow<List<AIChatListItem>>(emptyList())
+    val knowledgeList : StateFlow<List<AIChatListItem>> = _knowledgeList.asStateFlow()
+
+    fun start_knowledge_chat(generatedText: MutableState<String>){
+        _knowledgeList.value = _knowledgeList.value + AIChatListItem.TextItem(generating = mutableStateOf(true) , generatedText , "model")
+    }
+
+    fun push_knowledge_chat_item(generatedText: MutableState<String> , role : String){
+        knowledgeListItemIndex.value += 1
+        _knowledgeList.value = _knowledgeList.value + AIChatListItem.TextItem(generating = mutableStateOf(true) , generatedText , role)
+    }
+
+    fun update_knowledge_chat_item(generatedText: MutableState<String>){
+        if (_knowledgeList.value.isNotEmpty() && _knowledgeList.value[knowledgeListItemIndex.value] is AIChatListItem.TextItem){
+            (_knowledgeList.value[knowledgeListItemIndex.value] as AIChatListItem.TextItem).generating.value = false
+            (_knowledgeList.value[knowledgeListItemIndex.value] as AIChatListItem.TextItem).text.value = generatedText.value
+        }
+    }
+
     var chatListItemIndex = mutableStateOf(0)
     private val _chatList = MutableStateFlow<List<AIChatListItem>>(emptyList())
     val chatList : StateFlow<List<AIChatListItem>> = _chatList.asStateFlow()
@@ -41,12 +100,12 @@ class AiActivityViewModel@Inject constructor(
         chatListItemIndex.value += 1
     }
     fun add_welcome_chat(generatedText: MutableState<String>){
-        _chatList.value = _chatList.value + AIChatListItem.TextItem(generating = mutableStateOf(true) , generatedText)
+        _chatList.value = _chatList.value + AIChatListItem.TextItem(generating = mutableStateOf(true) , generatedText , "model")
     }
 
-    fun push_summ_chat_item(generatedText: MutableState<String>){
+    fun push_summ_chat_item(generatedText: MutableState<String> , role: String){
         chatListItemIndex.value += 1
-        _chatList.value = _chatList.value + AIChatListItem.TextItem(generating = mutableStateOf(true) , generatedText)
+        _chatList.value = _chatList.value + AIChatListItem.TextItem(generating = mutableStateOf(true) , generatedText , role)
     }
 
     fun update_chat_item(generatedText: MutableState<String>){
@@ -57,6 +116,20 @@ class AiActivityViewModel@Inject constructor(
         }
     }
 
+
+    fun add_summed_item(){
+        chatListItemIndex.value += 1
+        _chatList.value = _chatList.value + AIChatListItem.SumItem(generating = mutableStateOf(false) , mutableStateOf("") , mutableStateOf(""))
+    }
+
+    fun update_summed_item(fileName : String , filePath : String){
+        if (aiActivityViewModel.chatList.value.isNotEmpty() && aiActivityViewModel.chatList.value[aiActivityViewModel.chatListItemIndex.value] is AIChatListItem.SumItem){
+            // when summarization finish set generating false...
+            (aiActivityViewModel.chatList.value[aiActivityViewModel.chatListItemIndex.value] as AIChatListItem.SumItem).fileName.value = fileName
+            (aiActivityViewModel.chatList.value[aiActivityViewModel.chatListItemIndex.value] as AIChatListItem.SumItem).filePath.value = filePath
+            (aiActivityViewModel.chatList.value[aiActivityViewModel.chatListItemIndex.value] as AIChatListItem.SumItem).generating.value = true
+        }
+    }
 
 
 

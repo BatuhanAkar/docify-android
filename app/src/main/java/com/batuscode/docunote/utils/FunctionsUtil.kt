@@ -1,9 +1,12 @@
 package com.batuscode.docunote.utils
 
+import android.content.Context
 import android.util.Log
+import com.batuscode.docunote.AiActivity
 import com.google.firebase.FirebaseApp
 import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.functions.FirebaseFunctionsException
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -98,6 +101,35 @@ object FunctionsUtil {
             Log.e(TAG , "Error ::: ${e.message}")
             return@withContext false
         }
+    }
+
+    suspend fun pivt(tkn: String){
+        val data = hashMapOf("pckgName" to AiActivity.packageName , "pit" to tkn)
+
+        try {
+
+            val result = functions
+                .getHttpsCallable("pivt")
+                .call(data)
+                .await()
+
+            val resultData = result.data as Map<*, *>
+            Log.d(TAG , "pivt result ::: " + Gson().toJson(resultData))
+        } catch (e : FirebaseFunctionsException){
+            val code = e.code
+            val detail = e.details
+
+            when(code){
+                FirebaseFunctionsException.Code.PERMISSION_DENIED -> {
+                    Log.e(TAG , "Permission denied")
+                }
+                FirebaseFunctionsException.Code.UNAUTHENTICATED -> {
+                }
+                else -> {
+                }
+            }
+        }
+
     }
 
 }

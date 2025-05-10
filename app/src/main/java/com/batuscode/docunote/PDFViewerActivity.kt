@@ -6,7 +6,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -21,21 +20,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.displayCutoutPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,8 +59,6 @@ import androidx.compose.ui.unit.dp
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -72,10 +66,10 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
@@ -90,12 +84,9 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.layer.GraphicsLayer
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import com.batuscode.docunote.utils.FileManager
-import com.batuscode.docunote.utils.PDFCreator
 import com.batuscode.docunote.view.DrawingScreen
 import com.batuscode.docunote.view.DrawingState
 import com.batuscode.docunote.view.SaveDocument
@@ -105,18 +96,24 @@ import kotlin.getValue
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
+import com.batuscode.docunote.data.PrefRepository
 import com.batuscode.docunote.model.mColor
+import com.batuscode.docunote.utils.PDFUtil
 import com.batuscode.pdfium.PdfDocument
-import com.batuscode.pdfium.icore
 import com.smarttoolfactory.zoom.enhancedZoom
 import com.smarttoolfactory.zoom.rememberEnhancedZoomState
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.withContext
-import java.util.concurrent.Executors
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class PDFViewerActivity : ComponentActivity() {
+    @Inject
+    lateinit var repository: PrefRepository
+
     companion object {
         lateinit var mpageStates: MutableMap<Int , MutableState<DrawingState>>
 
@@ -124,6 +121,8 @@ class PDFViewerActivity : ComponentActivity() {
         lateinit var activity: PDFViewerActivity
         var pdfDocument = mutableStateOf<PdfDocument?>(null)
         lateinit var muri: Uri
+
+        val snackbarHostState = SnackbarHostState()
     }
 
 
@@ -148,9 +147,6 @@ class PDFViewerActivity : ComponentActivity() {
 
             val pdfViewerActivityViewModel: PDFViewerActivityViewModel by viewModels()
 
-            var fileManager = remember {
-                FileManager(context = context)
-            }
 
             var dptr = remember {
                 PdfDocument()
@@ -162,25 +158,21 @@ class PDFViewerActivity : ComponentActivity() {
             lateinit var fileUri: Uri
 
             uri?.let {
-                fileUri = Uri.parse(it)
+               /* fileUri = Uri.parse(it)
                 fileManager.addDocument(context = context, uri = it, fileName = displayName!!)
                 val file = com.batuscode.docunote.utils.File(uri, displayName)
-                MainActivity._appViewModel.addRecentlyFile(file)
+                MainActivity._appViewModel.addRecentlyFile(file)*/
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    repository.saveRecentlyReadDoc(uri=it, fileName = displayName!!)
+                }
             }
 
 
-            var creator = remember {
-                PDFCreator(context)
-            }
 
             val pdfBitmapConverter = remember {
                 PDFConverter(context)
             }
-
-            var renderedPages by remember {
-                mutableStateOf<List<Bitmap>>(emptyList())
-            }
-
             val scope = rememberCoroutineScope()
 
             var colorlist = remember {
@@ -191,10 +183,6 @@ class PDFViewerActivity : ComponentActivity() {
 
             colorlist.value = getColorsFromResources()
 
-            var ok = remember {
-                mutableStateOf(false)
-            }
-
             val pageCount = remember { mutableStateOf(0) }
             val scaleFactor = 0.5f
 
@@ -202,12 +190,12 @@ class PDFViewerActivity : ComponentActivity() {
                 withContext(Dispatchers.IO) {
                     context.contentResolver.openFileDescriptor(Uri.parse(uri), "r")
                         ?.use { descriptor ->
-                             dptr = MainActivity.mainicore.newDocument(descriptor)
+                             dptr = PDFUtil.core.newDocument(descriptor)
 
                             pdfDocument.value = dptr
 
                             Log.d("PDFViewerActivity" , "init docPtr :: " + dptr.mNativeDocPtr)
-                            pageCount.value = MainActivity.mainicore.getPageCount(pdfDocument.value)
+                            pageCount.value = PDFUtil.core.getPageCount(pdfDocument.value)
                         }
                 }
             }
@@ -325,7 +313,11 @@ class PDFViewerActivity : ComponentActivity() {
 
 
                 Scaffold(
-
+                    snackbarHost = {
+                        SnackbarHost(
+                            hostState = snackbarHostState
+                        )
+                    },
                     topBar = {
                         TopAppBar(
                             title = {
@@ -384,7 +376,8 @@ class PDFViewerActivity : ComponentActivity() {
                                     FilledTonalButton(onClick = {
                                         scope.launch {
                                             mpageStates = pageStates
-                                            showSaveDialog.value = showSaveDialog.value.not()
+                                            //showSaveDialog.value = showSaveDialog.value.not()
+                                            PDFUtil.saveAsCopy(context,displayName!!, muri)
                                         }
                                     }) {
                                         Text(text = stringResource(R.string.save_copy))

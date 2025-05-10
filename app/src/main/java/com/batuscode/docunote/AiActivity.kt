@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.provider.OpenableColumns
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -16,15 +15,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -48,19 +40,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -79,13 +73,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -97,7 +90,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -108,6 +100,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -118,17 +111,11 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import coil.compose.AsyncImage
-import com.batuscode.docunote.DocifyAI.Companion
-import com.batuscode.docunote.DocifyAI.Companion.DAsnackbarHostState
-import com.batuscode.docunote.DocifyAI.Companion.chatList
-import com.batuscode.docunote.DocifyAI.Companion.chatListItemIndex
-import com.batuscode.docunote.DocifyAI.Companion.converter
-import com.batuscode.docunote.DocifyAI.Companion.generatedFileUri
-import com.batuscode.docunote.DocifyAI.Companion.parsedTextOfPages
-import com.batuscode.docunote.DocifyAI.Companion.showselectdocumentbutton
-import com.batuscode.docunote.MainActivity.Companion.context
-import com.batuscode.docunote.SignupActivity.Companion.signupActivityViewModel
+import com.batuscode.docunote.AiActivity.Companion.aiActivityViewModel
+import com.batuscode.docunote.AiActivity.Companion.packageName
+import com.batuscode.docunote.integrity.IntegrityHelper
 import com.batuscode.docunote.model.AIChatListItem
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import com.batuscode.docunote.utils.AiUtil
@@ -136,11 +123,14 @@ import com.batuscode.docunote.utils.Auth
 import com.batuscode.docunote.utils.DrawerSide
 import com.batuscode.docunote.utils.PDFUtil
 import com.batuscode.docunote.viewmodel.AiActivityViewModel
-import com.batuscode.pdfium.icore
+import com.google.android.play.core.review.ReviewException
+import com.google.android.play.core.review.ReviewInfo
+import com.google.android.play.core.review.ReviewManagerFactory
+import com.google.android.play.core.review.model.ReviewErrorCode
+import com.google.android.play.core.review.testing.FakeReviewManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -157,8 +147,31 @@ class AiActivity : ComponentActivity() {
         lateinit var aiActivityViewModel: AiActivityViewModel
         var proChecked = mutableStateOf(false)
         val snackbarHostState = SnackbarHostState()
+        lateinit var packageName : String
     }
 
+    private val knowledgePdfFilePickerLauncher : ActivityResultLauncher<Intent> = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()){
+        result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data: Intent? = result.data
+            data?.let { it ->
+
+                val uri = it.data
+
+                val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+// Check for the freshest data.
+                contentResolver.takePersistableUriPermission(uri!!, takeFlags)
+
+                Log.d("newuri", uri.toString())
+
+                aiActivityViewModel.update_knowledgePdfFileUri(uri!!)
+
+
+            }
+        }
+    }
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
@@ -351,13 +364,35 @@ class AiActivity : ComponentActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        Auth.detachDelivery()
+    }
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         context = this
+        Auth.delivery()
         PDFUtil.init(context)
+        Companion.packageName = packageName
+
+        CoroutineScope(Dispatchers.IO).launch {
+            IntegrityHelper.prepareIntegrityTokenProvider(this@AiActivity)
+        }
         aiActivityViewModel = ViewModelProvider(this).get(AiActivityViewModel::class.java)
+        lifecycleScope.launch {
+            aiActivityViewModel.openKnowledgePDFfilePickerActivity.collect{
+
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT ).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = "application/pdf"
+                }
+                intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                knowledgePdfFilePickerLauncher.launch(intent)
+            }
+        }
         summDocLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ){ result ->
@@ -389,12 +424,15 @@ class AiActivity : ComponentActivity() {
 
                 var isModSelected by remember { mutableStateOf(false) }
                 var selectedIndex by remember { mutableStateOf(-1) }
-                var prompt by remember { mutableStateOf("") }
-                var isFileSelected by remember { mutableStateOf(false) }
+                var prompt = remember { mutableStateOf("") }
+                val isFileSelected by aiActivityViewModel.isSelectedKnowledgePDFfile.collectAsState()
                 var isDrawerOpen = remember { mutableStateOf(false) }
                 val user by Auth.user
             val inappmessage by Auth.inappmessage
             val chatList by aiActivityViewModel.chatList.collectAsState()
+            val knowledgeChatList by aiActivityViewModel.knowledgeList.collectAsState()
+            val selectedFileUri by aiActivityViewModel.knowledgePdfFileUri.collectAsState()
+            var expanded by remember { mutableStateOf(false) }
 
                 val context = LocalContext.current
                 DocuNoteTheme(darkTheme = true) {
@@ -430,15 +468,17 @@ class AiActivity : ComponentActivity() {
                                             .fillMaxWidth() ,
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        AiChoiceSegmentedButton(
-                                            modifier = Modifier
-                                                .align(Alignment.Center)
-                                                .alpha(if (selectedIndex == -1) 0f else 1f),
-                                            selectedIndex,
-                                            onOptionSelected = {
-                                                    index -> selectedIndex = index
-                                            }
-                                        )
+                                        if (selectedIndex != -1){
+                                            AiChoiceSegmentedButton(
+                                                modifier = Modifier
+                                                    .align(Alignment.Center)
+                                                    .padding(end = 8.dp),
+                                                selectedIndex,
+                                                onOptionSelected = {
+                                                        index -> selectedIndex = index
+                                                }
+                                            )
+                                        }
                                         Row(
                                             modifier = Modifier
                                                 .wrapContentWidth()
@@ -464,7 +504,8 @@ class AiActivity : ComponentActivity() {
                                                     .clickable(
                                                         enabled = true ,
                                                         onClick = {
-                                                            isDrawerOpen.value = isDrawerOpen.value.not()
+                                                           // isDrawerOpen.value = isDrawerOpen.value.not()
+                                                            expanded = !expanded
                                                         }
                                                     )
                                             ) {
@@ -476,6 +517,38 @@ class AiActivity : ComponentActivity() {
                                                         .clip(CircleShape),
                                                     contentScale = ContentScale.Crop
                                                 )
+
+                                                DropdownMenu(
+                                                    expanded = expanded,
+                                                    onDismissRequest = { expanded = false }
+                                                ) {
+                                                    DropdownMenuItem(
+                                                        text = { Text(text = stringResource(R.string.rate_review)) },
+                                                        onClick = {
+                                                            val manager = FakeReviewManager(context)
+                                                            val request = manager.requestReviewFlow()
+
+                                                            request.addOnCompleteListener { task ->
+                                                                if (task.isSuccessful) {
+                                                                    val reviewInfo = task.result
+                                                                    val activity = context as Activity
+                                                                    manager.launchReviewFlow(activity, reviewInfo)
+                                                                } else {
+                                                                    val reviewErrorCode = (task.exception as ReviewException).errorCode
+                                                                    Log.e("InAppReview", "Hata kodu: $reviewErrorCode")
+                                                                }
+                                                            }
+                                                        }
+                                                    )
+                                                    DropdownMenuItem(
+                                                        text = { Text(text = stringResource(R.string.sign_out)) },
+                                                        onClick = {
+                                                            CoroutineScope(Dispatchers.IO).launch {
+                                                                Auth.signOut(context)
+                                                            }
+                                                        }
+                                                    )
+                                                }
                                             }
 
 
@@ -497,6 +570,7 @@ class AiActivity : ComponentActivity() {
                             ) {
                                 when(selectedIndex){
                                     0 ->
+                                        // summarize section ...
                                     {
                                         Box(
                                             modifier = Modifier
@@ -543,6 +617,7 @@ class AiActivity : ComponentActivity() {
                                         }
                                     }
                                     1 ->
+                                        // knowledge section ...
                                     {
 
                                         Box(
@@ -551,40 +626,51 @@ class AiActivity : ComponentActivity() {
                                                 .fillMaxSize()
                                                 .padding(horizontal = 8.dp, vertical = 8.dp)
                                         ) {
-
-                                            // foto seçilmemişse
-                                            if (isFileSelected == false){
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxSize() ,
+                                                verticalAlignment = Alignment.CenterVertically ,
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                            ) {
                                                 IconButton(
                                                     onClick = {
-                                                        isFileSelected = isFileSelected.not()
+                                                        if (user.pro){
+                                                            // pdf dosyası seçilmemişse
+                                                            if (isFileSelected == false){
+                                                                aiActivityViewModel.handleSelectKnowledgePdfFile()
+                                                            } else {
+
+                                                            }
+                                                        } else {
+                                                            CoroutineScope(Dispatchers.Main).launch {
+                                                                snackbarHostState.showSnackbar(
+                                                                    message = "special for knowledge pro users" ,
+                                                                    duration = SnackbarDuration.Short
+                                                                )
+
+                                                            }
+                                                        }
                                                     } ,
                                                     colors = IconButtonDefaults.iconButtonColors(
-                                                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                                        containerColor = Color.Transparent
                                                     ) ,
                                                     modifier = Modifier
-                                                        .size(68.dp)
+                                                        .size(48.dp)
                                                 ) {
                                                     Image(
-                                                        painter = painterResource(R.drawable.file_open_) ,
+                                                        painter = painterResource(R.drawable.attach_file_) ,
                                                         contentDescription = "" ,
                                                         modifier = Modifier
-                                                            .size(48.dp)
+                                                            .size(32.dp)
                                                     )
-                                                }
-                                            } else {
-
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxSize() ,
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
+                                                    }
                                                     BasicTextField(
                                                         modifier = Modifier
                                                             .weight(1f)
                                                             .requiredHeight(68.dp),
-                                                        value = prompt ,
+                                                        value = prompt.value ,
                                                         onValueChange = { newPrompt ->
-                                                            prompt = newPrompt
+                                                            prompt.value = newPrompt
                                                         } ,
                                                         textStyle = MaterialTheme.typography.bodyMedium,
                                                         decorationBox = { innerTextField ->
@@ -604,7 +690,7 @@ class AiActivity : ComponentActivity() {
                                                                     )
 
                                                             ) {
-                                                                if (prompt.isEmpty()){
+                                                                if (prompt.value.isEmpty()){
                                                                     Text(
                                                                         text = stringResource(R.string.message_placeholder) ,
                                                                         style = MaterialTheme.typography.bodySmall
@@ -616,29 +702,39 @@ class AiActivity : ComponentActivity() {
                                                         }
                                                     )
 
-                                                    IconButton(
-                                                        onClick = {
-                                                        } ,
-                                                        colors = IconButtonDefaults.iconButtonColors(
-                                                            containerColor = Color.Transparent
-                                                        ) ,
-                                                        modifier = Modifier
-                                                            .size(68.dp)
-                                                            .clip(CircleShape)
+                                                IconButton(
+                                                    onClick = {
+                                                        if (user.pro){
 
-                                                    ) {
-                                                        Image(
-                                                            painter = painterResource(R.drawable.prompt_suggestion) ,
-                                                            contentDescription = "" ,
-                                                            contentScale = ContentScale.Crop ,
-                                                            modifier = Modifier
-                                                                .size(48.dp)
-                                                        )
-                                                    }
+                                                            val userPrompt = prompt.value
+                                                            prompt.value = ""
+                                                            AiUtil.knowledgeChat(selectedFileUri!!,context,userPrompt)
+                                                        } else {
+                                                            CoroutineScope(Dispatchers.Main).launch {
+                                                                snackbarHostState.showSnackbar(
+                                                                    message = "special for knowledge pro users" ,
+                                                                    duration = SnackbarDuration.Short
+                                                                )
+                                                            }
+                                                        }
+                                                    } ,
+                                                    colors = IconButtonDefaults.iconButtonColors(
+                                                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                                    ) ,
+                                                    modifier = Modifier
+                                                        .size(48.dp)
+                                                        .clip(CircleShape)
+
+                                                ) {
+                                                    Image(
+                                                        painter = painterResource(R.drawable.arrow_upward_) ,
+                                                        contentDescription = "" ,
+                                                        contentScale = ContentScale.Crop ,
+                                                        modifier = Modifier
+                                                            .size(32.dp)
+                                                    )
                                                 }
                                             }
-
-
 
 
                                         }
@@ -657,22 +753,30 @@ class AiActivity : ComponentActivity() {
                             contentAlignment = Alignment.TopCenter
                         ) {
                             if (selectedIndex == -1){
-                                Text(
-                                    text = "How can i help you?" ,
-                                    style = MaterialTheme.typography.headlineLarge ,
-                                    modifier = Modifier
-                                        .align(Alignment.TopCenter)
-                                )
-                                AiChoiceSegmentedButton(
-                                    modifier = Modifier
-                                        .align(Alignment.Center) ,
-                                    selectedIndex,
-                                    onOptionSelected = {
-                                            index -> selectedIndex = index
-                                    }
-                                )
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = "How can i help you?" ,
+                                        style = MaterialTheme.typography.headlineLarge ,
+                                        modifier = Modifier
+                                    )
+                                    Spacer(modifier = Modifier.height(50.dp))
+                                    AiChoiceSegmentedButton(
+                                        modifier = Modifier ,
+                                        selectedIndex,
+                                        onOptionSelected = {
+                                                index -> selectedIndex = index
+                                        }
+                                    )
+                                }
                             } else {
-                                AiChatFlow(chatList)
+                                if (selectedIndex == 0){
+                                    AiChatFlow(chatList , selectedIndex)
+                                } else if(selectedIndex == 1) {
+                                    AiChatFlow(knowledgeChatList , selectedIndex)
+                                }
                             }
 
 
@@ -709,14 +813,6 @@ class AiActivity : ComponentActivity() {
                 }
         }
     }
-}
-
-@Composable
-fun Greeting3(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
 }
 
 @Composable
@@ -761,28 +857,43 @@ fun AiChoiceSegmentedButton(modifier: Modifier = Modifier ,selectedIndex: Int,
     )
 }
 
-
 @Composable
-fun AiChatFlow(chatList: List<AIChatListItem>){
+fun MinimalDropdownMenu() {
+
+}
+@Composable
+fun AiChatFlow(chatList: List<AIChatListItem> , menuIndex : Int){
     var state = rememberLazyListState()
+    val summarizeWelcome = aiActivityViewModel.summarizeWelcome.collectAsState()
+    val knowledgeWelcome = aiActivityViewModel.knowledge.collectAsState()
     LaunchedEffect(Unit) {
-        AiUtil.welcoming()
+        if (menuIndex == 0){
+            if (!summarizeWelcome.value){
+                AiUtil.welcoming()
+                aiActivityViewModel.update_SummarizeWelcome(true)
+            }
+        } else if (menuIndex == 1){
+            if (!knowledgeWelcome.value){
+                AiUtil.welcomeKnowledge()
+                aiActivityViewModel.update_KnowledgeWelcome(true)
+            }
+        }
     }
     LazyColumn(
         state = state,
         modifier = Modifier
             .fillMaxSize()
     ) {
-        items(chatList){ item ->
+        itemsIndexed(chatList){ index , item ->
             LaunchedEffect(chatList.size) {
                 state.animateScrollToItem(chatList.size-1)
             }
             when(item){
                 is AIChatListItem.TextItem -> {
-                    mChatBubble(message = item.text.value, item.generating.value)
+                    mChatBubble(message = item.text.value, item.generating.value , item.role)
                 }
                 is AIChatListItem.SumItem ->  {
-                   // SummedItem(item)
+                    mSummedItem(item)
                 }
             }
         }
@@ -794,7 +905,8 @@ fun AiChatFlow(chatList: List<AIChatListItem>){
 @Composable
 fun mChatBubble(
     message: String,
-    isLoading: Boolean
+    isLoading: Boolean ,
+    role : String
 ) {
 
     // Box içinde balon metni ve üç nokta animasyonu
@@ -818,33 +930,160 @@ fun mChatBubble(
                     trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
             }
-        } else {
+        }
+        else {
 
             // Chat mesajı balonu
             Row(
-                horizontalArrangement = Arrangement.Start ,
+                horizontalArrangement = if (role.equals("model")) Arrangement.Start else Arrangement.End ,
                 verticalAlignment = Alignment.Top ,
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                AsyncImage(
-                    model = R.drawable.ic_launcher_foreground ,
-                    contentDescription = "" ,
-                    contentScale = ContentScale.Crop ,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .size(32.dp)
-                )
-                Column(
-                    modifier = Modifier
-                        .background(Color.Gray.copy(alpha = 0.2f), shape = RoundedCornerShape(16.dp))
-                        .padding(16.dp)
-                ) {
-                    Text(text = message)
+                if (role.equals("model")){
+                    AsyncImage(
+                        model = R.drawable.ic_launcher_foreground ,
+                        contentDescription = "" ,
+                        contentScale = ContentScale.Crop ,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .size(64.dp)
+                    )
+                    Column(
+                        modifier = Modifier
+                            .background(Color.Gray.copy(alpha = 0.2f), shape = RoundedCornerShape(16.dp))
+                            .padding(16.dp)
+                    ) {
+                        Text(text = message)
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .background(Color.Gray.copy(alpha = 0.2f), shape = RoundedCornerShape(16.dp))
+                            .padding(16.dp)
+                    ) {
+                        Text(text = message)
+                    }
+                    AsyncImage(
+                        model = Auth.auth.currentUser?.photoUrl ,
+                        contentDescription = "" ,
+                        contentScale = ContentScale.Crop ,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .padding(8.dp)
+                            .size(64.dp)
+                    )
                 }
+
             }
 
         }
+    }
+}
+
+
+
+@Composable
+fun mSummedItem(summedItem: AIChatListItem.SumItem){
+    val context = LocalContext.current
+
+
+    // Eğer isLoading true ise, üç nokta animasyonu gösterilecek
+    if (!summedItem.generating.value) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .padding(4.dp), // Opsiyonel: Butonun etrafında boşluk bırakmak için
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.fillMaxSize(),
+                strokeWidth = 2.dp ,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        }
+    } else {
+
+        Box(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth()
+                .clickable(
+                    enabled = true ,
+                    onClickLabel = "" ,
+                    onClick = {
+                        ripple(bounded = true)
+                        Log.d("summarized" , "filePath in uri value :: ${summedItem.filePath}")
+                        val intent = Intent(context, PDFViewerActivity::class.java).apply {
+                            putExtra("fileUri" , summedItem.filePath.value)
+                            putExtra("fileDisplayName" , summedItem.fileName.value)
+                        }
+                        context.startActivity(intent)
+                    }
+                )
+        ) {
+            // Chat mesajı balonu
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp , vertical = 8.dp)
+            ) {
+
+                Surface (
+                    shape = CircleShape ,
+                    color = Color.LightGray.copy(0.5f) ,
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .size(60.dp)
+                ){
+                    Box (
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.wrapContentSize()
+                    ) {
+                        Image(
+
+                            painter = painterResource(R.drawable.open_pdf_01) ,
+                            contentDescription = "icon" ,
+                            alignment = Alignment.Center ,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .zIndex(1f)
+                        )
+                    }
+                }
+                Text(
+                    color = MaterialTheme.colorScheme.onSecondary ,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    text = summedItem.fileName.value ,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 16.dp)
+                )
+                IconButton(
+                    onClick = {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            PDFUtil.saveSumPDFfile(
+                                summedItem.filePath.value ,
+                                summedItem.fileName.value ,
+                                context
+                            )
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_save_alt_24) ,
+                        contentDescription = null ,
+
+                        )
+                }
+            }
+
+
+        }
+
     }
 }
 
@@ -1046,7 +1285,7 @@ fun CustomSideDrawerContent(
 
             OutlinedButton(
                 onClick = {
-                    // InAppReview.requestReview(context)
+
                 } ,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1322,7 +1561,7 @@ fun AiActivityPreview() {
 
                 } else {
 
-                    AiChatFlow(chatList)
+                   // AiChatFlow(chatList)
                 }
 
 

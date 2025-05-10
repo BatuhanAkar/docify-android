@@ -9,7 +9,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import com.batuscode.docunote.model.ExtensionButton
 import com.batuscode.docunote.model.Folder
-import com.batuscode.docunote.utils.File
+import com.batuscode.docunote.model.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 

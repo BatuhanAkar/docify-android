@@ -25,6 +25,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
@@ -58,47 +60,52 @@ import com.batuscode.docunote.MainActivity
 @SuppressLint("ResourceAsColor")
 @Composable
 fun Folders(appViewModel: AppViewModel){
-   /* val folderlist = appViewModel.folders
-
-    val folder = Folder( 0 ,"Downloads" , R.drawable.folder_icon_4_01)
-    val folder1 = Folder( 1 , "Matematik" , R.drawable.folder_icon_4_01)
-    val folder2 = Folder( 2 , "Coğrafya" , R.drawable.folder_icon_4_01)
-    val folder3 = Folder( 3 , "Kimya" , R.drawable.folder_icon_4_01)
-    val folder4 = Folder( 4 , "Türk Dili ve Edebiyatı" , R.drawable.folder_icon_4_01)
-    appViewModel.loadFolders(folder)
-    appViewModel.loadFolders(folder1)
-    appViewModel.loadFolders(folder2)
-    appViewModel.loadFolders(folder3)
-    appViewModel.loadFolders(folder4)*/
-
-
     var exList = remember {
         mutableListOf<Folder>()
     }
-
-
-    val folder = Folder( 0 ,"Kimya" , R.drawable.folder_icon_4_01)
-    val folder1 = Folder( 1 , "Sınav" , R.drawable.folder_icon_4_01)
+    val folder = Folder( 0 ,"Kimya" , R.drawable.folder_icon_4_01 , emptyList())
+    val folder1 = Folder( 1 , "Sınav" , R.drawable.folder_icon_4_01 , emptyList())
 
     exList.add(folder)
     exList.add(folder1)
 
-    val folders = appViewModel.folders.collectAsState()
 
+    val _folders = MainActivity.mainActivityViewModel.folders.collectAsState()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
     ) {
-        Text(
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Black,
-            text = stringResource(R.string.folders),
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween ,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .wrapContentSize()
-                .padding(16.dp)
-        )
+                .fillMaxWidth()
+        ) {
+
+            Text(
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Black,
+                text = stringResource(R.string.folders),
+                modifier = Modifier
+                    .wrapContentSize()
+                    .padding(16.dp)
+            )
+
+            IconButton(
+                onClick = {
+                    MainActivity.mainActivityViewModel.update_NewFolderOnScreen(true)
+                }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.create_new_folder) ,
+                    contentDescription = null ,
+                    modifier = Modifier
+                        .size(24.dp)
+                )
+            }
+        }
 
 
         if (MainActivity.folderStat.value){
@@ -110,7 +117,7 @@ fun Folders(appViewModel: AppViewModel){
                     .clipToBounds()
                     .requiredHeight(100.dp)
             ) {
-                items(folders.value) { item ->
+                items(_folders.value) { item ->
                     ListItem(folder = item)
                 }
 
@@ -149,17 +156,9 @@ fun Folders(appViewModel: AppViewModel){
                                 containerColor = colorResource(R.color.modified)
                             ),
                             onClick = {
-
-
-                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                                addCategory(Intent.CATEGORY_OPENABLE)
-                                type = "*/*"
-                                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-
+                                MainActivity.mainActivityViewModel.update_NewFolderOnScreen(true)
                             }
-                           // MainActivity.mainActivity.startActivityForResult(intent, 55)
-                            MainActivity.multiplyselectTofolderDocumentLauncher.launch(intent)
-                        }) {
+                        ) {
 
                             Image(painter = painterResource(R.drawable.baseline_create_new_folder_24) , "")
                             Text(
@@ -204,7 +203,7 @@ fun ListItem(folder: Folder) {
 
                     val intent = Intent(context , FolderScopeActivity::class.java)
                     intent.putExtra("folderName" , fileName)
-
+                    intent.putExtra("folder" , folder)
                     context.startActivity(intent)
 
                    /* val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
@@ -251,7 +250,7 @@ fun ListItem(folder: Folder) {
 @Composable
 fun PreviewFolders(){
 
-    val folder = Folder( 0 ,"Downloads" , R.drawable.folder_icon_4_01)
+    val folder = Folder( 0 ,"Downloads" , R.drawable.folder_icon_4_01 , emptyList())
     DocuNoteTheme {
         //Folders(AppViewModel())
         ListItem(folder)

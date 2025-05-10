@@ -11,6 +11,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.gms.google-services")
     id("com.google.dagger.hilt.android")
+    id("kotlin-parcelize")
 
 
 }
@@ -25,8 +26,8 @@ android {
         minSdk = 26
         //noinspection EditedTargetSdkVersion
         targetSdk = 35
-        versionCode = 15
-        versionName = "1.1.2"
+        versionCode = 16
+        versionName = "2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -123,6 +124,8 @@ dependencies {
     implementation(libs.androidx.constraintlayout.compose)
     implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("androidx.compose.material:material:1.8.0")
+    implementation("com.google.android.play:review-ktx:2.0.2")
+
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
@@ -136,6 +139,17 @@ dependencies {
     implementation ("com.google.android.play:integrity:1.4.0")
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.functions)
+    implementation(libs.firebase.firestore)
+
+    val camerax_version = "1.4.2"
+    implementation ("androidx.camera:camera-core:${camerax_version}")
+    implementation ("androidx.camera:camera-camera2:${camerax_version}")
+    implementation ("androidx.camera:camera-lifecycle:${camerax_version}")
+    implementation ("androidx.camera:camera-video:${camerax_version}")
+
+    implementation ("androidx.camera:camera-view:${camerax_version}")
+    implementation ("androidx.camera:camera-extensions:${camerax_version}")
+
     val billing_version = "7.0.0"
 
     implementation("com.android.billingclient:billing-ktx:$billing_version")

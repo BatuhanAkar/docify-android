@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.State
@@ -15,6 +17,7 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.ClearCredentialException
 import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.viewModelScope
 import com.batuscode.docunote.AiActivity
@@ -30,7 +33,11 @@ import kotlinx.coroutines.withContext
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import okhttp3.internal.wait
@@ -38,9 +45,40 @@ import okhttp3.internal.wait
 object Auth {
     const val TAG = "AuthObject"
     lateinit var auth: FirebaseAuth
+    lateinit var db : FirebaseFirestore
+    lateinit var registiration : ListenerRegistration
 
     private val _user = mutableStateOf(User())
     val user : State<User> = _user
+
+    fun delivery(){
+        Log.d(TAG, "listening...")
+
+        val docRef = db.collection("users").document(auth.currentUser?.uid!!)
+        registiration = docRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                Log.w(TAG, "Listen failed.", error)
+                return@addSnapshotListener
+            }
+            if (snapshot != null && snapshot.exists()) {
+                Log.d(TAG, "Current data: ${snapshot.data}")
+                val data = snapshot.data
+                val metadata = data?.get("metadata") as? Map<*, *>
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    val result = auth.currentUser?.getIdToken(true)?.await()
+                    val validate = FunctionsUtil.vnp(result?.token!!)
+                    updateClaim(validate)
+                }
+            } else {
+                Log.d(TAG, "Current data: null")
+            }
+        }
+    }
+
+    fun detachDelivery(){
+        registiration.remove()
+    }
 
     suspend fun checkClaims() = withContext(Dispatchers.IO){
         val result = Auth.auth.currentUser?.getIdToken(true)?.await()
@@ -50,7 +88,7 @@ object Auth {
         Log.d(TAG , "user validate value is ::: ${Auth.user.value.pro}")
 
     }
-    suspend fun updateClaim(newValue : Boolean) = withContext(Dispatchers.IO){
+    fun updateClaim(newValue : Boolean){
         _user.value = _user.value.copy(pro = newValue)
     }
 
@@ -115,6 +153,17 @@ object Auth {
                 Log.getStackTraceString(e)
                 return@withContext null
             }
+        } catch (e : GetCredentialException){
+            when (e) {
+                is GetCredentialCancellationException -> {
+                    Log.d(TAG, "Kullanıcı işlemi iptal etti.")
+                    return@withContext null
+                }
+                else -> {
+                    Log.e(TAG, "Beklenmedik hata: ${e.localizedMessage}")
+                    return@withContext null
+                }
+            }
         }
     }
     suspend fun firebaseAuthWithGoogle(context: Context){
@@ -151,12 +200,16 @@ object Auth {
             val clearRequest = ClearCredentialStateRequest()
             val credentialManager = CredentialManager.create(context)
             credentialManager.clearCredentialState(clearRequest)
-            val intent = Intent(context, SignupActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            context.startActivity(intent)
-            ( context as? Activity)?.finish()
-            Log.e(TAG, "clean credential state")
+
+            Handler(Looper.getMainLooper()).postDelayed({
+                val intent = Intent(context, SignupActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                context.startActivity(intent)
+                ( context as? Activity)?.finish()
+                Log.e(TAG, "clean credential state")
+            }, 200)
+
         }   catch (e: ClearCredentialException) {
             Log.e(TAG, "Couldn't clear user credentials: ${e.localizedMessage}")
         }

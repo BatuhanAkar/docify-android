@@ -90,9 +90,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
 import com.batuscode.docunote.model.Document
 import com.batuscode.docunote.model.mColor
-import com.batuscode.docunote.utils.FileManager
-import com.batuscode.docunote.utils.PDFConverter
-import com.batuscode.docunote.utils.PDFCreator
+import com.batuscode.docunote.utils.PDFUtil
 import com.batuscode.docunote.view.DrawingState
 import com.batuscode.docunote.view.SaveDocument
 import com.batuscode.pdfium.PDFPage
@@ -174,9 +172,6 @@ class CreatePDFActivity : ComponentActivity() {
 
         cpageStates = mutableStateListOf()
 
-        val creator = PDFCreator(this)
-        val filemanager = FileManager(this)
-        val converter = PDFConverter(this)
 
         val page = PDFPage(595f, 842f) // A4 size
 
@@ -187,7 +182,7 @@ class CreatePDFActivity : ComponentActivity() {
                 enableEdgeToEdge()
                 val textStates = remember { mutableStateMapOf<Int, RichTextState>() }
                 var documentPtr = remember {
-                    mutableStateOf<Long>(MainActivity.mainicore.createDocument())
+                    mutableStateOf<Long>(PDFUtil.core.createDocument())
                 }
                 var pages = remember {
                     mutableStateListOf<PDFPage>()
@@ -197,7 +192,7 @@ class CreatePDFActivity : ComponentActivity() {
 
                     Log.d("page count" , pages.size.toString())
                     if (documentPtr.value != 0L) {
-                        val ok = MainActivity.mainicore.addPage(documentPtr.value, page)
+                        val ok = PDFUtil.core.addPage(documentPtr.value, page)
                         if (ok != 0L){
 
                             Log.d("page count" , "first" + documentPtr)
@@ -379,7 +374,7 @@ class CreatePDFActivity : ComponentActivity() {
                                         Text(text = stringResource(R.string.save))
                                     }
                                 } ,
-                                navigationIcon = {
+                                /*navigationIcon = {
                                     IconButton(onClick = {
                                         scope.launch {
                                             if (drawerState.isClosed) {
@@ -397,7 +392,7 @@ class CreatePDFActivity : ComponentActivity() {
                                             .width(100.dp)
                                             .height(100.dp))
                                     }
-                                }
+                                }*/
 
                             )
                         },
@@ -406,7 +401,7 @@ class CreatePDFActivity : ComponentActivity() {
                                 containerColor = MaterialTheme.colorScheme.background,
                                 onClick = {
                                     if (documentPtr.value != 0L) {
-                                        val ok = MainActivity.mainicore.addPage(documentPtr.value, page)
+                                        val ok = PDFUtil.core.addPage(documentPtr.value, page)
                                         if (ok != 0L){
 
                                             Log.d("page count" , "add method first" + documentPtr)

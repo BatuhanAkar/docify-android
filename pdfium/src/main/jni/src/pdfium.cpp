@@ -616,6 +616,105 @@ env->ReleaseStringUTFChars(filePath, nativeFilePath);
 return map;
 }
 
+int GetBlockFromMemory(void* param, unsigned long position, unsigned char* pBuf, unsigned long size) {
+    const unsigned char* data = static_cast<const unsigned char*>(param);
+    memcpy(pBuf, data + position, size);
+    return 1; // başarı
+}
+
+JNI_FUNC(jstring , icore , nativeCreatePDFFromJPEG)(JNIEnv* env , jobject thiz , jbyteArray bytes , jintArray offsets , jintArray lengths , jobject context , jstring fileName){
+
+const float PAGE_WIDTH = 595.0f;          // A4 sayfa genişliği (nokta)
+const float PAGE_HEIGHT = 842.0f;         // A4 sayfa yüksekliği (nokta)
+    jbyte* byteData = env -> GetByteArrayElements(bytes , nullptr);
+    jint* offsetArray = env -> GetIntArrayElements(offsets , nullptr);
+    jint* lengthArray = env -> GetIntArrayElements(lengths , nullptr);
+    jsize count = env -> GetArrayLength(offsets);
+
+
+// Döküman handle'ını kontrol et
+FPDF_DOCUMENT document = FPDF_CreateNewDocument();
+if (!document) {
+LOGE("Invalid document handle!");
+return nullptr;
+}
+
+for (int i = 0 ; i < count ; i++){
+
+    int offset = offsetArray[i];
+    int len = lengthArray[i];
+
+    const unsigned char* jpegData = reinterpret_cast<const unsigned char*>(byteData + offset);
+
+FPDF_PAGE page = FPDFPage_New(document, i, 595, 842);
+
+FPDF_PAGEOBJECT imageObj = FPDFPageObj_NewImageObj(document);
+// FILEACCESS struct
+FPDF_FILEACCESS fileAccess;
+fileAccess.m_FileLen = static_cast<unsigned long>(len);
+fileAccess.m_GetBlock = &GetBlockFromMemory;
+fileAccess.m_Param = (void*)jpegData;
+
+// JPEG'i yükle
+FPDF_BOOL success = FPDFImageObj_LoadJpegFileInline(nullptr, 0, imageObj, &fileAccess);
+if (!success) {
+LOGE("JPEG yüklenemedi!");
+continue;
+}
+
+FPDFPageObj_Transform(imageObj, PAGE_WIDTH, 0, 0, PAGE_HEIGHT, 0, 0);
+
+
+
+// Sayfaya nesneyi ekle
+FPDFPage_InsertObject(page, imageObj);
+FPDFPage_GenerateContent(page);
+}
+
+// Geçici dosya için yol
+jclass contextClass = env->GetObjectClass(context);
+jmethodID getCacheDirMethod = env->GetMethodID(contextClass, "getCacheDir", "()Ljava/io/File;");
+jobject cacheDir = env->CallObjectMethod(context, getCacheDirMethod);
+
+jclass fileClass = env->GetObjectClass(cacheDir);
+jmethodID getAbsolutePathMethod = env->GetMethodID(fileClass, "getAbsolutePath", "()Ljava/lang/String;");
+jstring cacheDirPath = (jstring) env->CallObjectMethod(cacheDir, getAbsolutePathMethod);
+
+const char* nativeFileName = env->GetStringUTFChars(fileName, NULL);
+
+const char* nativeCacheDir = env->GetStringUTFChars(cacheDirPath, 0);
+
+std::string tempFilePath = std::string(nativeCacheDir) + "/" + std::string(nativeFileName) + ".pdf";
+
+FILE* tempFile = fopen(tempFilePath.c_str(), "wb");
+if (!tempFile) {
+LOGE("Failed to create temp file in cache directory!");
+return nullptr;
+}
+
+// CustomFileWriter yapılandırın
+CustomFileWriter writer;
+writer.fileWrite.version = 1;
+writer.fileWrite.WriteBlock = WriteBlock;  // Var olan WriteBlock fonksiyonunuz
+writer.file = tempFile;
+
+// PDF'i geçici dosyaya kaydet
+FPDF_SaveWithVersion(document, reinterpret_cast<FPDF_FILEWRITE*>(&writer), FPDF_NO_INCREMENTAL, 15);
+
+// Kaynakları serbest bırak
+FPDF_CloseDocument(document);
+
+env->ReleaseByteArrayElements(bytes, byteData, JNI_ABORT);
+env->ReleaseIntArrayElements(offsets, offsetArray, JNI_ABORT);
+env->ReleaseIntArrayElements(lengths, lengthArray, JNI_ABORT);
+fclose(tempFile);
+
+return env->NewStringUTF(tempFilePath.c_str());
+
+}
+
+
+
 JNI_FUNC(jstring , icore , nativeCreateDocumentOfSummarize)(JNIEnv* env , jobject thiz , jbyteArray joinedSummText , jobject context , jstring fileName) {
 // Sabit değerler
 const float PAGE_WIDTH = 595.0f;          // A4 sayfa genişliği (nokta)
@@ -712,6 +811,10 @@ fclose(tempFile);
 return nullptr;
 }
 
+if (globalFontData.empty()) {
+LOGE("Font data is empty!");
+return nullptr;
+}
 // Fontu yükle
 FPDF_FONT font = FPDFText_LoadFont(document, globalFontData.data(), globalFontData.size(), FPDF_FONT_TRUETYPE, true);
 if (!font) {

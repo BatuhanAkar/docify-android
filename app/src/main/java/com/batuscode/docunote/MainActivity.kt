@@ -1,17 +1,14 @@
 package com.batuscode.docunote
 
+import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.provider.OpenableColumns
 import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
@@ -20,58 +17,33 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.TweenSpec
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.displayCutoutPadding
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.CornerBasedShape
-import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BrokenImage
-import androidx.compose.material.icons.filled.ImageSearch
-import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material.ripple
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FlexibleBottomAppBar
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -81,83 +53,88 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
-import com.batuscode.docunote.model.Folder
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import com.batuscode.docunote.view.Extensions
 import com.batuscode.docunote.view.Folders
 import com.batuscode.docunote.viewmodel.AppViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
-import com.batuscode.docunote.utils.FileManager
 import com.batuscode.docunote.view.RecentlyRead
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.zIndex
-import coil.compose.AsyncImage
-import com.batuscode.docunote.utils.Auth
-import com.batuscode.docunote.utils.DrawerSide
-import com.batuscode.docunote.utils.PDFConverter
-import com.batuscode.docunote.utils.WordDocUtil
-import com.batuscode.pdfium.icore
-import com.google.mediapipe.tasks.genai.llminference.LlmInference
+import androidx.lifecycle.ViewModelProvider
+import com.batuscode.docunote.manager.ActivityResultLauncherManager
+import com.batuscode.docunote.utils.PDFUtil
+import com.batuscode.docunote.utils.ScanUtil
+import com.batuscode.docunote.viewmodel.MainActivityViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
-import kotlin.math.roundToInt
 
-
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     companion object {
-        init {
-            // System.loadLibrary("jpdfium");
-        }
-
+        lateinit var mainActivityViewModel: MainActivityViewModel
         lateinit var _appViewModel: AppViewModel
         lateinit var mainActivity: ComponentActivity
         lateinit var context: Context
         lateinit var openDocumentLauncher: ActivityResultLauncher<Intent>
-        lateinit var openwordDocumentLauncher: ActivityResultLauncher<Intent>
-        lateinit var openpptDocumentLauncher: ActivityResultLauncher<Intent>
         lateinit var toFolderDocumentLauncher: ActivityResultLauncher<Intent>
-        lateinit var mergeDocumentLauncher: ActivityResultLauncher<Intent>
-        lateinit var splitDocumentLauncher: ActivityResultLauncher<Intent>
-        lateinit var multiplyselectTofolderDocumentLauncher: ActivityResultLauncher<Intent>
-        lateinit var dynamicFeatureLauncher: ActivityResultLauncher<IntentSenderRequest>
         var memUri = mutableStateOf<Uri?>(null)
         var newFolder = mutableStateOf(false)
-        var pdfsplitOP = mutableStateOf(false)
-        var pdfmergeOP = mutableStateOf(false)
-        lateinit var mainicore: icore
-        lateinit var fileManager: FileManager
-        var uriMap: MutableMap<Int, Uri> = mutableMapOf()
         var recentlyStat = mutableStateOf(false)
         var folderStat = mutableStateOf(false)
-        var showDFRDialog = mutableStateOf(false)
-        var showDownloadProg = mutableStateOf(false)
-        var progress = mutableStateOf(0f)
-        lateinit var llmInference: LlmInference
-        var expdwstatus = mutableStateOf("")
         val snackbarHostState = SnackbarHostState()
         var waitinit = mutableStateOf(false)
+        var handlePDFProcessType = mutableStateOf("")
+        var splitPDFName = mutableStateOf("")
+        var splitRange = mutableStateOf("")
+        var mergePDFDocName = mutableStateOf("")
+
+        private val REQUIRED_PERMISSIONS = mutableListOf(
+            Manifest.permission.CAMERA
+        ).apply {
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P){
+                add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            }
+        }
+
+
     }
 
+    private val cameraPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions())
+        { permissions ->
+            // Handle Permission granted/rejected
+            var permissionGranted = true
+            permissions.entries.forEach {
+                if (it.key in REQUIRED_PERMISSIONS && it.value == false)
+                    permissionGranted = false
+            }
+            if (!permissionGranted) {
+                CoroutineScope(Dispatchers.Default).launch {
+                    ScanActivity.snackbarHostState.showSnackbar(
+                        message = "Permissin request denied." ,
+                        duration = SnackbarDuration.Short
+                    )
+                }
+            } else {
+                val intent = Intent(context , ScanActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                context.startActivity(intent)
+            }
+        }
 
     @Composable
     fun splitDialog(
@@ -284,425 +261,58 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    val requestPermissionLauncher =
-        registerForActivityResult(
-            RequestPermission()
-        ) { isGranted: Boolean ->
-            if (isGranted) {
-                // Permission is granted. Continue the action or workflow in your
-                // app.
-            } else {
-                // Explain to the user that the feature is unavailable because the
-                // feature requires a permission that the user has denied. At the
-                // same time, respect the user's decision. Don't link to system
-                // settings in an effort to convince the user to change their
-                // decision.
-            }
-        }
-
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @SuppressLint("Range")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         context = this
-
         val appViewModel: AppViewModel by viewModels()
         _appViewModel = appViewModel
         mainActivity = this
-        mainicore = icore(this)
-        mainicore.nativeInitLibrary()
-        fileManager = FileManager(this)
-        var converter = PDFConverter(this)
-        folderStat.value = fileManager.getFoldersStat(this)
-        recentlyStat.value = fileManager.getRecentlyStat(this)
+        ActivityResultLauncherManager.activity = this@MainActivity
+        ActivityResultLauncherManager.init()
+        mainActivityViewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
 
-        dynamicFeatureLauncher = registerForActivityResult(
-            ActivityResultContracts.StartIntentSenderForResult()
-        ) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                // Kullanıcı onayladı, indirme devam eder
-            } else {
-                // Kullanıcı iptal etti, senaryoya göre işlem yap
-            }
-        }
+        lifecycleScope.launch {
+            mainActivityViewModel.inPDFProcess.collect{
 
-        multiplyselectTofolderDocumentLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == RESULT_OK) {
-                val data: Intent? = result.data
+                when(handlePDFProcessType.value){
+                    "merge" -> {
+                        mainActivityViewModel.update_OnScreenMergePDF(false)
+                        mainActivityViewModel.update_OnBackOperation(true)
+                        PDFUtil.mergePDFS(ActivityResultLauncherManager.MultiplePDFFileUris, context , mergePDFDocName.value){ complated ->
+                            if (complated){
 
-                data?.let { it ->
-                    // Dosya URI'sini işlemek
-
-                    // Log.d("newuri" , it.toString())
-
-
-                    if (it.clipData != null) {
-                        val count = it.clipData?.itemCount ?: 0
-                        for (i in 0 until count) {
-                            val uri = it.clipData?.getItemAt(i)?.uri
-                            uri?.let {
-                                _appViewModel.add_urlist(it)
-
-                                val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-// Check for the freshest data.
-                                contentResolver.takePersistableUriPermission(it, takeFlags)
-                            }
-                            Log.d("newuri", uri.toString())
-                        }
-
-                        if (!folderStat.value) {
-                            folderStat.value = folderStat.value.not()
-                            fileManager.saveFoldersStat(context, true)
-                        }
-                        newFolder.value = true
-
-
-                    } else {
-                        // Tekli dosya seçimi
-                        val uri = it.data
-                        Log.d("newuri", uri.toString())
-
-                    }
-
-                }
-            }
-        }
-
-        // merge PDF document
-
-        mergeDocumentLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == RESULT_OK) {
-                val data: Intent? = result.data
-                data?.let { it ->
-                    if (it.clipData != null) {
-                        if (uriMap.isNotEmpty()) {
-                            uriMap.clear()
-                        }
-                        val count = it.clipData?.itemCount ?: 0
-                        for (i in 0 until count) {
-                            val uri = it.clipData?.getItemAt(i)?.uri
-                            uri?.let {
-                                uriMap.put(i, uri)
-                                // _appViewModel.add_urlist(it)
-
-                                val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-// Check for the freshest data.
-                                contentResolver.takePersistableUriPermission(it, takeFlags)
-                            }
-                            Log.d("newuri", uri.toString())
-
-                        }
-                        pdfmergeOP.value = pdfmergeOP.value.not()
-
-                    }
-                }
-
-            }
-        }
-
-        // split PDF document
-
-        splitDocumentLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == RESULT_OK) {
-                var uriMap: MutableMap<Int, Uri> = mutableMapOf()
-                val data: Intent? = result.data
-                data?.let { it ->
-                    val uri = it.data
-                    uri?.let {
-                        val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-// Check for the freshest data.
-                        contentResolver.takePersistableUriPermission(it, takeFlags)
-                        memUri.value = uri
-                        pdfsplitOP.value = pdfsplitOP.value.not()
-                    }
-                    Log.d("newuri", uri.toString())
-                }
-            }
-        }
-
-        // to folder
-
-        toFolderDocumentLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == RESULT_OK) {
-                val data: Intent? = result.data
-                data?.let { it ->
-                    // Dosya URI'sini işlemek
-
-                    // Log.d("newuri" , it.toString())
-
-                    if (it.clipData != null) {
-                        val count = it.clipData?.itemCount ?: 0
-                        for (i in 0 until count) {
-                            val uri = it.clipData?.getItemAt(i)?.uri
-                            uri?.let {
-                                _appViewModel.add_urlist(it)
-
-                                val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-// Check for the freshest data.
-                                contentResolver.takePersistableUriPermission(it, takeFlags)
-                            }
-                            Log.d("newuri", uri.toString())
-                        }
-
-                        newFolder.value = true
-
-                        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                            addCategory(Intent.CATEGORY_OPENABLE)
-                            type = "application/pdf"
-                            //  putExtra(Intent.EXTRA_TITLE, R.string.documentname)
-
-                            // Optionally, specify a URI for the directory that should be opened in
-                            // the system file picker before your app creates the document.
-                        }
-                        mainActivity.startActivityForResult(intent, 0)
-
-                    } else {
-                        // Tekli dosya seçimi
-                        val uri = it.data
-                        Log.d("newuri", uri.toString())
-
-                    }
-
-                }
-            }
-        }
-
-        // open ppt
-
-        openpptDocumentLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val data: Intent? = result.data
-                /*  val uri: Uri? = data?.data
-                  // Seçilen dosya URI'ını burada kullanabilirsin
-                  if (uri != null) {
-                      // Örneğin, URI'yi bir dosyaya yazdırabilir veya okuyabilirsin
-                      Log.d("FileSelector", "Seçilen dosya: $uri")
-
-
-                  }*/
-
-                data?.let { it ->
-                    val uri = it.data
-                    val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-// Check for the freshest data.
-                    contentResolver.takePersistableUriPermission(uri!!, takeFlags)
-
-                    Log.d("newuri", uri.toString())
-
-                    val cursor = contentResolver.query(
-                        uri!!,
-                        arrayOf(OpenableColumns.DISPLAY_NAME),
-                        null,
-                        null,
-                        null
-                    )
-
-                    cursor?.use {
-                        if (it.moveToFirst()) {
-                            val displayName =
-                                it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                            val dotIndex = displayName.lastIndexOf('.')
-                            val fileNameWithoutExtension =
-                                if (dotIndex != -1) displayName.substring(
-                                    0,
-                                    dotIndex
-                                ) else displayName
-
-                            Log.d("newuri", displayName)
-                            lifecycleScope.launch(Dispatchers.Main) {
-
-                                if (!recentlyStat.value) {
-                                    recentlyStat.value = recentlyStat.value.not()
-                                    fileManager.saveRecentlyStat(context, true)
-                                }
-
-                                /* val intent = Intent(context , PDFViewerActivity::class.java).apply {
-                                     putExtra("fileUri" , uri.toString())
-                                     putExtra("fileDisplayName" , fileNameWithoutExtension)
-                                 }
-
-                                 mainActivity.startActivity(intent)*/
+                                mainActivityViewModel.update_OnBackOperation(false)
                             }
                         }
                     }
 
+                    "split" -> {
+                        mainActivityViewModel.update_OnScreenSplitPDF(false)
+                        mainActivityViewModel.update_OnBackOperation(true)
+                        PDFUtil.splitPDF(memUri.value!!, context , splitPDFName.value , splitRange.value){ complated ->
+                            if (complated){
 
-                }
-            }
-        }
-
-        // open word
-        openwordDocumentLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val data: Intent? = result.data
-                /*  val uri: Uri? = data?.data
-                  // Seçilen dosya URI'ını burada kullanabilirsin
-                  if (uri != null) {
-                      // Örneğin, URI'yi bir dosyaya yazdırabilir veya okuyabilirsin
-                      Log.d("FileSelector", "Seçilen dosya: $uri")
-
-
-                  }*/
-
-                data?.let { it ->
-                    val uri = it.data
-                    val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-// Check for the freshest data.
-                    contentResolver.takePersistableUriPermission(uri!!, takeFlags)
-
-                    Log.d("newuri", uri.toString())
-
-                    val cursor = contentResolver.query(
-                        uri!!,
-                        arrayOf(OpenableColumns.DISPLAY_NAME),
-                        null,
-                        null,
-                        null
-                    )
-
-                    cursor?.use {
-                        if (it.moveToFirst()) {
-                            val displayName =
-                                it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                            val dotIndex = displayName.lastIndexOf('.')
-                            val fileNameWithoutExtension =
-                                if (dotIndex != -1) displayName.substring(
-                                    0,
-                                    dotIndex
-                                ) else displayName
-
-                            Log.d("newuri", displayName)
-                            lifecycleScope.launch(Dispatchers.Main) {
-
-                                if (!recentlyStat.value) {
-                                    recentlyStat.value = recentlyStat.value.not()
-                                    fileManager.saveRecentlyStat(context, true)
-                                }
-
-                                WordDocUtil.loadDocument(
-                                    WordDocUtil.getWordDocFromUri(
-                                        context,
-                                        uri!!,
-                                        fileNameWithoutExtension
-                                    )
-                                )
-                                /* val intent = Intent(context , PDFViewerActivity::class.java).apply {
-                                     putExtra("fileUri" , uri.toString())
-                                     putExtra("fileDisplayName" , fileNameWithoutExtension)
-                                 }
-
-                                 mainActivity.startActivity(intent)*/
+                                mainActivityViewModel.update_OnBackOperation(false)
                             }
                         }
                     }
-
-
                 }
-            }
-        }
 
-        // open pdf
-
-        openDocumentLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val data: Intent? = result.data
-                /*  val uri: Uri? = data?.data
-                  // Seçilen dosya URI'ını burada kullanabilirsin
-                  if (uri != null) {
-                      // Örneğin, URI'yi bir dosyaya yazdırabilir veya okuyabilirsin
-                      Log.d("FileSelector", "Seçilen dosya: $uri")
-
-
-                  }*/
-
-                data?.let { it ->
-                    val uri = it.data
-                    val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-// Check for the freshest data.
-                    contentResolver.takePersistableUriPermission(uri!!, takeFlags)
-
-                    Log.d("newuri", uri.toString())
-
-                    val cursor = contentResolver.query(
-                        uri!!,
-                        arrayOf(OpenableColumns.DISPLAY_NAME),
-                        null,
-                        null,
-                        null
-                    )
-
-                    cursor?.use {
-                        if (it.moveToFirst()) {
-                            val displayName =
-                                it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                            val dotIndex = displayName.lastIndexOf('.')
-                            val fileNameWithoutExtension =
-                                if (dotIndex != -1) displayName.substring(
-                                    0,
-                                    dotIndex
-                                ) else displayName
-
-                            Log.d("newuri", displayName)
-                            lifecycleScope.launch(Dispatchers.Main) {
-
-                                if (!recentlyStat.value) {
-                                    recentlyStat.value = recentlyStat.value.not()
-                                    fileManager.saveRecentlyStat(context, true)
-                                }
-
-                                val intent = Intent(context, PDFViewerActivity::class.java).apply {
-                                    putExtra("fileUri", uri.toString())
-                                    putExtra("fileDisplayName", fileNameWithoutExtension)
-                                }
-
-                                mainActivity.startActivity(intent)
-                            }
-                        }
-                    }
-
-
-                }
             }
         }
 
 
         enableEdgeToEdge()
         setContent {
-            var filemanager = remember {
-                FileManager(context = context)
-            }
-
-            LaunchedEffect(Unit) {
-                // folders.value = filemanager.getFoldersForDirectory()
-
-                appViewModel.pushFolders(filemanager.getFoldersForDirectory())
-
-                appViewModel.pushRecentlyList(filemanager.getDocumentList(context))
-            }
-
             val _extensionsOpen = appViewModel._extensionsOpen.collectAsState()
+            val _isOnScreenMergePDF by mainActivityViewModel.isOnScreenMergePDF.collectAsState()
+            val _isOnScreenSplitPDF by mainActivityViewModel.isOnScreenSplitPDF.collectAsState()
+            val _isOnBackOperation by mainActivityViewModel.isBackOperation.collectAsState()
+            val _BackOperationDescription by mainActivityViewModel.BackOperationDescription.collectAsState()
+            val _isNewFolderOnScreen by mainActivityViewModel.isNewFolderOnScreen.collectAsState()
 
             DocuNoteTheme(darkTheme = true) {
                 Scaffold(
@@ -733,7 +343,10 @@ class MainActivity : ComponentActivity() {
                                         Box(
                                             modifier = Modifier
                                                 .clickable {
-
+                                                    ScanUtil.update_firstOpen(true)
+                                                    cameraPermissionLauncher.launch(
+                                                        arrayOf(Manifest.permission.CAMERA)
+                                                    )
                                                 }
                                         ) {
 
@@ -750,17 +363,14 @@ class MainActivity : ComponentActivity() {
                                             modifier = Modifier
                                                 .clickable {
                                                     ripple(bounded = true, radius = 48.dp)
+                                                    ActivityResultLauncherManager.pickPDF(allowMultiplePick = false) { uri , FileNameWithOutExtension , _ ->
 
-                                                    val intent =
-                                                        Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                                                            addCategory(Intent.CATEGORY_OPENABLE)
-                                                            type = "application/pdf"
+                                                        val intent = Intent(MainActivity.context, PDFViewerActivity::class.java).apply {
+                                                            putExtra("fileUri", uri.toString())
+                                                            putExtra("fileDisplayName", FileNameWithOutExtension)
                                                         }
-                                                    intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-                                                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-
-                                                    // MainActivity.mainActivity.startActivityForResult(intent, 2)
-                                                    MainActivity.openDocumentLauncher.launch(intent)
+                                                        context.startActivity(intent)
+                                                    }
                                                 }
                                         ) {
 
@@ -830,6 +440,62 @@ class MainActivity : ComponentActivity() {
                         }, appViewModel = appViewModel)
                     }
 
+                    if (_isOnScreenMergePDF){
+                        mCustomDialog(
+                            onDismissRequest = {
+                                handlePDFProcessType.value = "merge"
+                                mainActivityViewModel.update_OnScreenMergePDF(false)
+                            } ,
+                            onConfirm = { docName ->
+                                handlePDFProcessType.value = "merge"
+                                mergePDFDocName.value = docName
+                                mainActivityViewModel.handle_PDFProcess()
+                            }
+                        )
+                    }
+
+                    if (_isOnScreenSplitPDF){
+                        splitDialog(
+                            onDismissRequest = {
+                                mainActivityViewModel.update_OnScreenSplitPDF(false)
+                            } ,
+                            onConfirm = { fileName , range ->
+                                handlePDFProcessType.value = "split"
+                                splitPDFName.value = fileName
+                                splitRange.value = range
+                                memUri.value.let {
+                                    mainActivityViewModel.handle_PDFProcess()
+                                }
+                            }
+                        )
+                    }
+
+                    if (_isOnBackOperation){
+                        onBackOperationDailog(
+                            onDismissRequest = {
+                                CoroutineScope(Dispatchers.Default).launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "$_BackOperationDescription is complated." ,
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+                            } ,
+                            description = _BackOperationDescription
+                        )
+                    }
+
+                    if (_isNewFolderOnScreen){
+                        mCustomDialog(
+                            onDismissRequest = {
+                                mainActivityViewModel.update_NewFolderOnScreen(false)
+                            } ,
+                            onConfirm = { folderName ->
+                                mainActivityViewModel.createNewFolder(folderName = folderName)
+                                mainActivityViewModel.update_NewFolderOnScreen(false)
+                            }
+                        )
+                    }
+
                 }
 
             }
@@ -839,10 +505,52 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d("mainActivty", "onDestroy")
-        mainicore.nativeDestroyLibrary()
     }
 }
 
+@Composable
+fun onBackOperationDailog(
+    onDismissRequest: () -> Unit,
+    description : String
+){
+
+    Dialog(
+        onDismissRequest = { onDismissRequest() } ,
+        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true , usePlatformDefaultWidth = true)
+    ) {
+        Surface(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+                .wrapContentHeight() ,
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            tonalElevation = 4.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .padding(4.dp), // Opsiyonel: Butonun etrafında boşluk bırakmak için
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.fillMaxSize(),
+                        strokeWidth = 2.dp ,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                }
+
+                Text(
+                    text = description
+                )
+            }
+        }
+    }
+}
 
 
 @Composable

@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-feature android:name="android.hardware.camera.any" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
@@ -22,6 +25,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DocuNote"
         tools:targetApi="35">
+        <activity
+            android:name=".ImageOrganizerActivity"
+            android:exported="false"
+            android:label="@string/title_activity_image_organizer"
+            android:theme="@style/Theme.DocuNote" />
+        <activity
+            android:name=".ScanActivity"
+            android:exported="false"
+            android:label="@string/title_activity_scan"
+            android:theme="@style/Theme.DocuNote" />
         <activity
             android:name=".WelcomeActivity"
             android:exported="false"
@@ -82,24 +95,9 @@
         </provider>
 
         <activity
-            android:name=".DocifyAI"
-            android:exported="false"
-            android:label="@string/title_activity_docify_ai"
-            android:theme="@style/Theme.DocuNote" />
-        <activity
-            android:name=".ViewerActivity"
-            android:exported="false"
-            android:label="@string/title_activity_viewer"
-            android:theme="@style/Theme.DocuNote" />
-        <activity
             android:name=".FolderScopeActivity"
             android:exported="false"
             android:label="@string/title_activity_folder_scope"
-            android:theme="@style/Theme.DocuNote" />
-        <activity
-            android:name=".EditPDFActivty"
-            android:exported="false"
-            android:label="@string/title_activity_edit_pdfactivty"
             android:theme="@style/Theme.DocuNote" />
         <activity
             android:name=".PDFViewerActivity"

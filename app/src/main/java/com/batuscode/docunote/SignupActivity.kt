@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import com.batuscode.docunote.SignupActivity.Companion.validating
+import com.batuscode.docunote.integrity.IntegrityHelper
 import com.batuscode.docunote.model.User
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import com.batuscode.docunote.utils.AiUtil
@@ -47,6 +48,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.ktx.appCheck
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.functions.ktx.functions
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
@@ -69,22 +71,21 @@ class SignupActivity : ComponentActivity() {
         super.onStart()
 
         val currentUser = Auth.auth
-        CoroutineScope(Dispatchers.IO).launch {
-            if (currentUser.currentUser != null){
-                validating.value = validating.value.not()
+
+        if (currentUser.currentUser != null){
+            validating.value = validating.value.not()
+            CoroutineScope(Dispatchers.IO).launch {
                 Auth.checkClaims()
-                withContext(Dispatchers.Main){
-                    Log.d("mactvty" , currentUser.currentUser?.email.toString())
-                    val intent = Intent(context , AiActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-                    }
-                    context.startActivity(intent)
-                    finish()
-                }
-
-
             }
+            Log.d("mactvty" , currentUser.currentUser?.email.toString())
+            val intent = Intent(context , AiActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            context.startActivity(intent)
+            finish()
+
         }
+
 
 
     }
@@ -99,7 +100,9 @@ class SignupActivity : ComponentActivity() {
             DebugAppCheckProviderFactory.getInstance(),
         )
         Auth.auth = Firebase.auth
+        Auth.db = Firebase.firestore
         FunctionsUtil.functions = Firebase.functions
+
 
         CoroutineScope(Dispatchers.IO).launch {
             AiUtil.initGenerativeModel()

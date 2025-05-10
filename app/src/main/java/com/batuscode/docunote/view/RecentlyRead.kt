@@ -60,32 +60,13 @@ import com.batuscode.docunote.MainActivity.Companion.context
 import com.batuscode.docunote.PDFViewerActivity
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import com.batuscode.docunote.R
+import com.batuscode.docunote.manager.ActivityResultLauncherManager
 import com.batuscode.docunote.model.Folder
-import com.batuscode.docunote.utils.File
-import com.batuscode.docunote.utils.FileManager
+import com.batuscode.docunote.model.File
 import com.batuscode.docunote.viewmodel.AppViewModel
 
 @Composable
 fun RecentlyRead(appViewModel: AppViewModel){
-
-    val dummyList = List(20) { "Item #${it + 1}" }
-
-    val context = LocalContext.current
-    var fileManager = remember {
-        FileManager(context = context)
-    }
-
-
-   /* var files = remember {
-        mutableStateOf<List<File>>(emptyList())
-    }
-
-
-    LaunchedEffect(Unit) {
-        files.value = fileManager.getDocumentList(context)
-    }*/
-
-    val files = appViewModel.recentlyList.collectAsState()
 
     val exfList1 = remember {
         mutableListOf<File>()
@@ -101,6 +82,7 @@ fun RecentlyRead(appViewModel: AppViewModel){
 
     Log.d("exfilelist" , "size :: " + exfList1.size)
 
+    val _recentlyReadedDocs = MainActivity.mainActivityViewModel.recentlyReadedDocs.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -119,7 +101,7 @@ fun RecentlyRead(appViewModel: AppViewModel){
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                items(files.value.reversed()){
+                items(_recentlyReadedDocs.value.reversed()){
                         item -> RecentlyReadItemView(item)
                 }
             }
@@ -220,15 +202,14 @@ fun RecentlyRead(appViewModel: AppViewModel){
                                 containerColor = colorResource(R.color.modified)
                             ),
                             onClick = {
+                                ActivityResultLauncherManager.pickPDF(allowMultiplePick = false) { uri, FileNameWithOutExtension, _ ->
 
-                                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT ).apply {
-                                    addCategory(Intent.CATEGORY_OPENABLE)
-                                    type = "*/*"
+                                    val intent = Intent(MainActivity.context, PDFViewerActivity::class.java).apply {
+                                        putExtra("fileUri", uri.toString())
+                                        putExtra("fileDisplayName", FileNameWithOutExtension)
+                                    }
+                                    context.startActivity(intent)
                                 }
-                                intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
-                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                // MainActivity.mainActivity.startActivityForResult(intent, 2)
-                                MainActivity.openDocumentLauncher.launch(intent)
                             }) {
 
                             Image(
