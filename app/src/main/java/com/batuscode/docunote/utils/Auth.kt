@@ -208,7 +208,7 @@ object Auth {
                 context.startActivity(intent)
                 ( context as? Activity)?.finish()
                 Log.e(TAG, "clean credential state")
-            }, 200)
+            }, 600)
 
         }   catch (e: ClearCredentialException) {
             Log.e(TAG, "Couldn't clear user credentials: ${e.localizedMessage}")

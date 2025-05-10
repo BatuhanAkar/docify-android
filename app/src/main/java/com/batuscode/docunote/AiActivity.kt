@@ -377,9 +377,6 @@ class AiActivity : ComponentActivity() {
         PDFUtil.init(context)
         Companion.packageName = packageName
 
-        CoroutineScope(Dispatchers.IO).launch {
-            IntegrityHelper.prepareIntegrityTokenProvider(this@AiActivity)
-        }
         aiActivityViewModel = ViewModelProvider(this).get(AiActivityViewModel::class.java)
         lifecycleScope.launch {
             aiActivityViewModel.openKnowledgePDFfilePickerActivity.collect{
