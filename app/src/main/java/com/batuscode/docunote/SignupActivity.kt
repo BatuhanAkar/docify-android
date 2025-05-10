@@ -45,7 +45,6 @@ import com.batuscode.docunote.utils.Auth
 import com.batuscode.docunote.utils.FunctionsUtil
 import com.batuscode.docunote.viewmodel.SignupActivityViewModel
 import com.google.firebase.FirebaseApp
-import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.ktx.appCheck
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.auth.ktx.auth
