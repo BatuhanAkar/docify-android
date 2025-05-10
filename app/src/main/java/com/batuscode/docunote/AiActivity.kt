@@ -114,7 +114,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import coil.compose.AsyncImage
 import com.batuscode.docunote.AiActivity.Companion.aiActivityViewModel
-import com.batuscode.docunote.AiActivity.Companion.packageName
 import com.batuscode.docunote.integrity.IntegrityHelper
 import com.batuscode.docunote.model.AIChatListItem
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
@@ -147,7 +146,6 @@ class AiActivity : ComponentActivity() {
         lateinit var aiActivityViewModel: AiActivityViewModel
         var proChecked = mutableStateOf(false)
         val snackbarHostState = SnackbarHostState()
-        lateinit var packageName : String
     }
 
     private val knowledgePdfFilePickerLauncher : ActivityResultLauncher<Intent> = registerForActivityResult(
@@ -375,7 +373,6 @@ class AiActivity : ComponentActivity() {
         context = this
         Auth.delivery()
         PDFUtil.init(context)
-        Companion.packageName = packageName
 
         aiActivityViewModel = ViewModelProvider(this).get(AiActivityViewModel::class.java)
         lifecycleScope.launch {

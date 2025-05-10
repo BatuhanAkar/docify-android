@@ -36,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
+import com.batuscode.docunote.AiActivity
 import com.batuscode.docunote.SignupActivity.Companion.validating
 import com.batuscode.docunote.integrity.IntegrityHelper
 import com.batuscode.docunote.model.User
@@ -64,6 +65,8 @@ class SignupActivity : ComponentActivity() {
         lateinit var context: Context
         lateinit var signupActivityViewModel : SignupActivityViewModel
         var validating = mutableStateOf(false)
+        lateinit var packageName : String
+
     }
     override fun onStart() {
         super.onStart()
@@ -93,6 +96,7 @@ class SignupActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         context = this
         signupActivityViewModel = ViewModelProvider(this).get(SignupActivityViewModel::class.java)
+        Companion.packageName = packageName
         CoroutineScope(Dispatchers.IO).launch {
             IntegrityHelper.prepareIntegrityTokenProvider(this@SignupActivity)
         }
