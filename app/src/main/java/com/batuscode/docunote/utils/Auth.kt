@@ -31,6 +31,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+import com.google.firebase.auth.FirebaseAuth.AuthStateListener
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -47,6 +48,24 @@ object Auth {
     lateinit var auth: FirebaseAuth
     lateinit var db : FirebaseFirestore
     lateinit var registiration : ListenerRegistration
+    lateinit var authStateListener: AuthStateListener
+
+    fun InitializeAuthStateListener(context: Context){
+        authStateListener = object : AuthStateListener{
+            override fun onAuthStateChanged(p0: FirebaseAuth) {
+                if (p0.currentUser == null){
+                    val intent = Intent(context, SignupActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                    }
+                    context.startActivity(intent)
+                    ( context as? Activity)?.finish()
+                    Log.e(TAG, "clean credential state")
+                }
+            }
+
+        }
+    }
+
 
     private val _user = mutableStateOf(User())
     val user : State<User> = _user
@@ -192,23 +211,15 @@ object Auth {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     suspend fun signOut(context: Context){
-        Firebase.auth.signOut()
 
         try {
-            val clearRequest = ClearCredentialStateRequest()
-            val credentialManager = CredentialManager.create(context)
-            credentialManager.clearCredentialState(clearRequest)
-
-            Handler(Looper.getMainLooper()).postDelayed({
-                val intent = Intent(context, SignupActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-                }
-                context.startActivity(intent)
-                ( context as? Activity)?.finish()
-                Log.e(TAG, "clean credential state")
-            }, 600)
+            CoroutineScope(Dispatchers.IO).launch {
+                val clearRequest = ClearCredentialStateRequest()
+                val credentialManager = CredentialManager.create(context)
+                credentialManager.clearCredentialState(clearRequest)
+                Firebase.auth.signOut()
+            }
 
         }   catch (e: ClearCredentialException) {
             Log.e(TAG, "Couldn't clear user credentials: ${e.localizedMessage}")

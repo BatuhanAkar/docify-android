@@ -27,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -38,20 +37,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import com.batuscode.docunote.AiActivity
 import com.batuscode.docunote.SignupActivity.Companion.validating
-import com.batuscode.docunote.integrity.IntegrityHelper
-import com.batuscode.docunote.model.User
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
-import com.batuscode.docunote.utils.AiUtil
 import com.batuscode.docunote.utils.Auth
-import com.batuscode.docunote.utils.FunctionsUtil
 import com.batuscode.docunote.viewmodel.SignupActivityViewModel
-import com.google.firebase.FirebaseApp
-import com.google.firebase.appcheck.ktx.appCheck
-import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.functions.ktx.functions
-import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -62,22 +50,22 @@ class SignupActivity : ComponentActivity() {
 
 
     companion object {
-        lateinit var context: Context
         lateinit var signupActivityViewModel : SignupActivityViewModel
         var validating = mutableStateOf(false)
 
     }
     override fun onStart() {
         super.onStart()
+        val context : Context = this
 
-        val currentUser = Auth.auth
+        val currentUser = Auth.auth.currentUser
 
-        if (currentUser.currentUser != null){
+        if (currentUser != null){
             validating.value = validating.value.not()
             CoroutineScope(Dispatchers.IO).launch {
                 Auth.checkClaims()
             }
-            Log.d("mactvty" , currentUser.currentUser?.email.toString())
+            Log.d("mactvty" , currentUser.email.toString())
             val intent = Intent(context , AiActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
             }
@@ -93,7 +81,6 @@ class SignupActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        context = this
         signupActivityViewModel = ViewModelProvider(this).get(SignupActivityViewModel::class.java)
 
         enableEdgeToEdge()
