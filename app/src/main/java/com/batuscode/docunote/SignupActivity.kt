@@ -65,7 +65,6 @@ class SignupActivity : ComponentActivity() {
         lateinit var context: Context
         lateinit var signupActivityViewModel : SignupActivityViewModel
         var validating = mutableStateOf(false)
-        lateinit var packageName : String
 
     }
     override fun onStart() {
@@ -96,22 +95,6 @@ class SignupActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         context = this
         signupActivityViewModel = ViewModelProvider(this).get(SignupActivityViewModel::class.java)
-        Companion.packageName = packageName
-        CoroutineScope(Dispatchers.IO).launch {
-            IntegrityHelper.prepareIntegrityTokenProvider(this@SignupActivity)
-        }
-        FirebaseApp.initializeApp(this)
-        Firebase.appCheck.installAppCheckProviderFactory(
-            PlayIntegrityAppCheckProviderFactory.getInstance()
-        )
-        Auth.auth = Firebase.auth
-        Auth.db = Firebase.firestore
-        FunctionsUtil.functions = Firebase.functions
-
-
-        CoroutineScope(Dispatchers.IO).launch {
-            AiUtil.initGenerativeModel()
-        }
 
         enableEdgeToEdge()
         setContent {

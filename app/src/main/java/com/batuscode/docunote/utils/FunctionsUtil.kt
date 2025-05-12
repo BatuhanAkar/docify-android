@@ -3,6 +3,7 @@ package com.batuscode.docunote.utils
 import android.content.Context
 import android.util.Log
 import com.batuscode.docunote.AiActivity
+import com.batuscode.docunote.MyApplication
 import com.batuscode.docunote.SignupActivity
 import com.google.firebase.FirebaseApp
 import com.google.firebase.functions.FirebaseFunctions
@@ -105,7 +106,7 @@ object FunctionsUtil {
     }
 
     suspend fun pivt(tkn: String){
-        val data = hashMapOf("pckgName" to SignupActivity.packageName , "pit" to tkn)
+        val data = hashMapOf("pckgName" to MyApplication.packageName , "pit" to tkn)
 
         try {
 
