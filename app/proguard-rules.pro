@@ -24,3 +24,25 @@
 -keep class com.batuscode.pdfium.PathData {
     public *;
 }
+
+
+# Firebase AppCheck ve Play Integrity için
+-keep class com.google.firebase.appcheck.** { *; }
+-keep class com.google.firebase.appcheck.playintegrity.** { *; }
+-keep class com.google.firebase.appcheck.debug.** { *; }
+-keep class com.google.firebase.appcheck.safetynet.** { *; }
+
+# Play Integrity API için (Google Play Services)
+-keep class com.google.android.gms.tasks.** { *; }
+-keep class com.google.android.play.core.integrity.** { *; }
+
+# Firebase'in reflection kullandığı sınıflar
+-keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.firebase.**
+-dontwarn com.google.android.gms.**
+
+# Google Play Services (Play Integrity için)
+-keep class com.google.android.play.core.** { *; }
+-keep class com.google.android.gms.common.** { *; }
+-keep class com.google.android.gms.tasks.** { *; }

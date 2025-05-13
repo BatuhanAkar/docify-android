@@ -26,7 +26,7 @@ android {
         minSdk = 24
         //noinspection EditedTargetSdkVersion
         targetSdk = 35
-        versionCode = 23
+        versionCode = 26
         versionName = "2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -44,7 +44,6 @@ android {
         texture { enableSplit = true }
         language { enableSplit = true }
     }
-
     buildTypes {
         debug {
             isDebuggable = true  // ← BU MUTLAKA TRUE OLMALI
@@ -55,13 +54,14 @@ android {
             )
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = VERSION_11
         targetCompatibility = VERSION_11
@@ -126,6 +126,9 @@ dependencies {
     implementation("androidx.compose.material:material:1.8.0")
     implementation("com.google.android.play:review-ktx:2.0.2")
 
+    implementation("com.google.android.gms:play-services-identity:18.1.0")
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
+    implementation("com.google.android.play:integrity:1.4.0")
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
@@ -134,8 +137,8 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
     implementation("com.google.firebase:firebase-vertexai")
-    //implementation("com.google.firebase:firebase-appcheck-playintegrity")
-    implementation("com.google.firebase:firebase-appcheck-debug")
+    implementation("com.google.firebase:firebase-appcheck-playintegrity")
+    //implementation("com.google.firebase:firebase-appcheck-debug")
     implementation ("com.google.android.play:integrity:1.4.0")
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.functions)
@@ -150,7 +153,7 @@ dependencies {
     implementation ("androidx.camera:camera-view:${camerax_version}")
     implementation ("androidx.camera:camera-extensions:${camerax_version}")
 
-    val billing_version = "7.0.0"
+    val billing_version = "7.1.1"
 
     implementation("com.android.billingclient:billing-ktx:$billing_version")
 

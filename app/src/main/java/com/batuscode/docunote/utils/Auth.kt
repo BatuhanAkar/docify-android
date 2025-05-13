@@ -183,6 +183,30 @@ object Auth {
                     return@withContext null
                 }
             }
+        } catch (e: IllegalArgumentException) {
+            Log.getStackTraceString(e)
+            try {
+
+                val googleIdOption = GetGoogleIdOption.Builder()
+                    // Your server's client ID, not your Android client ID.
+                    .setServerClientId(context.getString(R.string.default_web_client_id))
+                    // Only show accounts previously used to sign in.
+                    .setFilterByAuthorizedAccounts(false)
+                    .setAutoSelectEnabled(false)
+                    .build()
+                // Create the Credential Manager request
+                val request = GetCredentialRequest.Builder()
+                    .addCredentialOption(googleIdOption)
+                    .build()
+
+                val response = credentialManager.getCredential(context,request)
+
+
+                return@withContext response.credential
+            } catch (e: GetCredentialCancellationException){
+                Log.getStackTraceString(e)
+                return@withContext null
+            }
         }
     }
     suspend fun firebaseAuthWithGoogle(context: Context){

@@ -8,8 +8,8 @@ import com.batuscode.docunote.utils.AiUtil
 import com.batuscode.docunote.utils.Auth
 import com.batuscode.docunote.utils.FunctionsUtil
 import com.google.firebase.FirebaseApp
-import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.ktx.appCheck
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.functions.ktx.functions
@@ -31,7 +31,7 @@ class MyApplication : Application() {
         Companion.packageName = packageName
         FirebaseApp.initializeApp(this)
         Firebase.appCheck.installAppCheckProviderFactory(
-            DebugAppCheckProviderFactory.getInstance()
+            PlayIntegrityAppCheckProviderFactory.getInstance()
         )
         Auth.auth = Firebase.auth
         Auth.InitializeAuthStateListener(context)
