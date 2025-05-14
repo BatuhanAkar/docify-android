@@ -12,21 +12,28 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.dagger.hilt.android")
     id("kotlin-parcelize")
-
-
 }
 
 android {
 
+    signingConfigs {
+        create("release") {
+            storeFile =
+                file("C:\\Users\\Batuhan\\AndroidStudioProjects\\DocuNote\\nkystr\\dcfy.jks")
+            storePassword = "Y25m?4HX_?25jIC-Xfg"
+            keyAlias = "H-i?RT*JvC-25Md"
+            keyPassword = "K-e*bmE?25xZ-jIle*Mt"
+        }
+    }
     namespace = "com.batuscode.docunote"
     compileSdk = 35
     defaultConfig {
 
         applicationId = "com.batuscode.docunote"
-        minSdk = 24
+        minSdk = 26
         //noinspection EditedTargetSdkVersion
         targetSdk = 35
-        versionCode = 26
+        versionCode = 29
         versionName = "2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -59,6 +66,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -137,13 +145,12 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
     implementation("com.google.firebase:firebase-vertexai")
-    implementation("com.google.firebase:firebase-appcheck-playintegrity")
-    //implementation("com.google.firebase:firebase-appcheck-debug")
+    //implementation("com.google.firebase:firebase-appcheck-playintegrity")
+    implementation("com.google.firebase:firebase-appcheck-debug")
     implementation ("com.google.android.play:integrity:1.4.0")
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.functions)
     implementation(libs.firebase.firestore)
-
     val camerax_version = "1.4.2"
     implementation ("androidx.camera:camera-core:${camerax_version}")
     implementation ("androidx.camera:camera-camera2:${camerax_version}")

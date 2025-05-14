@@ -23,6 +23,7 @@ import androidx.lifecycle.viewModelScope
 import com.batuscode.docunote.AiActivity
 import com.batuscode.docunote.R
 import com.batuscode.docunote.SignupActivity
+import com.batuscode.docunote.SignupActivity.Companion.validating
 import com.batuscode.docunote.model.InAppMSG
 import com.batuscode.docunote.model.User
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
@@ -55,6 +56,16 @@ object Auth {
             override fun onAuthStateChanged(p0: FirebaseAuth) {
                 if (p0.currentUser == null){
                     val intent = Intent(context, SignupActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                    }
+                    context.startActivity(intent)
+                    ( context as? Activity)?.finish()
+                    Log.e(TAG, "clean credential state")
+                } else if (p0.currentUser != null) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        checkClaims()
+                    }
+                    val intent = Intent(context , AiActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                     }
                     context.startActivity(intent)
@@ -176,10 +187,12 @@ object Auth {
             when (e) {
                 is GetCredentialCancellationException -> {
                     Log.d(TAG, "Kullanıcı işlemi iptal etti.")
+                    validating.value = validating.value.not()
                     return@withContext null
                 }
                 else -> {
                     Log.e(TAG, "Beklenmedik hata: ${e.localizedMessage}")
+                    validating.value = validating.value.not()
                     return@withContext null
                 }
             }
@@ -221,6 +234,7 @@ object Auth {
             auth.signInWithCredential(gCredential)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful){
+                        validating.value = validating.value.not()
                         Log.d(TAG, "signInWithCredential:success")
 
                         val intent = Intent(context , AiActivity::class.java)

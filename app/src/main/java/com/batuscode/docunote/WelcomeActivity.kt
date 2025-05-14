@@ -51,7 +51,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import com.batuscode.docunote.utils.OnBoardingPage
-import com.batuscode.docunote.viewmodel.AiActivityViewModel
 import com.batuscode.docunote.viewmodel.WelcomeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope

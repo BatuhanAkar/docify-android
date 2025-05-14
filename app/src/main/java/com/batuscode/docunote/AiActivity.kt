@@ -114,11 +114,6 @@ import kotlinx.coroutines.launch
 class AiActivity : ComponentActivity() {
 
     companion object {
-
-        init {
-            System.loadLibrary("jpdfium")
-        }
-
         lateinit var summDocLauncher: ActivityResultLauncher<Intent>
         lateinit var aiActivityViewModel: AiActivityViewModel
         var proChecked = mutableStateOf(false)
@@ -370,7 +365,6 @@ class AiActivity : ComponentActivity() {
         val context: Context = this
         Auth.delivery()
         PDFUtil.init(context)
-
         aiActivityViewModel = ViewModelProvider(this)[AiActivityViewModel::class.java]
         lifecycleScope.launch {
             aiActivityViewModel.openKnowledgePDFfilePickerActivity.collect {
@@ -939,7 +933,7 @@ fun MChatBubble(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .clip(CircleShape)
-                            .size(64.dp)
+                            .size(32.dp)
                     )
                     Column(
                         modifier = Modifier
@@ -969,7 +963,7 @@ fun MChatBubble(
                         modifier = Modifier
                             .clip(CircleShape)
                             .padding(8.dp)
-                            .size(64.dp)
+                            .size(32.dp)
                     )
                 }
 

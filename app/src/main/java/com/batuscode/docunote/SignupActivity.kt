@@ -50,34 +50,13 @@ class SignupActivity : ComponentActivity() {
 
 
     companion object {
+        init {
+            System.loadLibrary("jpdfium")
+        }
         lateinit var signupActivityViewModel : SignupActivityViewModel
         var validating = mutableStateOf(false)
 
     }
-    override fun onStart() {
-        super.onStart()
-        val context : Context = this
-
-        val currentUser = Auth.auth.currentUser
-
-        if (currentUser != null){
-            validating.value = validating.value.not()
-            CoroutineScope(Dispatchers.IO).launch {
-                Auth.checkClaims()
-            }
-            Log.d("mactvty" , currentUser.email.toString())
-            val intent = Intent(context , AiActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            context.startActivity(intent)
-            finish()
-
-        }
-
-
-
-    }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -131,6 +110,7 @@ fun SignUpScreen(modifier: Modifier = Modifier){
             OutlinedButton (
                 onClick = {
                     CoroutineScope(Dispatchers.Default).launch {
+                        validating.value = validating.value.not()
                         Auth.firebaseAuthWithGoogle(context = context)
                     }
                 } ,

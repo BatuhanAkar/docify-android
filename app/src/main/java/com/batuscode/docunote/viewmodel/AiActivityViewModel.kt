@@ -12,6 +12,7 @@ import com.batuscode.docunote.AiActivity.Companion.aiActivityViewModel
 import com.batuscode.docunote.WelcomeActivity
 import com.batuscode.docunote.data.PrefRepository
 import com.batuscode.docunote.model.AIChatListItem
+import com.batuscode.docunote.utils.Auth
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -167,11 +168,13 @@ class AiActivityViewModel@Inject constructor(
         }
         viewModelScope.launch {
             // read msg token status .
-            repository.readTakedMSGToken().collect { isTaked ->
-                Log.d(TAG , "isTaked " + isTaked)
-                if (!isTaked){
-                    Log.d(TAG , "msg token not taked")
-                    requestMSGtoken()
+            if (Auth.auth.currentUser != null){
+                repository.readTakedMSGToken().collect { isTaked ->
+                    Log.d(TAG , "isTaked " + isTaked)
+                    if (!isTaked){
+                        Log.d(TAG , "msg token not taked")
+                        requestMSGtoken()
+                    }
                 }
             }
         }

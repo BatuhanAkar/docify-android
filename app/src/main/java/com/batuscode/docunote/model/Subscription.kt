@@ -10,5 +10,6 @@ data class Subscription(
     val description : String,
     val price : String,
     val benefits : List<String>? ,
-    val productDetails: ProductDetails?
+    val productDetails: ProductDetails? ,
+    val offerToken : String
     )
