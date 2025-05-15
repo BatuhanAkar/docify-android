@@ -55,7 +55,6 @@ class SignupActivity : ComponentActivity() {
         }
         lateinit var signupActivityViewModel : SignupActivityViewModel
         var validating = mutableStateOf(false)
-
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,9 +104,13 @@ fun SignUpScreen(modifier: Modifier = Modifier){
         }
         Spacer(modifier = Modifier.weight(1f))
         if (validating.value){
-            CircularProgressIndicator()
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .absolutePadding(bottom = 16.dp)
+            )
         } else {
             OutlinedButton (
+                enabled = Auth.auth.currentUser == null,
                 onClick = {
                     CoroutineScope(Dispatchers.Default).launch {
                         validating.value = validating.value.not()
@@ -122,7 +125,7 @@ fun SignUpScreen(modifier: Modifier = Modifier){
             ) {
                 Row (
                     verticalAlignment = Alignment.CenterVertically ,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
 
                     Image(

@@ -3,11 +3,7 @@ package com.batuscode.docunote.utils
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.credentials.ClearCredentialStateRequest
@@ -19,7 +15,6 @@ import androidx.credentials.exceptions.ClearCredentialException
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.exceptions.NoCredentialException
-import androidx.lifecycle.viewModelScope
 import com.batuscode.docunote.AiActivity
 import com.batuscode.docunote.R
 import com.batuscode.docunote.SignupActivity
@@ -37,12 +32,10 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import okhttp3.internal.wait
 
 object Auth {
     const val TAG = "AuthObject"
@@ -56,20 +49,20 @@ object Auth {
             override fun onAuthStateChanged(p0: FirebaseAuth) {
                 if (p0.currentUser == null){
                     val intent = Intent(context, SignupActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     }
                     context.startActivity(intent)
                     ( context as? Activity)?.finish()
                     Log.e(TAG, "clean credential state")
                 } else if (p0.currentUser != null) {
+
                     CoroutineScope(Dispatchers.IO).launch {
                         checkClaims()
                     }
                     val intent = Intent(context , AiActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     }
                     context.startActivity(intent)
-                    ( context as? Activity)?.finish()
                     Log.e(TAG, "clean credential state")
                 }
             }
@@ -192,7 +185,6 @@ object Auth {
                 }
                 else -> {
                     Log.e(TAG, "Beklenmedik hata: ${e.localizedMessage}")
-                    validating.value = validating.value.not()
                     return@withContext null
                 }
             }

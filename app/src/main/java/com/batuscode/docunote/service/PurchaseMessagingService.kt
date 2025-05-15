@@ -13,7 +13,6 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.batuscode.docunote.R
 import com.batuscode.docunote.SignupActivity
-import com.batuscode.docunote.SignupActivity.Companion.signupActivityViewModel
 import com.batuscode.docunote.model.InAppMSG
 import com.batuscode.docunote.utils.Auth
 import com.batuscode.docunote.utils.FunctionsUtil

@@ -50,9 +50,6 @@ object IntegrityHelper {
     }
 
     fun boomToken(token : String){
-        CoroutineScope(Dispatchers.IO).launch {
-            FunctionsUtil.pivt(token)
-        }
     }
 
     fun handlePrepareError(exception: Exception , applicationContext: Context){

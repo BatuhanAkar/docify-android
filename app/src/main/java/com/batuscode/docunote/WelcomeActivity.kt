@@ -1,6 +1,7 @@
 package com.batuscode.docunote
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -181,6 +182,10 @@ fun LastPagerView(modifier : Modifier = Modifier, onBoardingPage: OnBoardingPage
                 CoroutineScope(Dispatchers.IO).launch {
                     welcomeViewModel.saveOnBoardingState(true)
                     withContext(Dispatchers.Main) {
+                        val intent = Intent(context , AiActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                        }
+                        context.startActivity(intent)
                         (context as? Activity)?.finish()
                     }
                 }

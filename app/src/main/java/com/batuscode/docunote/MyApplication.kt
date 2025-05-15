@@ -2,7 +2,6 @@ package com.batuscode.docunote
 
 import android.app.Application
 import android.content.Context
-import com.batuscode.docunote.integrity.IntegrityHelper
 import com.batuscode.docunote.utils.AiUtil
 import com.batuscode.docunote.utils.Auth
 import com.batuscode.docunote.utils.FunctionsUtil
@@ -21,13 +20,10 @@ import kotlinx.coroutines.launch
 
 @HiltAndroidApp
 class MyApplication : Application() {
-    companion object {
-        lateinit var packageName : String
-    }
     override fun onCreate() {
         super.onCreate()
         val context : Context = this
-        Companion.packageName = packageName
+
         FirebaseApp.initializeApp(this)
         Firebase.appCheck.installAppCheckProviderFactory(
             DebugAppCheckProviderFactory.getInstance()
@@ -39,9 +35,6 @@ class MyApplication : Application() {
         FunctionsUtil.functions = Firebase.functions
 
 
-        CoroutineScope(Dispatchers.IO).launch {
-            IntegrityHelper.prepareIntegrityTokenProvider(this@MyApplication)
-        }
         CoroutineScope(Dispatchers.IO).launch {
             AiUtil.initGenerativeModel()
         }

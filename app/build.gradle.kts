@@ -33,7 +33,7 @@ android {
         minSdk = 26
         //noinspection EditedTargetSdkVersion
         targetSdk = 35
-        versionCode = 29
+        versionCode = 33
         versionName = "2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -134,9 +134,6 @@ dependencies {
     implementation("androidx.compose.material:material:1.8.0")
     implementation("com.google.android.play:review-ktx:2.0.2")
 
-    implementation("com.google.android.gms:play-services-identity:18.1.0")
-    implementation("com.google.android.gms:play-services-auth:21.3.0")
-    implementation("com.google.android.play:integrity:1.4.0")
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)

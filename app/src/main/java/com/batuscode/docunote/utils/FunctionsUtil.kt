@@ -105,33 +105,5 @@ object FunctionsUtil {
         }
     }
 
-    suspend fun pivt(tkn: String){
-        val data = hashMapOf("pckgName" to MyApplication.packageName , "pit" to tkn)
-
-        try {
-
-            val result = functions
-                .getHttpsCallable("pivt")
-                .call(data)
-                .await()
-
-            val resultData = result.data as Map<*, *>
-            Log.d(TAG , "pivt result ::: " + Gson().toJson(resultData))
-        } catch (e : FirebaseFunctionsException){
-            val code = e.code
-            val detail = e.details
-
-            when(code){
-                FirebaseFunctionsException.Code.PERMISSION_DENIED -> {
-                    Log.e(TAG , "Permission denied")
-                }
-                FirebaseFunctionsException.Code.UNAUTHENTICATED -> {
-                }
-                else -> {
-                }
-            }
-        }
-
-    }
 
 }

@@ -1,5 +1,6 @@
 package com.batuscode.docunote.viewmodel
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -87,9 +88,16 @@ class AiActivityViewModel@Inject constructor(
     }
 
     fun update_knowledge_chat_item(generatedText: MutableState<String>){
-        if (_knowledgeList.value.isNotEmpty() && _knowledgeList.value[knowledgeListItemIndex.value] is AIChatListItem.TextItem){
-            (_knowledgeList.value[knowledgeListItemIndex.value] as AIChatListItem.TextItem).generating.value = false
-            (_knowledgeList.value[knowledgeListItemIndex.value] as AIChatListItem.TextItem).text.value = generatedText.value
+        if (knowledgeListItemIndex.value == _knowledgeList.value.size){
+            if (_knowledgeList.value.isNotEmpty() && _knowledgeList.value[(_knowledgeList.value.size - 1)] is AIChatListItem.TextItem){
+                (_knowledgeList.value[(_knowledgeList.value.size - 1)] as AIChatListItem.TextItem).generating.value = false
+                (_knowledgeList.value[(_knowledgeList.value.size - 1)] as AIChatListItem.TextItem).text.value = generatedText.value
+            }
+        } else {
+            if (_knowledgeList.value.isNotEmpty() && _knowledgeList.value[knowledgeListItemIndex.value] is AIChatListItem.TextItem){
+                (_knowledgeList.value[knowledgeListItemIndex.value] as AIChatListItem.TextItem).generating.value = false
+                (_knowledgeList.value[knowledgeListItemIndex.value] as AIChatListItem.TextItem).text.value = generatedText.value
+            }
         }
     }
 
@@ -110,25 +118,42 @@ class AiActivityViewModel@Inject constructor(
     }
 
     fun update_chat_item(generatedText: MutableState<String>){
-        if (_chatList.value.isNotEmpty() && _chatList.value[chatListItemIndex.value] is AIChatListItem.TextItem){
-            (_chatList.value[chatListItemIndex.value] as AIChatListItem.TextItem).generating.value = false
-            (_chatList.value[chatListItemIndex.value] as AIChatListItem.TextItem).text.value = generatedText.value
+        if (chatListItemIndex.value == aiActivityViewModel.chatList.value.size){
+            if (_chatList.value.isNotEmpty() && _chatList.value[(aiActivityViewModel.chatList.value.size - 1)] is AIChatListItem.TextItem){
+                (_chatList.value[(aiActivityViewModel.chatList.value.size - 1)] as AIChatListItem.TextItem).generating.value = false
+                (_chatList.value[(aiActivityViewModel.chatList.value.size - 1)] as AIChatListItem.TextItem).text.value = generatedText.value
+            }
+        } else {
+            if (_chatList.value.isNotEmpty() && _chatList.value[chatListItemIndex.value] is AIChatListItem.TextItem){
+                (_chatList.value[chatListItemIndex.value] as AIChatListItem.TextItem).generating.value = false
+                (_chatList.value[chatListItemIndex.value] as AIChatListItem.TextItem).text.value = generatedText.value
 
+            }
         }
+
     }
 
 
     fun add_summed_item(){
-        chatListItemIndex.value += 1
         _chatList.value = _chatList.value + AIChatListItem.SumItem(generating = mutableStateOf(false) , mutableStateOf("") , mutableStateOf(""))
     }
 
     fun update_summed_item(fileName : String , filePath : String){
-        if (aiActivityViewModel.chatList.value.isNotEmpty() && aiActivityViewModel.chatList.value[aiActivityViewModel.chatListItemIndex.value] is AIChatListItem.SumItem){
-            // when summarization finish set generating false...
-            (aiActivityViewModel.chatList.value[aiActivityViewModel.chatListItemIndex.value] as AIChatListItem.SumItem).fileName.value = fileName
-            (aiActivityViewModel.chatList.value[aiActivityViewModel.chatListItemIndex.value] as AIChatListItem.SumItem).filePath.value = filePath
-            (aiActivityViewModel.chatList.value[aiActivityViewModel.chatListItemIndex.value] as AIChatListItem.SumItem).generating.value = true
+
+        if (chatListItemIndex.value == aiActivityViewModel.chatList.value.size){
+            if (aiActivityViewModel.chatList.value.isNotEmpty() && aiActivityViewModel.chatList.value[(aiActivityViewModel.chatList.value.size - 1)] is AIChatListItem.SumItem){
+                // when summarization finish set generating false...
+                (aiActivityViewModel.chatList.value[(aiActivityViewModel.chatList.value.size - 1)] as AIChatListItem.SumItem).fileName.value = fileName
+                (aiActivityViewModel.chatList.value[(aiActivityViewModel.chatList.value.size - 1)] as AIChatListItem.SumItem).filePath.value = filePath
+                (aiActivityViewModel.chatList.value[(aiActivityViewModel.chatList.value.size - 1)] as AIChatListItem.SumItem).generating.value = true
+            }
+        } else {
+            if (aiActivityViewModel.chatList.value.isNotEmpty() && aiActivityViewModel.chatList.value[aiActivityViewModel.chatListItemIndex.value] is AIChatListItem.SumItem){
+                // when summarization finish set generating false...
+                (aiActivityViewModel.chatList.value[aiActivityViewModel.chatListItemIndex.value] as AIChatListItem.SumItem).fileName.value = fileName
+                (aiActivityViewModel.chatList.value[aiActivityViewModel.chatListItemIndex.value] as AIChatListItem.SumItem).filePath.value = filePath
+                (aiActivityViewModel.chatList.value[aiActivityViewModel.chatListItemIndex.value] as AIChatListItem.SumItem).generating.value = true
+            }
         }
     }
 
@@ -157,6 +182,7 @@ class AiActivityViewModel@Inject constructor(
                         flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                     }
                     context.startActivity(intent)
+                    ( context as? Activity)?.finish()
                 }
             }
         }

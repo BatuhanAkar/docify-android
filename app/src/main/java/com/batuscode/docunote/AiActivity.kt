@@ -104,6 +104,7 @@ import com.batuscode.docunote.utils.Auth
 import com.batuscode.docunote.utils.PDFUtil
 import com.batuscode.docunote.viewmodel.AiActivityViewModel
 import com.google.android.play.core.review.ReviewException
+import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.android.play.core.review.testing.FakeReviewManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -410,8 +411,8 @@ class AiActivity : ComponentActivity() {
             var selectedIndex by remember { mutableIntStateOf(-1) }
             val prompt = remember { mutableStateOf("") }
             val isFileSelected by aiActivityViewModel.isSelectedKnowledgePDFfile.collectAsState()
-            val user by Auth.user
-            val inappmessage by Auth.inappmessage
+            val user by lazy { Auth.user}
+            val inappmessage by lazy { Auth.inappmessage }
             val chatList by aiActivityViewModel.chatList.collectAsState()
             val knowledgeChatList by aiActivityViewModel.knowledgeList.collectAsState()
             val selectedFileUri by aiActivityViewModel.knowledgePdfFileUri.collectAsState()
@@ -508,7 +509,7 @@ class AiActivity : ComponentActivity() {
                                                 DropdownMenuItem(
                                                     text = { Text(text = stringResource(R.string.rate_review)) },
                                                     onClick = {
-                                                        val manager = FakeReviewManager(context)
+                                                        val manager = ReviewManagerFactory.create(context)
                                                         val request = manager.requestReviewFlow()
 
                                                         request.addOnCompleteListener { task ->
@@ -575,7 +576,7 @@ class AiActivity : ComponentActivity() {
                                                 )
                                                 // handle summ ai ...
 
-                                                if (user.pro) {
+                                                if (user.value.pro) {
                                                     val intent =
                                                         Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                                                             addCategory(Intent.CATEGORY_OPENABLE)
@@ -629,7 +630,7 @@ class AiActivity : ComponentActivity() {
                                         ) {
                                             IconButton(
                                                 onClick = {
-                                                    if (user.pro) {
+                                                    if (user.value.pro) {
                                                         // pdf dosyası seçilmemişse
                                                         if (!isFileSelected) {
                                                             aiActivityViewModel.handleSelectKnowledgePdfFile()
@@ -683,13 +684,14 @@ class AiActivity : ComponentActivity() {
                                                             )
 
                                                     ) {
-                                                        if (prompt.value.isEmpty()) {
+                                                        innerTextField()
+
+                                                        if (prompt.value.length == 0) {
                                                             Text(
                                                                 text = stringResource(R.string.message_placeholder),
                                                                 style = MaterialTheme.typography.bodySmall
                                                             )
                                                         }
-                                                        innerTextField()
                                                     }
 
                                                 }
@@ -697,15 +699,24 @@ class AiActivity : ComponentActivity() {
 
                                             IconButton(
                                                 onClick = {
-                                                    if (user.pro) {
+                                                    if (user.value.pro) {
 
-                                                        val userPrompt = prompt.value
-                                                        prompt.value = ""
-                                                        AiUtil.knowledgeChat(
-                                                            selectedFileUri!!,
-                                                            context,
-                                                            userPrompt
-                                                        )
+                                                        if (prompt.value.isEmpty()){
+                                                            CoroutineScope(Dispatchers.Main).launch {
+                                                                snackbarHostState.showSnackbar(
+                                                                    message = "the question cannot be left blank.",
+                                                                    duration = SnackbarDuration.Short
+                                                                )
+                                                            }
+                                                        } else {
+                                                            val userPrompt = prompt.value
+                                                            prompt.value = ""
+                                                            AiUtil.knowledgeChat(
+                                                                selectedFileUri!!,
+                                                                context,
+                                                                userPrompt
+                                                            )
+                                                        }
                                                     } else {
                                                         CoroutineScope(Dispatchers.Main).launch {
                                                             snackbarHostState.showSnackbar(
@@ -785,14 +796,14 @@ class AiActivity : ComponentActivity() {
                     AskNotificationPermission()
                 }
 
-                if (inappmessage.show) {
+                if (inappmessage.value.show) {
                     InappmessageDialog(
                         onDismiss = {
                             Log.d("aiactivity", "inappmessage")
-                            Auth.update_inappmessage(inappmessage.copy(show = false))
+                            Auth.update_inappmessage(inappmessage.value.copy(show = false))
                         },
-                        title = inappmessage.title,
-                        body = inappmessage.body
+                        title = inappmessage.value.title,
+                        body = inappmessage.value.body
                     )
                 }
             }
@@ -961,9 +972,9 @@ fun MChatBubble(
                         contentDescription = "",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .clip(CircleShape)
                             .padding(8.dp)
                             .size(32.dp)
+                            .clip(CircleShape)
                     )
                 }
 
@@ -1045,7 +1056,6 @@ fun MSummedItem(summedItem: AIChatListItem.SumItem) {
                     }
                 }
                 Text(
-                    color = MaterialTheme.colorScheme.onSecondary,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
                     text = summedItem.fileName.value,

@@ -73,7 +73,7 @@
     <string name="default_noticifaction_channel_id">def_noti_channel</string>
     <string name="title_activity_welcome">WelcomeActivity</string>
     <string name="explore_tour">Explore</string>
-    <string name="imdone">I\\\'m done</string>
+    <string name="imdone">I\'m done</string>
     <string name="notificationpermissionquestiontext">%1$s wants to send you notifications.</string>
     <string name="in_app_notifications">It includes in-app notifications.</string>
 

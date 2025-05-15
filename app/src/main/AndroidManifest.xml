@@ -69,6 +69,7 @@
             android:value="@string/default_noticifaction_channel_id" />
 
         <activity
+            android:launchMode="singleTask"
             android:name=".AiActivity"
             android:exported="false"
             android:label="@string/title_activity_ai"
