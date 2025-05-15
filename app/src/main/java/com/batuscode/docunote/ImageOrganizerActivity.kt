@@ -100,6 +100,7 @@ class ImageOrganizerActivity : ComponentActivity() {
 
                                 IconButton(
                                     onClick = {
+                                        ScanUtil.update_FromImageOrganizerActivity(true)
                                         val intent = Intent(this@ImageOrganizerActivity , ScanActivity::class.java)
                                         startActivity(intent)
                                         finish()

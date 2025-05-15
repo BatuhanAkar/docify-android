@@ -3,8 +3,10 @@ package com.batuscode.docunote.utils
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import com.batuscode.docunote.AiActivity
 import com.batuscode.docunote.AiActivity.Companion.aiActivityViewModel
 import com.google.firebase.vertexai.GenerativeModel
 import com.google.firebase.vertexai.type.FirebaseVertexAIException
@@ -23,7 +25,7 @@ object AiUtil {
 
     suspend fun initGenerativeModel() = withContext(Dispatchers.IO){
         Log.d(TAG , "initializing model...")
-        model = com.google.firebase.Firebase.vertexAI.generativeModel("gemini-2.0-flash")
+        model = com.google.firebase.Firebase.vertexAI.generativeModel("gemini-2.0-flash-001")
     }
 
     fun welcomeKnowledge(){
@@ -65,7 +67,7 @@ object AiUtil {
         val prompt = content(
             role = "model" ,
             {
-                text("Say hello the user, and want to pdf file upload directly for summarize.Do not include any acknowledgments like \"Okay\" or \"I understand.\" Only provide the result of the task.")
+                text("You are a multilingual summarization assistant.Say hello the user, and want to pdf file upload directly for summarize.Do not include any acknowledgments like \"Okay\" or \"I understand.\" Only provide the result of the task.")
             }
         )
          CoroutineScope(Dispatchers.IO).launch {
@@ -93,50 +95,47 @@ object AiUtil {
 
         aiActivityViewModel.push_summ_chat_item(generatedText , "model")
 
-        context.contentResolver.openInputStream(pdfUri).use { stream ->
-            stream?.let {
-                val bytes = stream.readBytes()
+        val inputStream = context.contentResolver.openInputStream(pdfUri)
 
-                val prompt = content(
-                    role = "model" ,
-                    {
-                        text("You are a multilingual summarization assistant. Summarize the following PDF content **in the same language** it is written in. Do not add explanations, confirmations, or any extra comments. Only return a clear, concise, and informative summary.Summarize this content:")
-                        inlineData(bytes , "application/pdf")
-                    }
+        if (inputStream != null){
+
+            val prompt = content{
+                inlineData(
+                    bytes = inputStream.readBytes() ,
+                    mimeType = "application/pdf"
                 )
+                text(" Summarize the following PDF content **in the same language** it is written in. Do not add explanations, confirmations, or any extra comments. Only return a clear, concise, and informative summary.")
 
-                try {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        model.generateContentStream(prompt).collect { chunk ->
-                            withContext(Dispatchers.Default){
-                                Log.d(TAG , chunk.text ?: "")
-                                generatedText.value = generatedText.value.plus(chunk.text)
+            }
 
-                                if (loading.value){
-                                    loading.value = loading.value.not()
+            try {
+                CoroutineScope(Dispatchers.IO).launch {
+                    model.generateContentStream(prompt).collect { chunk ->
+                        Log.d(TAG , chunk.text ?: "")
+                        generatedText.value = generatedText.value.plus(chunk.text)
 
-                                    aiActivityViewModel.update_chat_item(generatedText)
-                                }
-                            }
-                        }
-                        aiActivityViewModel.update_chat_index()
-                        val ss = generatedText.value
-                        PDFUtil.createSumPDFfile(ss , context , pdfUri)
+                        if (loading.value){
+                            loading.value = loading.value.not()
 
-                    }
-
-                } catch (cause : FirebaseVertexAIException) {
-                    when(cause){
-                        is ServerException -> {
-                            Log.e(TAG , cause.message , cause.cause)
-                        }
-
-                        else -> {
-                            Log.e(TAG , cause.message , cause.cause)
+                            aiActivityViewModel.update_chat_item(generatedText)
                         }
                     }
+
+                    PDFUtil.createSumPDFfile(generatedText.value , context , pdfUri)
+
                 }
 
+            }
+            catch (cause : FirebaseVertexAIException) {
+                when(cause){
+                    is ServerException -> {
+                        Log.e(TAG , cause.message , cause.cause)
+                    }
+
+                    else -> {
+                        Log.e(TAG , cause.message , cause.cause)
+                    }
+                }
             }
         }
     }
@@ -186,6 +185,22 @@ object AiUtil {
 
                         else -> {
                             Log.e(TAG , cause.message , cause.cause)
+                        }
+                    }
+                } catch (e : Exception){
+                    if (e.message?.contains("413") == true || e.message?.contains("Payload Too Large") == true){
+                        CoroutineScope(Dispatchers.Default).launch{
+                            AiActivity.snackbarHostState.showSnackbar(
+                                message = "File size limit 20MB. Please select small file" ,
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    } else {
+                        CoroutineScope(Dispatchers.Default).launch{
+                            AiActivity.snackbarHostState.showSnackbar(
+                                message = "Please try again." ,
+                                duration = SnackbarDuration.Short
+                            )
                         }
                     }
                 }

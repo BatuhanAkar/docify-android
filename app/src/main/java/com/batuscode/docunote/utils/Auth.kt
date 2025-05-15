@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.credentials.ClearCredentialStateRequest
@@ -33,7 +34,9 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -132,85 +135,97 @@ object Auth {
         }
     }
 
-    suspend fun getCredential(context: Context) : Credential? = withContext(Dispatchers.Default){
+    suspend fun getCredential(context: Context) : Credential? {
 
 
         val credentialManager = CredentialManager.create(context)
 
-        try {
-            val googleIdOption = GetGoogleIdOption.Builder()
-                // Your server's client ID, not your Android client ID.
-                .setServerClientId(context.getString(R.string.default_web_client_id))
-                // Only show accounts previously used to sign in.
-                .setFilterByAuthorizedAccounts(true)
-                .setAutoSelectEnabled(true)
-                .build()
-            // Create the Credential Manager request
-            val request = GetCredentialRequest.Builder()
-                .addCredentialOption(googleIdOption)
-                .build()
-            val response = credentialManager.getCredential(context,request)
-            return@withContext response.credential
-        } catch (e: NoCredentialException){
-            Log.getStackTraceString(e)
-
-            try {
-
+        return try {
+            withContext(Dispatchers.IO){
                 val googleIdOption = GetGoogleIdOption.Builder()
                     // Your server's client ID, not your Android client ID.
                     .setServerClientId(context.getString(R.string.default_web_client_id))
                     // Only show accounts previously used to sign in.
-                    .setFilterByAuthorizedAccounts(false)
-                    .setAutoSelectEnabled(false)
+                    .setFilterByAuthorizedAccounts(true)
+                    .setAutoSelectEnabled(true)
                     .build()
                 // Create the Credential Manager request
                 val request = GetCredentialRequest.Builder()
                     .addCredentialOption(googleIdOption)
                     .build()
-
                 val response = credentialManager.getCredential(context,request)
-
-
                 return@withContext response.credential
-            } catch (e: GetCredentialCancellationException){
-                Log.getStackTraceString(e)
-                return@withContext null
             }
         } catch (e : GetCredentialException){
             when (e) {
                 is GetCredentialCancellationException -> {
                     Log.d(TAG, "Kullanıcı işlemi iptal etti.")
                     validating.value = validating.value.not()
-                    return@withContext null
+                    return null
+                }
+                is NoCredentialException -> {
+                    Log.d(TAG, "no credential exception.")
+                    return try {
+                        withContext(Dispatchers.IO) {
+                            val googleIdOption = GetGoogleIdOption.Builder()
+                                // Your server's client ID, not your Android client ID.
+                                .setServerClientId(context.getString(R.string.default_web_client_id))
+                                // Only show accounts previously used to sign in.
+                                .setFilterByAuthorizedAccounts(false)
+                                .setAutoSelectEnabled(false)
+                                .build()
+                            // Create the Credential Manager request
+                            val request = GetCredentialRequest.Builder()
+                                .addCredentialOption(googleIdOption)
+                                .build()
+
+                            val response = credentialManager.getCredential(context, request)
+
+
+                            return@withContext response.credential
+                        }
+                    } catch (e : Exception) {
+                        Log.d(TAG, "İkinci deneme iptal edildi.")
+                        validating.value = validating.value.not()
+                        SignupActivity.snackbarHostState.showSnackbar(
+                            message = "no active google account was found." ,
+                            duration = SnackbarDuration.Short
+                        )
+
+                        delay(500L)
+                        SignupActivity.snackbarHostState.currentSnackbarData?.dismiss()
+                        null
+                    }
                 }
                 else -> {
                     Log.e(TAG, "Beklenmedik hata: ${e.localizedMessage}")
-                    return@withContext null
+                    return null
                 }
             }
         } catch (e: IllegalArgumentException) {
             Log.getStackTraceString(e)
-            try {
+            return try {
+                withContext(Dispatchers.IO){
+                    val googleIdOption = GetGoogleIdOption.Builder()
+                        // Your server's client ID, not your Android client ID.
+                        .setServerClientId(context.getString(R.string.default_web_client_id))
+                        // Only show accounts previously used to sign in.
+                        .setFilterByAuthorizedAccounts(false)
+                        .setAutoSelectEnabled(false)
+                        .build()
+                    // Create the Credential Manager request
+                    val request = GetCredentialRequest.Builder()
+                        .addCredentialOption(googleIdOption)
+                        .build()
 
-                val googleIdOption = GetGoogleIdOption.Builder()
-                    // Your server's client ID, not your Android client ID.
-                    .setServerClientId(context.getString(R.string.default_web_client_id))
-                    // Only show accounts previously used to sign in.
-                    .setFilterByAuthorizedAccounts(false)
-                    .setAutoSelectEnabled(false)
-                    .build()
-                // Create the Credential Manager request
-                val request = GetCredentialRequest.Builder()
-                    .addCredentialOption(googleIdOption)
-                    .build()
-
-                val response = credentialManager.getCredential(context,request)
+                    val response = credentialManager.getCredential(context,request)
 
 
-                return@withContext response.credential
+                    return@withContext response.credential
+                }
             } catch (e: GetCredentialCancellationException){
                 Log.getStackTraceString(e)
-                return@withContext null
+                return null
             }
         }
     }
@@ -237,6 +252,9 @@ object Auth {
                         Log.w(TAG, "signInWithCredential:failure", task.exception)
 
                     }
+                }
+                .addOnFailureListener {
+                    Log.e(TAG , "onfailure listener")
                 }
         }
     }

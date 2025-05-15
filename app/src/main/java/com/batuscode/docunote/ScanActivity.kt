@@ -92,7 +92,9 @@ class ScanActivity : ComponentActivity() {
         setContent {
             val isTakedOnePhoto = ScanUtil.takedOnePhoto.collectAsState()
             val isFirstOpen = ScanUtil.firstOpen.collectAsState()
-            if (isFirstOpen.value){
+            val isFromImageOrganizerActivity = ScanUtil.FromImageOrganizerActivity.collectAsState()
+
+            if (isFirstOpen.value && !isFromImageOrganizerActivity.value){
                 ScanUtil.refresh_photo_uris()
                 ScanUtil.update_taked_one_photo(false)
             }

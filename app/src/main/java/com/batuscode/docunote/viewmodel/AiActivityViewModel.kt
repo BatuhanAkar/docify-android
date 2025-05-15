@@ -135,6 +135,7 @@ class AiActivityViewModel@Inject constructor(
 
 
     fun add_summed_item(){
+        chatListItemIndex.value += 1
         _chatList.value = _chatList.value + AIChatListItem.SumItem(generating = mutableStateOf(false) , mutableStateOf("") , mutableStateOf(""))
     }
 

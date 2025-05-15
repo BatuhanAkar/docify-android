@@ -22,9 +22,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.ViewModelProvider
 import com.batuscode.docunote.AiActivity
 import com.batuscode.docunote.SignupActivity.Companion.validating
@@ -41,6 +45,7 @@ import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import com.batuscode.docunote.utils.Auth
 import com.batuscode.docunote.viewmodel.SignupActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -55,6 +60,7 @@ class SignupActivity : ComponentActivity() {
         }
         lateinit var signupActivityViewModel : SignupActivityViewModel
         var validating = mutableStateOf(false)
+        val snackbarHostState = SnackbarHostState()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,7 +70,14 @@ class SignupActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             DocuNoteTheme(darkTheme = true) {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    snackbarHost = {
+                        SnackbarHost(
+                            hostState = snackbarHostState
+                        )
+                    } ,
+                    modifier = Modifier.fillMaxSize()
+                ) { innerPadding ->
                     SignUpScreen(modifier = Modifier.padding(innerPadding))
                 }
             }
@@ -76,6 +89,8 @@ class SignupActivity : ComponentActivity() {
 @Composable
 fun SignUpScreen(modifier: Modifier = Modifier){
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
     Column(
         modifier
             .fillMaxSize() ,
@@ -112,7 +127,7 @@ fun SignUpScreen(modifier: Modifier = Modifier){
             OutlinedButton (
                 enabled = Auth.auth.currentUser == null,
                 onClick = {
-                    CoroutineScope(Dispatchers.Default).launch {
+                    scope.launch(Dispatchers.IO) {
                         validating.value = validating.value.not()
                         Auth.firebaseAuthWithGoogle(context = context)
                     }

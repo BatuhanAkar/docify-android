@@ -933,9 +933,10 @@ fun MChatBubble(
             // Chat mesajı balonu
             Row(
                 horizontalArrangement = if (role == "model") Arrangement.Start else Arrangement.End,
-                verticalAlignment = Alignment.Top,
+                verticalAlignment = Alignment.Bottom,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(8.dp)
             ) {
                 if (role == "model") {
                     AsyncImage(
@@ -948,6 +949,7 @@ fun MChatBubble(
                     )
                     Column(
                         modifier = Modifier
+                            .weight(1f)
                             .background(
                                 Color.Gray.copy(alpha = 0.2f),
                                 shape = RoundedCornerShape(16.dp)
@@ -959,6 +961,7 @@ fun MChatBubble(
                 } else {
                     Column(
                         modifier = Modifier
+                            .weight(1f)
                             .background(
                                 Color.Gray.copy(alpha = 0.2f),
                                 shape = RoundedCornerShape(16.dp)

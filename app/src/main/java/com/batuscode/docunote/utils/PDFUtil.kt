@@ -133,7 +133,7 @@ object PDFUtil {
 
                     CoroutineScope(Dispatchers.Main).launch {
                         AiActivity.snackbarHostState.showSnackbar(
-                            message = MainActivity.Companion.context.getString(R.string.saved_summed_doc_explain),
+                            message = context.getString(R.string.saved_summed_doc_explain),
                             duration = SnackbarDuration.Short
                         )
                     }

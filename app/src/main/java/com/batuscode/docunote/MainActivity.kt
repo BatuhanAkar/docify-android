@@ -343,6 +343,7 @@ class MainActivity : ComponentActivity() {
                                         Box(
                                             modifier = Modifier
                                                 .clickable {
+                                                    ScanUtil.update_FromImageOrganizerActivity(false)
                                                     ScanUtil.update_firstOpen(true)
                                                     cameraPermissionLauncher.launch(
                                                         arrayOf(Manifest.permission.CAMERA)

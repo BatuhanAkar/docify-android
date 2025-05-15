@@ -25,6 +25,13 @@ object ScanUtil {
     private const val TAG = "ScanUtil"
     private const val FILE_NAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
 
+    private val _FromImageOrganizerActivity = MutableStateFlow(false)
+    val FromImageOrganizerActivity : StateFlow<Boolean> = _FromImageOrganizerActivity.asStateFlow()
+
+    fun update_FromImageOrganizerActivity(newValue: Boolean){
+        _FromImageOrganizerActivity.value = newValue
+    }
+
     private val _firstOpen = MutableStateFlow(false)
     val firstOpen : StateFlow<Boolean> = _firstOpen.asStateFlow()
 
