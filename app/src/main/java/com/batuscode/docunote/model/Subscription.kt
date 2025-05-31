@@ -8,7 +8,8 @@ data class Subscription(
     val image : Int,
     val name : String,
     val description : String,
-    val price : String,
+    val offerprice : String,
+    val basePrice : String ,
     val benefits : List<String>? ,
     val productDetails: ProductDetails? ,
     val offerToken : String

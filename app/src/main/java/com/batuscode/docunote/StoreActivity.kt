@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -89,16 +90,30 @@ class StoreActivity : ComponentActivity() {
         val subsDetails = subsDetailsResult.productDetailsList?.get(0)
 
         if (subsDetails != null) {
-            val pricingPhase = subsDetails
+            val OfferPricingPhase = subsDetails
                 .subscriptionOfferDetails
                 ?.get(0)
                 ?.pricingPhases
                 ?.pricingPhaseList
+                ?.firstOrNull()
+
+            Log.d(TAG , "trial price :: ${OfferPricingPhase?.formattedPrice}")
+
+            val BasePricingPhase = subsDetails
+                .subscriptionOfferDetails
                 ?.get(0)
+                ?.pricingPhases
+                ?.pricingPhaseList
+                ?.lastOrNull()
 
+            Log.d(TAG , "base plan price :: ${BasePricingPhase?.formattedPrice}")
 
-            val formattedPrice = pricingPhase?.formattedPrice ?: ""
-            val billingPeriod = parseBillingPeriod(pricingPhase?.billingPeriod ?: "")
+            val formattedOfferPrice = OfferPricingPhase?.formattedPrice ?: ""
+            val OfferbillingPeriod = parseOfferBillingPeriod(OfferPricingPhase?.billingPeriod ?: "")
+
+            val formattedBasePrice = BasePricingPhase?.formattedPrice ?: ""
+            val baseBillingPeriod = parseBillingPeriod(BasePricingPhase?.billingPeriod ?: "")
+
             val offerToken = subsDetails.subscriptionOfferDetails?.get(0)?.offerToken
             val offerID = subsDetails.subscriptionOfferDetails?.get(0)?.offerId
             val offertagas = subsDetails.subscriptionOfferDetails?.get(0)?.offerTags
@@ -112,9 +127,9 @@ class StoreActivity : ComponentActivity() {
                     image = R.drawable.workspace_premium,
                     name = subsDetails.name,
                     description = subsDetails.description,
-                    price = "$formattedPrice / $billingPeriod \n (auto-renews)",
+                    offerprice = "$OfferbillingPeriod $formattedOfferPrice trial for new subscribers. \n then",
+                    basePrice = "$formattedBasePrice/$baseBillingPeriod",
                     benefits = listOf(
-                        "3 day free-trial",
                         "Unlimited Smart Summaries",
                         "Unlimited Intelligent Q&A Sessions",
                         "Priority AI Processing",
@@ -336,8 +351,21 @@ class StoreActivity : ComponentActivity() {
                                         Spacer(modifier = Modifier.height(8.dp))
 
                                         Text(
-                                            text = item.price,
+                                            text = item.offerprice,
                                             textAlign = TextAlign.Center
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+
+                                        Text(
+                                            text = item.basePrice,
+                                            textAlign = TextAlign.Center
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+
+                                        Text(
+                                            text = stringResource(R.string.sub_cancellation_explain) ,
+                                            textAlign = TextAlign.Start ,
+                                            style = MaterialTheme.typography.bodySmall
                                         )
                                     }
                                 }
@@ -350,6 +378,12 @@ class StoreActivity : ComponentActivity() {
     }
 }
 
+fun parseOfferBillingPeriod(billingPeriod: String) : String{
+    return when (billingPeriod) {
+        "P3D" -> "3-Day"
+        else -> billingPeriod // fallback
+    }
+}
 fun parseBillingPeriod(billingPeriod: String): String {
     return when (billingPeriod) {
         "P1W" -> "weekly"

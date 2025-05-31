@@ -81,4 +81,5 @@
     <string name="title_activity_scan">ScanActivity</string>
     <string name="title_activity_image_organizer">ImageOrganizerActivity</string>
     <string name="pdffilename">PDF name?</string>
+    <string name="sub_cancellation_explain">Trial starts immediately and lasts for 3 days.Auto-renews to a paid subscription unless cancelled in time.Cancel anytime in Google Play > Subscriptions.</string>
 </resources>
