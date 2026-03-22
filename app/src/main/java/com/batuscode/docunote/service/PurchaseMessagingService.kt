@@ -3,12 +3,9 @@ package com.batuscode.docunote.service
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.media.RingtoneManager
 import android.os.Build
-import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.batuscode.docunote.R
@@ -16,7 +13,6 @@ import com.batuscode.docunote.SignupActivity
 import com.batuscode.docunote.model.InAppMSG
 import com.batuscode.docunote.utils.Auth
 import com.batuscode.docunote.utils.FunctionsUtil
-import com.google.firebase.functions.FirebaseFunctionsException
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.CoroutineScope
@@ -97,7 +93,7 @@ class PurchaseMessagingService : FirebaseMessagingService() {
             .setSound(defaultSoundUri)
             .setContentIntent(pendingIntent)
 
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         // Since android Oreo notification channel is needed.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

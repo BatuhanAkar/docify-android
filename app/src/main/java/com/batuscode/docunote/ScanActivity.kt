@@ -1,15 +1,12 @@
 package com.batuscode.docunote
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -31,10 +28,8 @@ import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -55,9 +50,6 @@ import com.batuscode.docunote.ScanActivity.Companion.TAG
 import com.batuscode.docunote.ScanActivity.Companion.snackbarHostState
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import com.batuscode.docunote.utils.ScanUtil
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -212,7 +204,7 @@ fun CameraScreen(){
             val preview = androidx.camera.core.Preview.Builder()
                 .build()
                 .also {
-                    it.setSurfaceProvider(cameraView.surfaceProvider)
+                    it.surfaceProvider = cameraView.surfaceProvider
                 }
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 

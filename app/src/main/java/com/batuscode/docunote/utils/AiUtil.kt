@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.batuscode.docunote.AiActivity
 import com.batuscode.docunote.AiActivity.Companion.aiActivityViewModel

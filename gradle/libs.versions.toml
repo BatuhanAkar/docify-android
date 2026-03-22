@@ -35,6 +35,14 @@ googleid = "1.1.1"
 firebaseMessaging = "24.1.1"
 firebaseFunctions = "21.2.1"
 firebaseFirestore = "25.1.4"
+runtime = "1.10.3"
+material3WindowSizeClass = "1.4.0"
+adaptive = "1.2.0"
+firebaseConfig = "23.0.1"
+firebaseAi = "17.10.0"
+firebaseStorage = "22.0.1"
+generativeai = "0.9.0"
+firebaseAnalytics = "23.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -84,6 +92,14 @@ googleid = { group = "com.google.android.libraries.identity.googleid", name = "g
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 firebase-functions = { group = "com.google.firebase", name = "firebase-functions", version.ref = "firebaseFunctions" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
+androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
+androidx-compose-material3-window-size-class1 = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "material3WindowSizeClass" }
+androidx-compose-adaptive = { group = "androidx.compose.material3.adaptive", name = "adaptive", version.ref = "adaptive" }
+firebase-config = { group = "com.google.firebase", name = "firebase-config", version.ref = "firebaseConfig" }
+firebase-ai = { group = "com.google.firebase", name = "firebase-ai", version.ref = "firebaseAi" }
+firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
+generativeai = { group = "com.google.ai.client.generativeai", name = "generativeai", version.ref = "generativeai" }
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics", version.ref = "firebaseAnalytics" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

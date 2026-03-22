@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
@@ -30,7 +29,7 @@ public class icore {
     /* synchronize native methods */
     private static final Object lock = new Object();
     private static Field mFdField = null;
-    private int mCurrentDpi;
+    private final int mCurrentDpi;
 
     static {
         try {
@@ -302,7 +301,7 @@ public class icore {
 
     public boolean saveDocumentAsStream(long docPtr , OutputStream outputStream , Context context){
         return nativeSaveDocumentAsStream(docPtr,outputStream,context);
-    };
+    }
 
     public native boolean nativeMergeDocument(Map<Integer, String> filePathMap , OutputStream outputStream , Context context);
     public CompletableFuture<Boolean> mergeDocument(Map<Integer,String> filePathMap , OutputStream outputStream , Context context){

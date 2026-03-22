@@ -105,7 +105,6 @@ import com.batuscode.docunote.utils.PDFUtil
 import com.batuscode.docunote.viewmodel.AiActivityViewModel
 import com.google.android.play.core.review.ReviewException
 import com.google.android.play.core.review.ReviewManagerFactory
-import com.google.android.play.core.review.testing.FakeReviewManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

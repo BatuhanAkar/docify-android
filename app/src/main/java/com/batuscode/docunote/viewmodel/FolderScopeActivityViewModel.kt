@@ -2,7 +2,6 @@ package com.batuscode.docunote.viewmodel
 
 import android.content.Context
 import android.net.Uri
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.batuscode.docunote.data.PrefRepository

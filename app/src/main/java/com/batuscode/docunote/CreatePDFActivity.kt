@@ -103,7 +103,7 @@ class CreatePDFActivity : ComponentActivity() {
         super.onActivityResult(requestCode, resultCode, data, caller)
 
         if (requestCode == 0 && resultCode == RESULT_OK) {
-            data?.let { it ->
+            data?.let {
                 val uri = it.data
                 Log.d("newuri" , uri.toString())
 
@@ -114,7 +114,7 @@ class CreatePDFActivity : ComponentActivity() {
             }
         }
         else if (requestCode == 1 && resultCode == RESULT_OK) {
-            data?.let { it ->
+            data?.let {
                 val uri = it.data
                 Log.d("newuri" , uri.toString())
 
@@ -155,7 +155,7 @@ class CreatePDFActivity : ComponentActivity() {
 
 
         setContent {
-            DocuNoteTheme() {
+            DocuNoteTheme {
                 enableEdgeToEdge()
                 val textStates = remember { mutableStateMapOf<Int, RichTextState>() }
                 val documentPtr = remember {
@@ -315,7 +315,7 @@ class CreatePDFActivity : ComponentActivity() {
                         if (showSaveDialog.value){
                             SaveDocument(create = true, onDismissRequest = {showSaveDialog.value = showSaveDialog.value.not()} , textStates)
                         }
-                        val mCurrentDpi = context.getResources().getDisplayMetrics().densityDpi;
+                        val mCurrentDpi = context.resources.displayMetrics.densityDpi
 
                         Box (
                             contentAlignment = Alignment.Center,

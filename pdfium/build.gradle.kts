@@ -1,5 +1,4 @@
 import org.gradle.api.JavaVersion.VERSION_11
-import org.gradle.api.JavaVersion.VERSION_17
 
 plugins {
     alias(libs.plugins.android.library)

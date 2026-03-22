@@ -1,35 +1,16 @@
 package com.batuscode.docunote.utils
 
-import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.Debug
-import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
-import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.FileProvider
-import com.batuscode.docunote.CreatePDFActivity
-import com.batuscode.docunote.MainActivity
-import com.batuscode.docunote.PDFViewerActivity
-import com.batuscode.pdfium.PDFPage
 import com.batuscode.pdfium.PathData
 import com.batuscode.pdfium.PdfDocument
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.batuscode.pdfium.icore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.launch
 import java.io.File
-import java.io.OutputStream
-import kotlin.io.use
-import kotlin.use
 
 class PDFConverter(private val context: Context) {
     companion object{
@@ -78,7 +59,8 @@ class PDFConverter(private val context: Context) {
         return@withContext null
     }
     suspend fun getFileUriFromPath(context: Context, filePath: String): Uri = withContext(
-        Dispatchers.IO) {
+        Dispatchers.IO)
+    {
         val file = File(filePath)
 
         // Eğer file mevcutsa ve okunabilir yazılabilir ise

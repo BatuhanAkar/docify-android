@@ -1,7 +1,5 @@
-import com.android.build.gradle.ProguardFiles.getDefaultProguardFile
-import com.android.build.gradle.internal.cxx.configure.defaultCmakeVersion
 import org.gradle.api.JavaVersion.VERSION_11
-import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
+
 //import org.jetbrains.kotlin.gradle.idea.proto.com.google.protobuf.compiler.version
 
 plugins {
@@ -132,6 +130,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout.compose)
     implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("androidx.compose.material:material:1.8.0")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("com.google.android.play:review-ktx:2.0.2")
 
     implementation(libs.androidx.ui.graphics)
@@ -147,6 +146,14 @@ dependencies {
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.functions)
     implementation(libs.firebase.firestore)
+    implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.compose.material3.window.size.class1)
+    implementation(libs.androidx.compose.adaptive)
+    implementation(libs.firebase.config)
+    implementation(libs.firebase.ai)
+    implementation(libs.firebase.storage)
+    implementation(libs.generativeai)
+    implementation(libs.firebase.analytics)
     val camerax_version = "1.4.2"
     implementation ("androidx.camera:camera-core:${camerax_version}")
     implementation ("androidx.camera:camera-camera2:${camerax_version}")

@@ -48,6 +48,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.ViewModelProvider
 import com.batuscode.docunote.MainActivity.Companion.context
 import com.batuscode.docunote.manager.ActivityResultLauncherManager
+import com.batuscode.docunote.model.File
 import com.batuscode.docunote.model.Folder
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import com.batuscode.docunote.viewmodel.FolderScopeActivityViewModel
@@ -56,7 +57,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.batuscode.docunote.model.File
 
 @AndroidEntryPoint
 class FolderScopeActivity : ComponentActivity() {
@@ -88,12 +88,12 @@ class FolderScopeActivity : ComponentActivity() {
             }
         }
         setContent {
-            val context = LocalContext.current
+            LocalContext.current
 
 
 
 
-            val color = colorResource(R.color.modified)
+            colorResource(R.color.modified)
 
             val _documents = folderScopeActivityViewModel.documents.collectAsState()
 
@@ -179,7 +179,7 @@ class FolderScopeActivity : ComponentActivity() {
 @Composable
 fun FileView(file:File ,modifier: Modifier = Modifier){
 
-    val color = colorResource(R.color.modified)
+    colorResource(R.color.modified)
     ElevatedCard(
         onClick = {
             ripple(bounded = true)

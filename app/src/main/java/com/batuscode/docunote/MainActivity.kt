@@ -12,9 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
@@ -48,7 +46,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,28 +54,28 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
-import com.batuscode.docunote.ui.theme.DocuNoteTheme
-import com.batuscode.docunote.view.Extensions
-import com.batuscode.docunote.view.Folders
-import com.batuscode.docunote.viewmodel.AppViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import androidx.compose.ui.layout.ContentScale
-import com.batuscode.docunote.view.RecentlyRead
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.batuscode.docunote.manager.ActivityResultLauncherManager
+import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import com.batuscode.docunote.utils.PDFUtil
 import com.batuscode.docunote.utils.ScanUtil
+import com.batuscode.docunote.view.Extensions
+import com.batuscode.docunote.view.Folders
+import com.batuscode.docunote.view.RecentlyRead
+import com.batuscode.docunote.viewmodel.AppViewModel
 import com.batuscode.docunote.viewmodel.MainActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -146,7 +143,6 @@ class MainActivity : ComponentActivity() {
         var textFieldValue by remember { mutableStateOf("") }
         var startRangeValue by remember { mutableStateOf("") }
         var endRangeValue by remember { mutableStateOf("") }
-        var range by remember { mutableStateOf("") }
 
         Dialog(
             onDismissRequest = onDismissRequest,
@@ -366,7 +362,7 @@ class MainActivity : ComponentActivity() {
                                                     ripple(bounded = true, radius = 48.dp)
                                                     ActivityResultLauncherManager.pickPDF(allowMultiplePick = false) { uri , FileNameWithOutExtension , _ ->
 
-                                                        val intent = Intent(MainActivity.context, PDFViewerActivity::class.java).apply {
+                                                        val intent = Intent(context, PDFViewerActivity::class.java).apply {
                                                             putExtra("fileUri", uri.toString())
                                                             putExtra("fileDisplayName", FileNameWithOutExtension)
                                                         }

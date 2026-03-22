@@ -2,7 +2,6 @@ package com.batuscode.docunote.view
 
 import android.graphics.Bitmap
 import android.util.Log
-import android.view.Surface
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -21,7 +20,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -30,9 +28,7 @@ import androidx.compose.ui.util.fastForEach
 import com.batuscode.docunote.viewmodel.DrawingAction
 import com.batuscode.pdfium.OffsetWrapper
 import com.batuscode.pdfium.PathData
-import kotlin.collections.plus
 import kotlin.math.abs
-
 
 
 @Composable
@@ -86,14 +82,14 @@ fun DrawingCanvas(
     modifier: Modifier = Modifier
 ) {
     //val scale = scale.value
-    val translationX = offset.value.x
-    val translationY = offset.value.y
+    offset.value.x
+    offset.value.y
     val configuration = LocalConfiguration.current
     val density = LocalDensity.current.density
-    val screenWidthPx = configuration.screenWidthDp * density // Ekran genişliği (px cinsinden)
-    val screenHeightPx = configuration.screenHeightDp * density // Ekran yüksekliği (px cinsinden)
+    configuration.screenWidthDp * density // Ekran genişliği (px cinsinden)
+    configuration.screenHeightDp * density // Ekran yüksekliği (px cinsinden)
 
-    val scope = rememberCoroutineScope()
+    rememberCoroutineScope()
     Canvas(
         modifier = modifier
             //.background(Color.Red.copy(0.5f))

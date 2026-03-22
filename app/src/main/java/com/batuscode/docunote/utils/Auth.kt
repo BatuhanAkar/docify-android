@@ -24,21 +24,21 @@ import com.batuscode.docunote.model.InAppMSG
 import com.batuscode.docunote.model.User
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuth.AuthStateListener
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.CoroutineExceptionHandler
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 object Auth {
     const val TAG = "AuthObject"
@@ -89,7 +89,7 @@ object Auth {
             if (snapshot != null && snapshot.exists()) {
                 Log.d(TAG, "Current data: ${snapshot.data}")
                 val data = snapshot.data
-                val metadata = data?.get("metadata") as? Map<*, *>
+                data?.get("metadata") as? Map<*, *>
 
                 CoroutineScope(Dispatchers.IO).launch {
                     val result = auth.currentUser?.getIdToken(true)?.await()
@@ -107,11 +107,11 @@ object Auth {
     }
 
     suspend fun checkClaims() = withContext(Dispatchers.IO){
-        val result = Auth.auth.currentUser?.getIdToken(true)?.await()
+        val result = auth.currentUser?.getIdToken(true)?.await()
         val validate = FunctionsUtil.vnp(result?.token!!)
         Log.d(TAG , "validate value is ::: $validate")
         updateClaim(validate)
-        Log.d(TAG , "user validate value is ::: ${Auth.user.value.pro}")
+        Log.d(TAG , "user validate value is ::: ${user.value.pro}")
 
     }
     fun updateClaim(newValue : Boolean){

@@ -1,14 +1,9 @@
 package com.batuscode.docunote.viewmodel
 
-import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import com.batuscode.docunote.model.Document
-import com.batuscode.docunote.model.DocumentThumbnail
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 

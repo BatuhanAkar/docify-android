@@ -1,7 +1,6 @@
 package com.batuscode.docunote.viewmodel
 
 import android.graphics.Bitmap
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

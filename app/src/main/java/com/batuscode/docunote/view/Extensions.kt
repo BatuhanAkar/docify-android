@@ -70,8 +70,8 @@ fun Extensions( onDissmis : () -> Unit , appViewModel: AppViewModel){
         ExtensionButton(id = 2 , name = stringResource(id = R.string.mergepdf) , R.drawable.merge_pdf_01 ) ,
         ExtensionButton(id = 3 , name = stringResource(id = R.string.splitpdf) , R.drawable.split_pdf_01) ,
     )
-    val sheetState = rememberModalBottomSheetState()
-    val menuListState = rememberLazyListState()
+    rememberModalBottomSheetState()
+    rememberLazyListState()
     Dialog( onDismissRequest = onDissmis ) {
         Surface(
             modifier = Modifier
@@ -144,19 +144,19 @@ fun extsPreview(){
 @Composable
 fun ButtonView(button: ExtensionButton , appViewModel: AppViewModel){
 
-    val bebasFontFamily = FontFamily(Font(R.font.bebas_neue))
+    FontFamily(Font(R.font.bebas_neue))
     val infiniteTransition = rememberInfiniteTransition()
     val targetOffset = with (LocalDensity.current){ 1000.dp.toPx() }
-    val offset = infiniteTransition.animateFloat(
+    infiniteTransition.animateFloat(
         initialValue = 0f ,
         targetValue = targetOffset ,
         animationSpec = infiniteRepeatable(animation = tween(50000 , easing = LinearEasing) , repeatMode = RepeatMode.Reverse) ,
         label = "offset"
     )
-    val brushColors = listOf(
+    listOf(
         MaterialTheme.colorScheme.background, Color.LightGray
     )
-    var touchEffect = remember {
+    remember {
         mutableStateOf<Boolean>(false)
     }
     var scope = rememberCoroutineScope()

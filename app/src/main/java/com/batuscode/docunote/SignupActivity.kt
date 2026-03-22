@@ -1,9 +1,6 @@
 package com.batuscode.docunote
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -37,16 +34,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.ViewModelProvider
-import com.batuscode.docunote.AiActivity
 import com.batuscode.docunote.SignupActivity.Companion.validating
 import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import com.batuscode.docunote.utils.Auth
 import com.batuscode.docunote.viewmodel.SignupActivityViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

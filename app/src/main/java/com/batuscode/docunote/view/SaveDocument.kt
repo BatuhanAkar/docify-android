@@ -1,13 +1,9 @@
 package com.batuscode.docunote.view
 
 import android.content.ContentValues
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -28,40 +23,31 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.tooling.preview.Preview
-import com.batuscode.docunote.ui.theme.DocuNoteTheme
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.batuscode.docunote.CreatePDFActivity
 import com.batuscode.docunote.MainActivity
-import com.batuscode.docunote.PDFViewerActivity
 import com.batuscode.docunote.R
 import com.batuscode.docunote.model.Folder
+import com.batuscode.docunote.ui.theme.DocuNoteTheme
 import com.batuscode.docunote.utils.PDFConverter
 import com.batuscode.docunote.utils.PDFUtil
-import com.batuscode.pdfium.OffsetWrapper
-import com.batuscode.pdfium.PathData
-import com.batuscode.pdfium.icore
 import com.mohamedrejeb.richeditor.model.RichTextState
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.File
-import java.io.IOException
 import java.io.OutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,7 +85,7 @@ fun SaveDocContent(create: Boolean, textStates: SnapshotStateMap<Int, RichTextSt
         mutableStateOf("")
     }
 
-    var converter = remember {
+    remember {
         PDFConverter(context)
     }
 
@@ -186,7 +172,7 @@ fun SaveDocContent(create: Boolean, textStates: SnapshotStateMap<Int, RichTextSt
                         )
 
                         dir.mkdirs()
-                        val file = File(dir, "${text}.pdf")
+                        File(dir, "${text}.pdf")
                         val filePath = File(dir, "${text}.pdf").absolutePath
 
 
@@ -198,7 +184,7 @@ fun SaveDocContent(create: Boolean, textStates: SnapshotStateMap<Int, RichTextSt
                         if (create) {
 
                             val tempFile = File(context.cacheDir, "temp_file.pdf")
-                            val mfilePath = tempFile.absolutePath
+                            tempFile.absolutePath
                             val contentResolver = context.contentResolver
                             val contentValues = ContentValues().apply {
                                 put(MediaStore.MediaColumns.DISPLAY_NAME, "${text}") // Dosya adı
@@ -294,7 +280,7 @@ fun SaveDocContent(create: Boolean, textStates: SnapshotStateMap<Int, RichTextSt
                         // create page
                         if (create) {
                             val tempFile = File(context.cacheDir, "temp_file.pdf")
-                            val mfilePath = tempFile.absolutePath
+                            tempFile.absolutePath
                             Log.d("page count", "in save" + CreatePDFActivity.docptr)
                             var ptr = CreatePDFActivity.docptr
 

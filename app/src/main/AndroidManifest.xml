@@ -2,8 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" tools:targetApi="33"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS"
+        tools:targetApi="33" />
+
     <uses-feature android:name="android.hardware.camera.any" />
 
     <uses-permission android:name="android.permission.CAMERA" />
@@ -27,6 +30,28 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DocuNote"
         tools:targetApi="35">
+        <activity
+            android:name=".v2.MainActivity"
+            android:exported="true"
+            android:label="@string/title_activity_main"
+            android:theme="@style/Theme.DocuNote">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.activity.MainActivity"
+            android:exported="true"
+            android:label="@string/title_activity_main"
+            android:theme="@style/Theme.DocuNote">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ImageOrganizerActivity"
             android:exported="false"
@@ -53,8 +78,7 @@
 
         <meta-data
             android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version"
-            />
+            android:value="@integer/google_play_services_version" />
         <meta-data
             android:name="firebase_messaging_auto_init_enabled"
             android:value="false" />
@@ -69,10 +93,10 @@
             android:value="@string/default_noticifaction_channel_id" />
 
         <activity
-            android:launchMode="singleTask"
             android:name=".AiActivity"
             android:exported="false"
             android:label="@string/title_activity_ai"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.DocuNote" />
         <activity
             android:name=".StoreActivity"

@@ -1,14 +1,8 @@
 package com.batuscode.docunote.utils
 
-import android.content.Context
 import android.util.Log
-import com.batuscode.docunote.AiActivity
-import com.batuscode.docunote.MyApplication
-import com.batuscode.docunote.SignupActivity
-import com.google.firebase.FirebaseApp
 import com.google.firebase.functions.FirebaseFunctions
 import com.google.firebase.functions.FirebaseFunctionsException
-import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -48,7 +42,7 @@ object FunctionsUtil {
 
         } catch (e : FirebaseFunctionsException){
             val code = e.code
-            val detail = e.details
+            e.details
 
             when(code){
                 FirebaseFunctionsException.Code.PERMISSION_DENIED -> {
@@ -85,7 +79,7 @@ object FunctionsUtil {
 
         } catch (e : FirebaseFunctionsException){
             val code = e.code
-            val detail = e.details
+            e.details
 
             when(code){
                 FirebaseFunctionsException.Code.PERMISSION_DENIED -> {

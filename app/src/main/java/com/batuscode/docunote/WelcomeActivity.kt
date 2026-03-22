@@ -6,12 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -36,7 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -205,17 +198,7 @@ fun LastPagerView(modifier : Modifier = Modifier, onBoardingPage: OnBoardingPage
 
 @Composable
 fun EntryPagerView(modifier : Modifier = Modifier , onBoardingPage: OnBoardingPage){
-    val infiniteTransition = rememberInfiniteTransition(label = "Swipe Animation")
-
-    val offsetX by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = -100f, // sola doğru 100dp kayacak
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "offsetX"
-    )
+    rememberInfiniteTransition(label = "Swipe Animation")
 
 
     Column(
@@ -301,7 +284,7 @@ fun PagerView(modifier : Modifier = Modifier , onBoardingPage: OnBoardingPage){
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview5() {
-    val pages = listOf(
+    listOf(
         OnBoardingPage.First,
         OnBoardingPage.Second,
         OnBoardingPage.Third,

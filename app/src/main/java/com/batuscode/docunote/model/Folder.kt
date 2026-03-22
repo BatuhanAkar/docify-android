@@ -1,7 +1,6 @@
 package com.batuscode.docunote.model
 
 import android.os.Parcelable
-import com.batuscode.docunote.model.File
 import kotlinx.parcelize.Parcelize
 
 @Parcelize

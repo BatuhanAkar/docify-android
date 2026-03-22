@@ -32,31 +32,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
-import com.batuscode.docunote.ui.theme.DocuNoteTheme
-import com.batuscode.docunote.utils.PDFConverter
-import com.batuscode.docunote.viewmodel.PDFViewerActivityViewModel
-
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.graphicsLayer
-
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
-
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
@@ -67,38 +42,57 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.OutlinedIconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.layer.GraphicsLayer
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
+import com.batuscode.docunote.data.PrefRepository
+import com.batuscode.docunote.model.mColor
+import com.batuscode.docunote.ui.theme.DocuNoteTheme
+import com.batuscode.docunote.utils.PDFConverter
+import com.batuscode.docunote.utils.PDFUtil
 import com.batuscode.docunote.view.DrawingScreen
 import com.batuscode.docunote.view.DrawingState
 import com.batuscode.docunote.view.SaveDocument
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlin.getValue
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntSize
-import com.batuscode.docunote.data.PrefRepository
-import com.batuscode.docunote.model.mColor
-import com.batuscode.docunote.utils.PDFUtil
+import com.batuscode.docunote.viewmodel.PDFViewerActivityViewModel
 import com.batuscode.pdfium.PdfDocument
 import com.smarttoolfactory.zoom.enhancedZoom
 import com.smarttoolfactory.zoom.rememberEnhancedZoomState
@@ -106,6 +100,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -155,7 +151,6 @@ class PDFViewerActivity : ComponentActivity() {
             val uri = intent.getStringExtra("fileUri")
             muri = Uri.parse(uri)
             val displayName = intent.getStringExtra("fileDisplayName")
-            lateinit var fileUri: Uri
 
             uri?.let {
                /* fileUri = Uri.parse(it)
@@ -209,7 +204,7 @@ class PDFViewerActivity : ComponentActivity() {
             val pageStates =
                 remember { mutableStateMapOf<Int, MutableState<DrawingState>>() } // Birden fazla sayfa için DrawingState listesi
 
-            val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+            rememberDrawerState(initialValue = DrawerValue.Closed)
 
 
             var showSaveDialog = remember {
@@ -260,7 +255,6 @@ class PDFViewerActivity : ComponentActivity() {
                 mutableStateOf(0f)
             }
             val scrollState = rememberScrollState()
-            var columnHeight by remember { mutableStateOf(0) }
 
             var scrollbarvisibilty by remember {
                 mutableStateOf(true)
@@ -309,7 +303,7 @@ class PDFViewerActivity : ComponentActivity() {
                 sliderPosition.value = proportion
             }
             enableEdgeToEdge()
-            DocuNoteTheme() {
+            DocuNoteTheme {
 
 
                 Scaffold(
@@ -428,7 +422,7 @@ class PDFViewerActivity : ComponentActivity() {
                                         IntSize(screenWidthPx.toInt(), screenHeightPx.toInt()),
                                         minZoom = 0.75f,
                                         maxZoom = 6f,
-                                        pannable = if (draw.value) false else true,
+                                        pannable = !draw.value,
                                         initialZoom = 1f,
                                         moveToBounds = true,
 

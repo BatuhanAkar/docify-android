@@ -1,6 +1,5 @@
 package com.batuscode.docunote.viewmodel
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import com.batuscode.docunote.model.Subscription
 import kotlinx.coroutines.flow.MutableStateFlow

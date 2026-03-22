@@ -65,7 +65,7 @@ object PDFUtil {
         var fileName : String = ""
         cursor?.use {
             if (it.moveToFirst()){
-                prefix = context.getString(com.batuscode.docunote.R.string.summarized_prefix_text)
+                prefix = context.getString(R.string.summarized_prefix_text)
                 displayName = it.getString(it.getColumnIndex(OpenableColumns.DISPLAY_NAME))
 
 
@@ -146,7 +146,8 @@ object PDFUtil {
         }
     }
     suspend fun getFileUriFromPath(context: Context, filePath: String): Uri = withContext(
-        Dispatchers.IO) {
+        Dispatchers.IO)
+    {
         val file = File(filePath)
 
         // Eğer file mevcutsa ve okunabilir yazılabilir ise
@@ -265,7 +266,7 @@ object PDFUtil {
 
                     CoroutineScope(Dispatchers.Main).launch {
                         ImageOrganizerActivity.snackbarHostState.showSnackbar(
-                            message = MainActivity.Companion.context.getString(R.string.saved_summed_doc_explain),
+                            message = MainActivity.context.getString(R.string.saved_summed_doc_explain),
                             duration = SnackbarDuration.Short
                         )
                     }
@@ -290,7 +291,7 @@ object PDFUtil {
     ) = withContext(Dispatchers.IO){
         _PDFprocess = callback
         var filePathMap : MutableMap<Int, String> = mutableMapOf()
-        uriMap.map { it ->
+        uriMap.map {
             val filePath = getFilePathFromUri(context,it.value,"temp_file${it.key}.pdf")
             filePathMap.put(it.key,filePath!!)
         }
@@ -379,7 +380,7 @@ object PDFUtil {
 
 
             val fill = async {
-                PDFViewerActivity.mpageStates.filter { (index, state) -> state.value.paths.isNotEmpty() }
+                PDFViewerActivity.mpageStates.filter { (_, state) -> state.value.paths.isNotEmpty() }
                     .map { (index, state) ->
                         if (!state.value.paths.isEmpty()) {
                             Log.d(
