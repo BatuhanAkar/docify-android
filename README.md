@@ -1,15 +1,5 @@
 <div align="center">
 
-<div align="center">
-
-⚠️ **PROJECT STATUS: DEVELOPMENT & REFACTORING IN PROGRESS** ⚠️
-
-> **Docify is currently undergoing a major architectural overhaul and is not accepting new client requests or integrations at this time.**
-
-We are actively working on executing our planned roadmap, including architectural refactoring and building the hybrid cloud infrastructure. During this development phase, public access to the AI chat backend is temporarily disabled. Thank you for your patience and support while we build a more scalable platform!
-
-</div>
-
 <table align="center" border="0">
   <tr>
     <td align="center" valign="middle">
@@ -22,6 +12,22 @@ We are actively working on executing our planned roadmap, including architectura
 </table>
 
 **Docify** is a next-generation productivity tool that goes beyond managing your documents—it allows you to "converse" with them, powered entirely by on-device AI.
+
+<div align="center">
+
+⚠️ **PROJECT STATUS: DEVELOPMENT & REFACTORING IN PROGRESS** ⚠️
+
+> **Docify is currently undergoing a major architectural overhaul and is not accepting new client requests or integrations at this time.**
+
+We are actively working on executing our planned roadmap, including architectural refactoring and building the hybrid cloud infrastructure. **This planned maintenance and refactoring process will take approximately 2 weeks.** During this period, public access to the AI chat backend is temporarily disabled.
+
+**Upcoming Architectural Changes:**
+* **Service Decoupling:** We are splitting the system into two distinct, independent clients: **Source Academic Client** (handling LLM inference and on-device intelligence) and **Source Viewer Client** (handling native PDF operations and JNI).
+* **Rebranding & Renaming:** The core modules and project name will be updated to reflect this micro-architecture approach.
+
+Thank you for your patience and support while we build a more scalable and robust platform!
+
+</div>
 
 <a href="https://play.google.com/store/apps/details?id=com.batuscode.docify&hl=en">
   <img alt="Get it on Google Play" src="assets/GetItOnGooglePlay_Badge_Web_color_English.png" width="220"/>
