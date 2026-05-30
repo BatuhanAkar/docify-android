@@ -18,8 +18,12 @@
 
   <br>
 
+</div>
+
+
+
   <!-- CRITICAL PROJECT STATUS BANNER -->
-  > [!WARNING]
+> [!WARNING]
 > ### UNDER ACTIVE ARCHITECTURAL REFACTORING
 > **Attention Workspace Reviewers:** The project is currently undergoing a massive structural overhaul to transition from a monolithic app into a decoupled micro-client ecosystem. During this active development phase, certain live cloud endpoints and chat sub-systems are deliberately restricted or undergoing migration.
 > 
@@ -28,8 +32,6 @@
 > * **Source Academic Client:** Dedicated to local LLM inference, vector embedding management, and semantic intelligence.
 > * **Source Viewer Client:** Dedicated to low-level native PDF rendering, drawing buffers, and C++/JNI layers.
 > * **Rebranding & Namespace Migration:** Progressively refactoring packages to decouple dependency graphs and establish cleaner dependency injection boundaries.
-
-</div>
 
 ---
 
