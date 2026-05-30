@@ -35,7 +35,7 @@
 
 ---
 
-## 🧠 On-Device AI: Gemma & Privacy-First
+## On-Device AI: Gemma & Privacy-First
 
 Docify prioritizes user data privacy and data sovereignty by running deep learning models locally on the client's device, completely eliminating cloud leakage vectors.
 
@@ -45,36 +45,36 @@ Docify prioritizes user data privacy and data sovereignty by running deep learni
 
 ---
 
-## 🛠️ Technical Engineering (Native & JNI Interop)
+## Technical Engineering (Native & JNI Interop)
 
 The true performance backbone of Docify lies in its hybrid combination of low-level native compilation and contemporary reactive Android components.
 
-### 📄 Native PDF Engine (Pdfium & JNI Layer)
+### Native PDF Engine (Pdfium & JNI Layer)
 Instead of relying on heavy high-level web view hacks, Docify embeds Google’s open-source C++ **Pdfium** engine directly into the Android binaries.
 *   **JNI Interoperability:** C++ drawing buffers and document parsers are tightly bound to Kotlin structures via the **Java Native Interface (JNI)** at the native `libs/obj` tier.
 *   **Custom Annotation Pipeline:** Engineered a native drawing canvas that allows users to perform real-time, zero-lag free-hand annotation, text highlighting, and object layering over raw PDF sheets.
 *   **Memory Footprint Optimization:** Native pointers and object references are closely monitored and automatically recycled via structured memory lifecycle hooks to prevent memory leaks and out-of-memory (OOM) faults on large documents.
 
-### 🏗️ Software Architecture Patterns
+### Software Architecture Patterns
 *   **Advanced Modularization:** The functional domains are systematically split. AI inference blocks have zero visibility into rendering engines, avoiding tight coupling.
 *   **Clean Architecture & MVVM/MVI:** Adheres strictly to Separation of Concerns. Business logic communicates with presentation layers through unalterable reactive state flows, streamlining unit test configurations.
 
 ---
 
-## ✨ Core Product Capabilities
+## Core Product Capabilities
 
-*   **💬 AI Knowledge Chat:** Perform semantic real-time Q&A workflows over loaded PDF contents with full local context retention.
-*   **📝 Smart Summarization:** Condense lengthy academic literature, complex legal contracts, or tech reports into concise analytical points within seconds.
-*   **🎨 Advanced PDF Editor:** Embedded tools for direct **free-hand sketching**, **vector highlighting**, and custom layer notes.
-*   **📂 Structured PDF Toolkit:**
+*   **AI Knowledge Chat:** Perform semantic real-time Q&A workflows over loaded PDF contents with full local context retention.
+*   **Smart Summarization:** Condense lengthy academic literature, complex legal contracts, or tech reports into concise analytical points within seconds.
+*   **Advanced PDF Editor:** Embedded tools for direct **free-hand sketching**, **vector highlighting**, and custom layer notes.
+*   **Structured PDF Toolkit:**
     *   *Instantiation:* Create digital PDF files on-the-fly from unstructured text payloads or images.
     *   *File Mutation:* Seamlessly merge multi-file structures or split document packages.
     *   *Workspace Management:* Create hierarchical directories for complex workflow isolation.
-*   **📷 Document Scanner:** High-precision digitization utility designed to convert physical documents into formatted PDFs using local OCR capture layers.
+*   **Document Scanner:** High-precision digitization utility designed to convert physical documents into formatted PDFs using local OCR capture layers.
 
 ---
 
-## 🚀 Enterprise Tech Stack
+## Enterprise Tech Stack
 
 | Operational Layer | Technologies Utilized |
 | :--- | :--- |
@@ -87,25 +87,25 @@ Instead of relying on heavy high-level web view hacks, Docify embeds Google’s 
 
 ---
 
-## 📈 Quality Assurance & Telemetry
+## Quality Assurance & Telemetry
 
 *   **Native & Kotlin Crash Analytics:** Firebase Crashlytics integrations rigged to catch and log exceptions gracefully across both the managed Kotlin runtime and unmanaged C++ JNI layers.
 *   **Performance Metrics:** Anonymous Firebase Analytics triggers designed to capture local inference benchmarks and render execution latency metrics.
 
 ---
 
-## 🚀 Strategic Roadmap & Planned Engineering Refactoring
+## Strategic Roadmap & Planned Engineering Refactoring
 
 To guarantee the long-term maintainability and micro-service compatibility of the ecosystem, the following roadmap is actively executed:
 
-- [🔄] **Micro-Client Decoupling:** Complete the total segregation of **Source Academic** (Inference) and **Source Viewer** (JNI Rendering) into isolated workspace structures.
+- [ ] **Micro-Client Decoupling:** Complete the total segregation of **Source Academic** (Inference) and **Source Viewer** (JNI Rendering) into isolated workspace structures.
 - [ ] **Feature-Based Architecture:** Move from technical package layer groups towards modularized feature modules to enhance parallel compilation performance.
 - [ ] **Hybrid Cloud Fallback:** Integrate an optional secure **RESTful API** gate to delegate complex long-context reasoning to remote cloud instances when local hardware limitations are reached.
 - [ ] **JNI Bridge Automation Testing:** Write robust automated integration tests (JUnit / Espresso) to intensively validate JNI pointer states and memory allocations.
 
 ---
 
-## 🌍 Live Metrics & Production Status
+## Live Metrics & Production Status
 
 *   **Production Deployment:** Fully launched and operational on the **Google Play Store**.
 *   **Infrastructure Model:** 100% Client-Side / Zero API or Server Maintenance Overhead.
@@ -117,7 +117,7 @@ To guarantee the long-term maintainability and micro-service compatibility of th
 <div align="center">
 
   <br>
-  <h3>📱 Application Preview & Production Link</h3>
+  <h3>Application Preview & Production Link</h3>
   <br>
 
   <!-- App Screenshots -->
