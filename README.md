@@ -1,41 +1,33 @@
 <div align="center">
 
-<table align="center" border="0">
-  <tr>
-    <td align="center" valign="middle">
-      <img src="assets/logo.png" width="70" />
-    </td>
-    <td align="center" valign="middle">
-      <h1>Docify: AI PDF & Knowledge Chat</h1>
-    </td>
-  </tr>
-</table>
+  <!-- Logo and Title Align Horizontally -->
+  <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse; border: none; margin: auto;">
+    <tr style="border: none;">
+      <td style="border: none; padding-right: 15px; vertical-align: middle;">
+        <img src="assets/logo.png" width="75" alt="Docify Logo">
+      </td>
+      <td style="border: none; vertical-align: middle;">
+        <h1 style="margin: 0; padding: 0; font-size: 2.5em; border-bottom: none; line-height: 1.2;">Docify: AI PDF & Knowledge Chat</h1>
+      </td>
+    </tr>
+  </table>
 
-**Docify** is a next-generation productivity tool that goes beyond managing your documents—it allows you to "converse" with them, powered entirely by on-device AI.
+  <br>
 
-<div align="center">
+  <p><strong>Docify</strong> is a next-generation productivity ecosystem that goes beyond managing your documents—it allows you to "converse" with them, powered entirely by on-device AI and high-performance native engines.</p>
 
-⚠️ **PROJECT STATUS: DEVELOPMENT & REFACTORING IN PROGRESS** ⚠️
+  <br>
 
-> **Docify is currently undergoing a major architectural overhaul and is not accepting new client requests or integrations at this time.**
-
-We are actively working on executing our planned roadmap, including architectural refactoring and building the hybrid cloud infrastructure. **This planned maintenance and refactoring process will take approximately 2 weeks.** During this period, public access to the AI chat backend is temporarily disabled.
-
-**Upcoming Architectural Changes:**
-* **Service Decoupling:** We are splitting the system into two distinct, independent clients: **Source Academic Client** (handling LLM inference and on-device intelligence) and **Source Viewer Client** (handling native PDF operations and JNI).
-* **Rebranding & Renaming:** The core modules and project name will be updated to reflect this micro-architecture approach.
-
-Thank you for your patience and support while we build a more scalable and robust platform!
-
-</div>
-
-<a href="https://play.google.com/store/apps/details?id=com.batuscode.docify&hl=en">
-  <img alt="Get it on Google Play" src="assets/GetItOnGooglePlay_Badge_Web_color_English.png" width="220"/>
-</a>
-
-<br>
-
-![App Screenshots](assets/docify_preview.png)
+  <!-- CRITICAL PROJECT STATUS BANNER -->
+  > [!WARNING]
+> ### UNDER ACTIVE ARCHITECTURAL REFACTORING
+> **Attention Workspace Reviewers:** The project is currently undergoing a massive structural overhaul to transition from a monolithic app into a decoupled micro-client ecosystem. During this active development phase, certain live cloud endpoints and chat sub-systems are deliberately restricted or undergoing migration.
+> 
+> **Current Engineering Focus:**
+> * **Service Decoupling:** Splitting the repository into two highly specialized independent modules:
+> * **Source Academic Client:** Dedicated to local LLM inference, vector embedding management, and semantic intelligence.
+> * **Source Viewer Client:** Dedicated to low-level native PDF rendering, drawing buffers, and C++/JNI layers.
+> * **Rebranding & Namespace Migration:** Progressively refactoring packages to decouple dependency graphs and establish cleaner dependency injection boundaries.
 
 </div>
 
@@ -43,71 +35,99 @@ Thank you for your patience and support while we build a more scalable and robus
 
 ## 🧠 On-Device AI: Gemma & Privacy-First
 
-Docify prioritizes user data privacy by utilizing completely on-device models rather than cloud-based AI.
+Docify prioritizes user data privacy and data sovereignty by running deep learning models locally on the client's device, completely eliminating cloud leakage vectors.
 
-* **Model:** `gemma3_1b_it_int4.task` (MediaPipe LLM Inference).
-* **Privacy:** All "Chat with Document" and "Summarization" processes execute locally; your documents are never uploaded to an external server.
-* **Dynamic Delivery:** To optimize the application size, the AI model is downloaded in the background post-installation via **Android Asset Pack (Fast-Follow)**.
-
----
-
-## 🛠️ Technical Engineering (Native & JNI)
-
-The core of the application is a hybrid combination of high-performance native libraries and modern Android architecture.
-
-### 📄 Native PDF Engine (Pdfium & JNI Interop)
-Google’s open-source **Pdfium** library is used for PDF rendering and manipulation.
-* **Native Interop:** Methods from the Pdfium C++ layer are bound to Kotlin via **JNI (Java Native Interface)** at the `libs/obj` level.
-* **Annotation & Drawing:** A custom native rendering layer enables users to draw on PDFs, highlight text, and take notes.
-* **Memory Management:** Native memory management is highly optimized to ensure fluid performance even with large files.
-
-### 🏗️ Architecture Approach
-* **Modularization:** The AI Inference and PDF Processing layers are decoupled into independent modules.
-* **Clean Architecture & MVVM:** Industry standards are applied to ensure sustainability and testability.
+*   **Model Architecture:** `gemma3_1b_it_int4.task` handled via the MediaPipe LLM Inference engine.
+*   **Zero-Knowledge Privacy:** Contextual retrieval, text summarization, and vector querying are computed locally. Private user documents are never transmitted to external clouds or foreign APIs.
+*   **Dynamic Asset Delivery:** To drastically minimize initial APK download sizes, the resource-heavy AI model is streamed in the background post-installation utilizing **Android Play Asset Delivery (Fast-Follow)** mechanics.
 
 ---
 
-## ✨ Core Features
+## 🛠️ Technical Engineering (Native & JNI Interop)
 
-* **💬 AI Knowledge Chat:** Real-time Q&A over PDF content using an AI model that understands document context.
-* **📝 Smart Summarization:** Summarize long academic papers, contracts, or reports in seconds.
-* **🎨 PDF Editing & Annotation:** Tools for **free-hand drawing**, **highlighting**, and adding notes on document pages.
-* **📂 PDF Toolkit:**
-    * **Creation:** Generate PDFs instantly from text and images.
-    * **Merge & Split:** Manage multi-file workflows.
-    * **Folder Management:** Group files and organize workspaces.
-* **📷 Document Scanner:** Scan physical documents and convert them into digital PDFs using OCR.
+The true performance backbone of Docify lies in its hybrid combination of low-level native compilation and contemporary reactive Android components.
+
+### 📄 Native PDF Engine (Pdfium & JNI Layer)
+Instead of relying on heavy high-level web view hacks, Docify embeds Google’s open-source C++ **Pdfium** engine directly into the Android binaries.
+*   **JNI Interoperability:** C++ drawing buffers and document parsers are tightly bound to Kotlin structures via the **Java Native Interface (JNI)** at the native `libs/obj` tier.
+*   **Custom Annotation Pipeline:** Engineered a native drawing canvas that allows users to perform real-time, zero-lag free-hand annotation, text highlighting, and object layering over raw PDF sheets.
+*   **Memory Footprint Optimization:** Native pointers and object references are closely monitored and automatically recycled via structured memory lifecycle hooks to prevent memory leaks and out-of-memory (OOM) faults on large documents.
+
+### 🏗️ Software Architecture Patterns
+*   **Advanced Modularization:** The functional domains are systematically split. AI inference blocks have zero visibility into rendering engines, avoiding tight coupling.
+*   **Clean Architecture & MVVM/MVI:** Adheres strictly to Separation of Concerns. Business logic communicates with presentation layers through unalterable reactive state flows, streamlining unit test configurations.
 
 ---
 
-## 🚀 Tech Stack
+## ✨ Core Product Capabilities
 
-| Layer | Technologies Used |
+*   **💬 AI Knowledge Chat:** Perform semantic real-time Q&A workflows over loaded PDF contents with full local context retention.
+*   **📝 Smart Summarization:** Condense lengthy academic literature, complex legal contracts, or tech reports into concise analytical points within seconds.
+*   **🎨 Advanced PDF Editor:** Embedded tools for direct **free-hand sketching**, **vector highlighting**, and custom layer notes.
+*   **📂 Structured PDF Toolkit:**
+    *   *Instantiation:* Create digital PDF files on-the-fly from unstructured text payloads or images.
+    *   *File Mutation:* Seamlessly merge multi-file structures or split document packages.
+    *   *Workspace Management:* Create hierarchical directories for complex workflow isolation.
+*   **📷 Document Scanner:** High-precision digitization utility designed to convert physical documents into formatted PDFs using local OCR capture layers.
+
+---
+
+## 🚀 Enterprise Tech Stack
+
+| Operational Layer | Technologies Utilized |
 | :--- | :--- |
-| **LLM Engine** | **Google Gemma** (MediaPipe LLM Inference) |
-| **PDF Engine** | **Pdfium** (C++ / JNI Native Interop) |
-| **UI Framework** | **Jetpack Compose** & Material Design 3 |
-| **Dependency Injection** | **Hilt-Dagger** |
-| **Backend** | **Firebase** (Auth, Firestore, Storage) |
-| **Model Delivery** | **Play Asset Delivery** (Fast-Follow) |
+| **LLM Inference Engine** | **Google Gemma** (via MediaPipe Core Tasks) |
+| **Native Render Pipeline** | **Pdfium Core** (C++ Binary / JNI Interop Layer) |
+| **Modern UI Framework** | **Jetpack Compose** & Google Material Design 3 |
+| **Dependency Injection** | **Dagger Hilt** (Scoped Component Trees) |
+| **Cloud Synchronization** | **Firebase Ecosystem** (Auth, Firestore, Cloud Storage) |
+| **Asset Delivery Subsystem** | **Play Asset Delivery** (Dynamic Fast-Follow Splitting) |
 
 ---
 
-## 🌍 Data Source & Acknowledgments
-Docify owes its PDF processing capabilities to the open-source **Pdfium** project. The advanced AI features are powered by **Google Gemma** models.
+## 📈 Quality Assurance & Telemetry
+
+*   **Native & Kotlin Crash Analytics:** Firebase Crashlytics integrations rigged to catch and log exceptions gracefully across both the managed Kotlin runtime and unmanaged C++ JNI layers.
+*   **Performance Metrics:** Anonymous Firebase Analytics triggers designed to capture local inference benchmarks and render execution latency metrics.
 
 ---
 
-## 📈 Monitoring & Monetization
+## 🚀 Strategic Roadmap & Planned Engineering Refactoring
 
-* **Firebase Crashlytics:** Real-time tracking of errors across both Native and Kotlin layers.
-* **Firebase Analytics:** Anonymous usage statistics and AI performance measurements.
+To guarantee the long-term maintainability and micro-service compatibility of the ecosystem, the following roadmap is actively executed:
+
+- [🔄] **Micro-Client Decoupling:** Complete the total segregation of **Source Academic** (Inference) and **Source Viewer** (JNI Rendering) into isolated workspace structures.
+- [ ] **Feature-Based Architecture:** Move from technical package layer groups towards modularized feature modules to enhance parallel compilation performance.
+- [ ] **Hybrid Cloud Fallback:** Integrate an optional secure **RESTful API** gate to delegate complex long-context reasoning to remote cloud instances when local hardware limitations are reached.
+- [ ] **JNI Bridge Automation Testing:** Write robust automated integration tests (JUnit / Espresso) to intensively validate JNI pointer states and memory allocations.
 
 ---
 
-## 🚀 Roadmap & Planned Improvements
-To ensure the sustainability and scalability of the project, the following developments are planned:
-- [ ] **Architecture Refactoring:** Transition the current package structure to a "Feature-based" architecture to increase modularity.
-- [ ] **Hybrid Cloud Integration:** Add a **RESTful API** layer to support more complex processing using cloud-based alternatives when necessary.
-- [ ] **Unit & UI Testing:** Write comprehensive test scenarios (JUnit, Espresso) for business logic and JNI bridges.
-- [ ] **Advanced OCR:** Integrate cloud-based advanced OCR engines for higher accuracy on scanned documents.
+## 🌍 Live Metrics & Production Status
+
+*   **Production Deployment:** Fully launched and operational on the **Google Play Store**.
+*   **Infrastructure Model:** 100% Client-Side / Zero API or Server Maintenance Overhead.
+*   **Data Strategy:** Offline-First / Local Security Priority.
+
+---
+
+<!-- VISUAL FOOTER: APP PREVIEW & STORE LINKS -->
+<div align="center">
+
+  <br>
+  <h3>📱 Application Preview & Production Link</h3>
+  <br>
+
+  <!-- App Screenshots -->
+  <img src="assets/docify_preview.png" alt="Docify Preview Layout" width="100%">
+
+  <br><br>
+
+  <!-- Google Play Badge -->
+  <a href="https://play.google.com/store/apps/details?id=com.batuscode.docunote">
+    <img alt="Get it on Google Play" src="assets/GetItOnGooglePlay_Badge_Web_color_English.png" width="220"/>
+  </a>
+  
+  <br>
+
+</div>
